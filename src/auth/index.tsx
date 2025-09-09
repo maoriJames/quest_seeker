@@ -1,5 +1,15 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from '@/components/ui/card'
 
 export default function SignInPage() {
   const [email, setEmail] = useState('')
@@ -19,33 +29,45 @@ export default function SignInPage() {
   }
   return (
     <div className="container">
-      {/* Title (instead of <Stack.Screen>) */}
-      <h1 className="title">Sign in</h1>
+      <Card className="max-w-md mx-auto mt-10 shadow-lg">
+        <CardHeader>
+          <CardTitle>Sign In</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <img
+            src="src/assets/images/title_trans.png"
+            alt="Title"
+            className="w-48 mx-auto mb-4"
+          />
 
-      <img className="image" src="/assets/images/title_trans.png" alt="Logo" />
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            placeholder="jon@gmail.com"
+            onChange={(e) => setEmail(e.target.value)}
+          />
 
-      <label className="label">Email</label>
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="jon@gmail.com"
-        className="input"
-      />
-
-      <label className="label">Password</label>
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="••••••"
-        className="input"
-      />
-
-      <button onClick={signInWithEmail} disabled={loading} className="button">
-        {loading ? 'Signing in...' : 'Sign in'}
-      </button>
-
+          <Label htmlFor="email">Password</Label>
+          <Input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••"
+            className="input"
+          />
+        </CardContent>
+        <CardFooter className="flex flex-col gap-2">
+          <Button
+            onClick={signInWithEmail}
+            disabled={loading}
+            className="w-full"
+          >
+            {loading ? 'Signing in...' : 'Sign in'}
+          </Button>
+        </CardFooter>
+      </Card>
       <Link to="/sign-up" className="text-button">
         Create an account
       </Link>
