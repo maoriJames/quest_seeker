@@ -4,12 +4,12 @@ import '../index.css'
 const IndexPage = () => {
   console.log('Main page running?')
 
-  // const isLoggedIn = false // test variable
-  const isAdmin = false // test variable
+  const isLoggedIn = false // test variable
+  const isAdmin = true // test variable
 
-  // if (!isLoggedIn) {
-  //   return <Navigate to="/sign-in" />
-  // }
+  if (!isLoggedIn) {
+    return <Navigate to="/auth" />
+  }
 
   if (!isAdmin) {
     return <Navigate to="/user" />
