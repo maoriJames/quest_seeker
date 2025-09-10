@@ -66,11 +66,11 @@ export default function SignInPage() {
           >
             {loading ? 'Signing in...' : 'Sign in'}
           </Button>
+          <Link to="/sign-up" className="text-button">
+            Create an account
+          </Link>
         </CardFooter>
       </Card>
-      <Link to="/sign-up" className="text-button">
-        Create an account
-      </Link>
     </div>
   )
 }
