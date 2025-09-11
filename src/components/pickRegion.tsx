@@ -1,9 +1,4 @@
-import { Navigate } from 'react-router-dom'
-import '../index.css'
-
-const IndexPage = () => {
-  console.log('Main page running?')
-
+export default function PickRegion() {
   // const isLoggedIn = false // test variable
   // const isAdmin = true // test variable
 
@@ -15,7 +10,5 @@ const IndexPage = () => {
   //   return <Navigate to="/user" />
   // }
 
-  return <Navigate to="/user" />
+  return <div>PickRegion is working!</div>
 }
-
-export default IndexPage
