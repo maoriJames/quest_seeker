@@ -1,6 +1,23 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend'
 
 const schema = a.schema({
+  Quest: a
+    .model({
+      quest_name: a.string(),
+      quest_details: a.string(),
+      quest_image: a.string(),
+      quest_start: a.date(),
+      quest_end: a.date(),
+      quest_prize: a.string(),
+      quest_prize_info: a.string(),
+      quest_sponsor: a.string(),
+      region: a.string(),
+      quest_entry: a.integer(),
+      quest_tasks: a.json(),
+      creator_id: a.string(),
+    })
+    .authorization((allow) => [allow.authenticated()]),
+
   Profile: a
     .model({
       full_name: a.string(),

@@ -1,4 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  UpdateProfileMutation,
+  UpdateProfileMutationVariables,
+} from '@/graphql/API'
 import { generateClient } from 'aws-amplify/api'
 import { listProfiles } from '@/graphql/queries'
 import { updateProfile } from '@/graphql/mutations'
@@ -51,16 +55,19 @@ export const useUpdateProfile = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (data: any) => {
-      const result = await client.graphql({
+    mutationFn: async (variables: UpdateProfileMutationVariables) => {
+      const result = (await client.graphql<UpdateProfileMutation>({
         query: updateProfile,
-        variables: { input: data },
-      })
+        variables,
+      })) as { data: UpdateProfileMutation } // 👈 force-narrow to query/mutation shape
+
       return result.data.updateProfile
     },
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['profiles'] })
-      queryClient.invalidateQueries({ queryKey: ['profiles', id] })
+    onSuccess: (_, { input }) => {
+      if (input?.id) {
+        queryClient.invalidateQueries({ queryKey: ['profiles'] })
+        queryClient.invalidateQueries({ queryKey: ['profiles', input.id] })
+      }
     },
   })
 }

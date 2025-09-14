@@ -2,11 +2,11 @@
 /* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
-import * as APITypes from "./API";
+import * as APITypes from './API'
 type GeneratedMutation<InputType, OutputType> = string & {
-  __generatedMutationInput: InputType;
-  __generatedMutationOutput: OutputType;
-};
+  __generatedMutationInput: InputType
+  __generatedMutationOutput: OutputType
+}
 
 export const createProfile = /* GraphQL */ `mutation CreateProfile(
   $condition: ModelProfileConditionInput
@@ -35,7 +35,7 @@ export const createProfile = /* GraphQL */ `mutation CreateProfile(
 ` as GeneratedMutation<
   APITypes.CreateProfileMutationVariables,
   APITypes.CreateProfileMutation
->;
+>
 export const deleteProfile = /* GraphQL */ `mutation DeleteProfile(
   $condition: ModelProfileConditionInput
   $input: DeleteProfileInput!
@@ -63,7 +63,7 @@ export const deleteProfile = /* GraphQL */ `mutation DeleteProfile(
 ` as GeneratedMutation<
   APITypes.DeleteProfileMutationVariables,
   APITypes.DeleteProfileMutation
->;
+>
 export const updateProfile = /* GraphQL */ `mutation UpdateProfile(
   $condition: ModelProfileConditionInput
   $input: UpdateProfileInput!
@@ -91,4 +91,4 @@ export const updateProfile = /* GraphQL */ `mutation UpdateProfile(
 ` as GeneratedMutation<
   APITypes.UpdateProfileMutationVariables,
   APITypes.UpdateProfileMutation
->;
+>
