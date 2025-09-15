@@ -3,7 +3,6 @@ import {
   UpdateProfileMutation,
   UpdateProfileMutationVariables,
   ListProfilesQuery,
-  Profile,
 } from '@/graphql/API'
 import { generateClient } from 'aws-amplify/api'
 import { listProfiles } from '@/graphql/queries'
@@ -94,23 +93,6 @@ export const useUpdateSeeker = () => {
     },
   })
 }
-
-// export const useCountSeekers = (id: string) => {
-//   return useQuery({
-//     queryKey: ['profiles', 'count', id],
-//     queryFn: async () => {
-//       const result = await client.graphql({ query: listProfiles })
-//       const profiles = result.data.listProfiles.items
-
-//       // filter manually
-//       const count = profiles.filter((p: any) =>
-//         p.my_quests?.some((q: any) => q.questId === id)
-//       ).length
-
-//       return count
-//     },
-//   })
-// }
 
 export const useCountSeekers = (questId: string) => {
   return useQuery({
