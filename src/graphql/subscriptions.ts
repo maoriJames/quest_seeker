@@ -33,6 +33,30 @@ export const onCreateProfile = /* GraphQL */ `subscription OnCreateProfile($filt
   APITypes.OnCreateProfileSubscriptionVariables,
   APITypes.OnCreateProfileSubscription
 >;
+export const onCreateQuest = /* GraphQL */ `subscription OnCreateQuest($filter: ModelSubscriptionQuestFilterInput) {
+  onCreateQuest(filter: $filter) {
+    createdAt
+    creator_id
+    id
+    quest_details
+    quest_end
+    quest_entry
+    quest_image
+    quest_name
+    quest_prize
+    quest_prize_info
+    quest_sponsor
+    quest_start
+    quest_tasks
+    region
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnCreateQuestSubscriptionVariables,
+  APITypes.OnCreateQuestSubscription
+>;
 export const onDeleteProfile = /* GraphQL */ `subscription OnDeleteProfile($filter: ModelSubscriptionProfileFilterInput) {
   onDeleteProfile(filter: $filter) {
     business_type
@@ -58,6 +82,30 @@ export const onDeleteProfile = /* GraphQL */ `subscription OnDeleteProfile($filt
   APITypes.OnDeleteProfileSubscriptionVariables,
   APITypes.OnDeleteProfileSubscription
 >;
+export const onDeleteQuest = /* GraphQL */ `subscription OnDeleteQuest($filter: ModelSubscriptionQuestFilterInput) {
+  onDeleteQuest(filter: $filter) {
+    createdAt
+    creator_id
+    id
+    quest_details
+    quest_end
+    quest_entry
+    quest_image
+    quest_name
+    quest_prize
+    quest_prize_info
+    quest_sponsor
+    quest_start
+    quest_tasks
+    region
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnDeleteQuestSubscriptionVariables,
+  APITypes.OnDeleteQuestSubscription
+>;
 export const onUpdateProfile = /* GraphQL */ `subscription OnUpdateProfile($filter: ModelSubscriptionProfileFilterInput) {
   onUpdateProfile(filter: $filter) {
     business_type
@@ -82,4 +130,28 @@ export const onUpdateProfile = /* GraphQL */ `subscription OnUpdateProfile($filt
 ` as GeneratedSubscription<
   APITypes.OnUpdateProfileSubscriptionVariables,
   APITypes.OnUpdateProfileSubscription
+>;
+export const onUpdateQuest = /* GraphQL */ `subscription OnUpdateQuest($filter: ModelSubscriptionQuestFilterInput) {
+  onUpdateQuest(filter: $filter) {
+    createdAt
+    creator_id
+    id
+    quest_details
+    quest_end
+    quest_entry
+    quest_image
+    quest_name
+    quest_prize
+    quest_prize_info
+    quest_sponsor
+    quest_start
+    quest_tasks
+    region
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnUpdateQuestSubscriptionVariables,
+  APITypes.OnUpdateQuestSubscription
 >;

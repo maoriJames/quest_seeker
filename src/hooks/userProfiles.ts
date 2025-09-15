@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   UpdateProfileMutation,
   UpdateProfileMutationVariables,
+  ListProfilesQuery,
+  Profile,
 } from '@/graphql/API'
 import { generateClient } from 'aws-amplify/api'
 import { listProfiles } from '@/graphql/queries'
@@ -76,31 +78,62 @@ export const useUpdateSeeker = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (data: any) => {
-      const result = await client.graphql({
+    mutationFn: async (variables: UpdateProfileMutationVariables) => {
+      const result = (await client.graphql<UpdateProfileMutation>({
         query: updateProfile,
-        variables: { input: { id: data.id, my_quests: data.questId } },
-      })
+        variables,
+      })) as { data: UpdateProfileMutation } // force-narrow to GraphQL shape
+
       return result.data.updateProfile
     },
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['profiles'] })
-      queryClient.invalidateQueries({ queryKey: ['profiles', id] })
+    onSuccess: (_, { input }) => {
+      if (input?.id) {
+        queryClient.invalidateQueries({ queryKey: ['profiles'] })
+        queryClient.invalidateQueries({ queryKey: ['profiles', input.id] })
+      }
     },
   })
 }
 
-export const useCountSeekers = (id: string) => {
-  return useQuery({
-    queryKey: ['profiles', 'count', id],
-    queryFn: async () => {
-      const result = await client.graphql({ query: listProfiles })
-      const profiles = result.data.listProfiles.items
+// export const useCountSeekers = (id: string) => {
+//   return useQuery({
+//     queryKey: ['profiles', 'count', id],
+//     queryFn: async () => {
+//       const result = await client.graphql({ query: listProfiles })
+//       const profiles = result.data.listProfiles.items
 
-      // filter manually
-      const count = profiles.filter((p: any) =>
-        p.my_quests?.some((q: any) => q.questId === id)
-      ).length
+//       // filter manually
+//       const count = profiles.filter((p: any) =>
+//         p.my_quests?.some((q: any) => q.questId === id)
+//       ).length
+
+//       return count
+//     },
+//   })
+// }
+
+export const useCountSeekers = (questId: string) => {
+  return useQuery({
+    queryKey: ['profiles', 'count', questId],
+    queryFn: async () => {
+      const result = (await client.graphql<ListProfilesQuery>({
+        query: listProfiles,
+      })) as { data: ListProfilesQuery }
+
+      const profiles = result.data.listProfiles?.items ?? []
+
+      const count = profiles.filter((p) => {
+        if (!p?.my_quests) return false
+        let quests: { questId: string }[] = []
+
+        try {
+          quests = JSON.parse(p.my_quests)
+        } catch {
+          return false
+        }
+
+        return quests.some((q) => q.questId === questId)
+      }).length
 
       return count
     },

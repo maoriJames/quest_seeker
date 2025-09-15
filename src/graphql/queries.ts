@@ -33,6 +33,27 @@ export const getProfile = /* GraphQL */ `query GetProfile($id: ID!) {
   APITypes.GetProfileQueryVariables,
   APITypes.GetProfileQuery
 >;
+export const getQuest = /* GraphQL */ `query GetQuest($id: ID!) {
+  getQuest(id: $id) {
+    createdAt
+    creator_id
+    id
+    quest_details
+    quest_end
+    quest_entry
+    quest_image
+    quest_name
+    quest_prize
+    quest_prize_info
+    quest_sponsor
+    quest_start
+    quest_tasks
+    region
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedQuery<APITypes.GetQuestQueryVariables, APITypes.GetQuestQuery>;
 export const listProfiles = /* GraphQL */ `query ListProfiles(
   $filter: ModelProfileFilterInput
   $limit: Int
@@ -65,4 +86,36 @@ export const listProfiles = /* GraphQL */ `query ListProfiles(
 ` as GeneratedQuery<
   APITypes.ListProfilesQueryVariables,
   APITypes.ListProfilesQuery
+>;
+export const listQuests = /* GraphQL */ `query ListQuests(
+  $filter: ModelQuestFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  listQuests(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    items {
+      createdAt
+      creator_id
+      id
+      quest_details
+      quest_end
+      quest_entry
+      quest_image
+      quest_name
+      quest_prize
+      quest_prize_info
+      quest_sponsor
+      quest_start
+      quest_tasks
+      region
+      updatedAt
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.ListQuestsQueryVariables,
+  APITypes.ListQuestsQuery
 >;
