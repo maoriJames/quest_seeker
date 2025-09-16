@@ -1,62 +1,37 @@
-// import { View, Image, Text, StyleSheet, ImageBackground } from 'react-native'
-// import { useState } from 'react'
-import PickRegion from '../../components/pickRegion'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import PickRegion from '../../components/PickRegion'
+import { Link, useNavigate } from 'react-router-dom'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import logo from '@/assets/images/logo_trans.png'
 import bg from '@/assets/images/background_main.png'
-// import { useCurrentUserProfile } from '@/api/profiles'
-// import { ActivityIndicator } from 'react-native-paper'
-
-// type RouteParams = {
-//   selectedRegion: string
-// }
+import { useCurrentUserProfile } from '@/hooks/userProfiles'
 
 export default function RegionPage() {
-  // const [selectedRegion, setSelectedRegion] = useState('')
-  // const [seekerName, setSeekerName] = useState('')
-  // const router = useRouter()
-  // const {
-  //   currentProfile,
-  //   error,
-  //   isLoading: currentLoading,
-  // } = useCurrentUserProfile()
-  // const findQuests = () => {
-  //   router.push({ pathname: `/(user)/home`, params: { selectedRegion } })
-  // }
+  const [selectedRegion, setSelectedRegion] = useState('')
+  const [seekerName, setSeekerName] = useState('')
+  const { currentProfile, error, isLoading } = useCurrentUserProfile()
 
-  // const fetchCurrentName = async () => {
-  //   try {
-  //     const fetchedId = currentProfile?.full_name
-  //     if (fetchedId === undefined) {
-  //       throw new Error('my_quests is undefined')
-  //     }
-  //     return fetchedId
-  //   } catch (error) {
-  //     console.error('Error fetching quests:', error)
-  //     throw error
-  //   }
-  // }
+  const navigate = useNavigate()
 
-  // async function main() {
-  //   try {
-  //     if (!currentProfile) {
-  //       // console.error('currentProfile is null or undefined')
-  //       return
-  //     }
-  //     const currentName = await fetchCurrentName()
-  //     setSeekerName(currentName)
-  //   } catch (error) {
-  //     console.log('Error:', error)
-  //   }
-  // }
+  useEffect(() => {
+    if (currentProfile?.full_name) {
+      setSeekerName(currentProfile.full_name)
+    }
+  }, [currentProfile])
 
-  // main()
+  const findQuests = () => {
+    navigate('/user/home', { state: { selectedRegion } })
+  }
 
-  // if (currentLoading) {
-  //   return <ActivityIndicator />
-  // }
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Loading...</p>
+      </div>
+    )
+  }
+
   return (
     <div
       className="min-h-screen flex items-center justify-center bg-cover bg-center"
@@ -64,7 +39,9 @@ export default function RegionPage() {
     >
       <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl p-8 max-w-md w-full text-center">
         <CardContent>
-          <p className="text-xl font-semibold mb-4">Welcome Back User!</p>
+          <p className="text-xl font-semibold mb-4">
+            Welcome Back {seekerName || 'User'}!
+          </p>
 
           <img
             src={logo}
@@ -72,11 +49,14 @@ export default function RegionPage() {
             className="w-3/5 aspect-square mx-auto mb-6"
           />
 
-          <PickRegion />
+          <PickRegion onChange={setSelectedRegion} />
 
-          <Link to="/user/home/">
-            <Button className="w-full mt-6">Show me quests</Button>
-          </Link>
+          <Button className="w-full mt-6" onClick={findQuests}>
+            Show me quests
+          </Button>
+          <Button className="w-full mt-6" onClick={findQuests}>
+            Update Account
+          </Button>
         </CardContent>
       </Card>
     </div>
