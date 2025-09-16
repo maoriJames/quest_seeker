@@ -37,7 +37,7 @@ export const useProfile = (id: string) => {
 }
 
 export const useCurrentUserProfile = () => {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['currentProfile'],
     queryFn: async () => {
       const { userId } = await getCurrentUser()
@@ -50,6 +50,13 @@ export const useCurrentUserProfile = () => {
       return result.data.getProfile
     },
   })
+
+  return {
+    currentProfile: query.data, // 👈 alias
+    error: query.error,
+    isLoading: query.isLoading,
+    ...query, // keep the rest (isError, refetch, etc.)
+  }
 }
 
 export const useUpdateProfile = () => {
