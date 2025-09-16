@@ -41,6 +41,7 @@ export default function AccountPage() {
   }
 
   useEffect(() => {
+    if (!currentProfile) return
     const fetchCurrentId = async () => {
       try {
         console.log('What is the currentProfile', currentProfile)
