@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import PickRegion from '../../components/PickRegion'
+import PickRegion from '@/components/PickRegion'
 import { Link, useNavigate } from 'react-router-dom'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -22,6 +22,10 @@ export default function RegionPage() {
 
   const findQuests = () => {
     navigate('/user/home', { state: { selectedRegion } })
+  }
+
+  const updateAccount = () => {
+    navigate('/user/account')
   }
 
   if (isLoading) {
@@ -54,7 +58,7 @@ export default function RegionPage() {
           <Button className="w-full mt-6" onClick={findQuests}>
             Show me quests
           </Button>
-          <Button className="w-full mt-6" onClick={findQuests}>
+          <Button className="w-full mt-6" onClick={updateAccount}>
             Update Account
           </Button>
         </CardContent>

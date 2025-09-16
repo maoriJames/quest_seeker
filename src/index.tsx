@@ -8,6 +8,7 @@ import IndexPage from './app/main'
 // import SignInPage from './auth/index'
 import UserPage from './user/index'
 import RegionPage from './user/region'
+import AccountPage from './user/account'
 import './index.css'
 import { Amplify } from 'aws-amplify'
 import outputs from '../amplify_outputs.json'
@@ -26,6 +27,7 @@ root.render(
             <Route path="/" element={<IndexPage />} />
             <Route path="/user" element={<UserPage />} />
             <Route path="/user/region" element={<RegionPage />} />
+            <Route path="/user/account" element={<AccountPage />} />
           </Routes>
         </BrowserRouter>
       </QueryClientProvider>
