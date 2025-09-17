@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import PickRegion from '@/components/PickRegion'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import logo from '@/assets/images/logo_trans.png'
@@ -53,7 +53,7 @@ export default function RegionPage() {
             className="w-3/5 aspect-square mx-auto mb-6"
           />
 
-          <PickRegion onChange={setSelectedRegion} />
+          {/* <PickRegion onChange={setSelectedRegion} /> */}
 
           <Button className="w-full mt-6" onClick={findQuests}>
             Show me quests
