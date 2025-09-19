@@ -52,10 +52,10 @@ export const useCurrentUserProfile = () => {
   })
 
   return {
-    currentProfile: query.data, // 👈 alias
-    error: query.error,
-    isLoading: query.isLoading,
-    ...query, // keep the rest (isError, refetch, etc.)
+    currentProfile: query.data,
+    currentError: query.error,
+    loading: query.isLoading,
+    ...query,
   }
 }
 

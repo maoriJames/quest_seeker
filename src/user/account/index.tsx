@@ -1,5 +1,3 @@
-import QuestListItem from '@/components/QuestListItem'
-import { useSeekerQuests } from '@/hooks/userQuests'
 import { useCurrentUserProfile, useUpdateProfile } from '@/hooks/userProfiles'
 import { useEffect, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
@@ -9,15 +7,15 @@ import { Button } from '@/components/ui/button'
 export default function AccountPage() {
   const [seekerName, setSeekerName] = useState('')
   const [detailsVisible, setDetailsVisible] = useState(false)
-  const [seekerEmail, setSeekerEmail] = useState('')
+  // const [seekerEmail, setSeekerEmail] = useState('')
   const [seekerPhone, setSeekerPhone] = useState('')
   const [profileId, setProfileId] = useState('')
   const {
     currentProfile,
-    error: profile,
-    isLoading: currentLoading,
+    // error: profile,
+    // isLoading: currentLoading,
   } = useCurrentUserProfile()
-  const { data: quests, error, isLoading } = useSeekerQuests()
+  // const { data: quests, error, isLoading } = useSeekerQuests()
   const { mutate: updateProfile } = useUpdateProfile()
 
   const toggleDetails = () => {
@@ -27,9 +25,10 @@ export default function AccountPage() {
   const onUpdate = async () => {
     updateProfile(
       {
-        id: profileId,
-        seekerName: seekerName,
-        primaryContactPhone: seekerPhone,
+        input: {
+          id: profileId,
+          primary_contact_phone: seekerPhone,
+        },
       },
       {
         onSuccess: () => {
@@ -65,17 +64,17 @@ export default function AccountPage() {
         throw error
       }
     }
-    const fetchCurrentEmail = async () => {
-      try {
-        const fetchedEmail = currentProfile?.email
-        if (fetchedEmail === undefined || !fetchedEmail) {
-          setSeekerEmail('Update Email')
-        } else setSeekerEmail(fetchedEmail)
-      } catch (error) {
-        console.error('Error fetching quests:', error)
-        throw error
-      }
-    }
+    // const fetchCurrentEmail = async () => {
+    //   try {
+    //     const fetchedEmail = currentProfile?.email
+    //     if (fetchedEmail === undefined || !fetchedEmail) {
+    //       setSeekerEmail('Update Email')
+    //     } else setSeekerEmail(fetchedEmail)
+    //   } catch (error) {
+    //     console.error('Error fetching quests:', error)
+    //     throw error
+    //   }
+    // }
     const fetchCurrentPhone = async () => {
       try {
         const fetchedPhone = currentProfile?.primary_contact_phone
@@ -89,7 +88,7 @@ export default function AccountPage() {
     }
     fetchCurrentId()
     fetchCurrentUser()
-    fetchCurrentEmail()
+    // fetchCurrentEmail()
     fetchCurrentPhone()
   }, [currentProfile])
 
@@ -102,7 +101,7 @@ export default function AccountPage() {
         <CardContent>
           <div>
             <p>Name: {seekerName}</p>
-            <p>Email: {seekerEmail}</p>
+            {/* <p>Email: {seekerEmail}</p> */}
             <p>Phone: {seekerPhone}</p>
           </div>
           <Button onClick={toggleDetails}>Update Details</Button>
@@ -138,7 +137,7 @@ export default function AccountPage() {
               </div>
             </div>
           )}
-          {error ? (
+          {/* {error ? (
             <p>Failed to fetch quests...</p>
           ) : (
             <div className="grid grid-cols-2 gap-4">
@@ -146,7 +145,7 @@ export default function AccountPage() {
                 <QuestListItem key={quest.id} quest={quest} />
               ))}
             </div>
-          )}
+          )} */}
         </CardContent>
       </Card>
     </div>

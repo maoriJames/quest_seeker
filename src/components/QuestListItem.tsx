@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useProfile } from '@/hooks/userProfiles'
-import { useState } from 'react'
+// import { useState } from 'react'
 
 type Quest = {
   id: string
@@ -19,13 +19,13 @@ export const defaultImage =
   'https://notjustdev-dummy.s3.us-east-2.amazonaws.com/food/default.png'
 
 const QuestListItem = ({ quest }: QuestListItemProps) => {
-  const [profiles, setProfiles] = useState<any>(null)
+  // const [profiles, setProfiles] = useState<any>(null)
   const { data, error, isLoading } = useProfile(quest.creator_id)
 
   if (isLoading) return <p>Loading...</p>
   if (error) return <p>Failed to fetch profile</p>
 
-  const profile = data || {}
+  // const profile = data || {}
 
   const reformatDate = (dateStr: string) => {
     const [year, month, day] = dateStr.split('/')
@@ -45,9 +45,9 @@ const QuestListItem = ({ quest }: QuestListItemProps) => {
           {reformatDate(quest.quest_start)}
         </p>
         <p className="text-sm">Region: {quest.region}</p>
-        <p className="text-sm">
+        {/* <p className="text-sm">
           Organisation: {profile?.organization_name || 'N/A'}
-        </p>
+        </p> */}
       </div>
     </Link>
   )
