@@ -35,7 +35,7 @@ export default function RegionPage() {
       </div>
     )
   }
-
+  console.log(currentProfile)
   return (
     <div
       className="min-h-screen flex items-center justify-center bg-cover bg-center"

@@ -41,7 +41,6 @@ export const useCurrentUserProfile = () => {
     queryKey: ['currentProfile'],
     queryFn: async () => {
       const { userId } = await getCurrentUser()
-
       const result = await client.graphql({
         query: getProfile,
         variables: { id: userId },
