@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { useProfile } from '@/hooks/userProfiles'
+// import { useProfile } from '@/hooks/userProfiles'
 // import { useState } from 'react'
 
 type Quest = {
@@ -20,10 +20,10 @@ export const defaultImage =
 
 const QuestListItem = ({ quest }: QuestListItemProps) => {
   // const [profiles, setProfiles] = useState<any>(null)
-  const { data, error, isLoading } = useProfile(quest.creator_id)
+  // const { data, error, isLoading } = useProfile(quest.creator_id)
 
-  if (isLoading) return <p>Loading...</p>
-  if (error) return <p>Failed to fetch profile</p>
+  // if (isLoading) return <p>Loading...</p>
+  // if (error) return <p>Failed to fetch profile</p>
 
   // const profile = data || {}
 
