@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-// import PickRegion from '@/components/PickRegion'
+import PickRegion from '@/components/PickRegion'
 import { useNavigate } from 'react-router-dom'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -8,8 +8,9 @@ import bg from '@/assets/images/background_main.png'
 import { useCurrentUserProfile } from '@/hooks/userProfiles'
 
 export default function RegionPage() {
-  // const [selectedRegion, setSelectedRegion] = useState('')
+  const [selectedRegion, setSelectedRegion] = useState('')
   const [seekerName, setSeekerName] = useState('')
+  // const { currentProfile, currentError, isLoading } = useCurrentUserProfile()
   const { currentProfile, isLoading } = useCurrentUserProfile()
 
   const navigate = useNavigate()
@@ -20,9 +21,9 @@ export default function RegionPage() {
     }
   }, [currentProfile])
 
-  // const findQuests = () => {
-  //   navigate('/user/home', { state: { selectedRegion } })
-  // }
+  const findQuests = () => {
+    navigate(`/user/home?region=${encodeURIComponent(selectedRegion)}`)
+  }
 
   const updateAccount = () => {
     navigate('/user/account')
@@ -35,7 +36,8 @@ export default function RegionPage() {
       </div>
     )
   }
-  console.log(currentProfile)
+  // console.log({ currentProfile, isLoading, error: currentError })
+
   return (
     <div
       className="min-h-screen flex items-center justify-center bg-cover bg-center"
@@ -53,11 +55,11 @@ export default function RegionPage() {
             className="w-3/5 aspect-square mx-auto mb-6"
           />
 
-          {/* <PickRegion onChange={setSelectedRegion} /> */}
+          <PickRegion value={selectedRegion} onChange={setSelectedRegion} />
 
-          {/* <Button className="w-full mt-6" onClick={findQuests}>
+          <Button className="w-full mt-6" onClick={findQuests}>
             Show me quests
-          </Button> */}
+          </Button>
           <Button className="w-full mt-6" onClick={updateAccount}>
             Update Account
           </Button>
