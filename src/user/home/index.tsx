@@ -3,6 +3,8 @@ import QuestListItem from '@/components/QuestListItem'
 import { useQuestList } from '@/hooks/userQuests'
 import { useMemo } from 'react'
 import bg from '@/assets/images/background_main.png'
+import willowCat from '@/assets/images/willow_cat.png'
+import type { Quest } from '@/types' // <-- import your Quest type
 
 export default function HomePage() {
   const location = useLocation()
@@ -12,18 +14,43 @@ export default function HomePage() {
   // Fetch all quests
   const { data: quests, error, isLoading } = useQuestList()
 
+  // Dummy quests for testing
+  const dummyQuests: Quest[] = [
+    {
+      id: 'dummy1',
+      quest_name: 'Find the Chuchill',
+      quest_details: 'Dummy quest details',
+      quest_start: '2025-09-23',
+      quest_end: '2025-12-31',
+      quest_image: willowCat,
+      region: 'Auckland',
+      creator_id: 'sandbox-user',
+    },
+    {
+      id: 'dummy2',
+      quest_name: 'Test Quest 2',
+      quest_details: 'Another dummy quest',
+      quest_start: '2025-09-25',
+      quest_end: '2025-12-31',
+      quest_image: willowCat,
+      region: 'Wellington',
+      creator_id: 'sandbox-user',
+    },
+  ]
+
+  // Use real quests if available, otherwise fallback to dummy quests
+  const allQuests: Quest[] = quests?.length ? quests : dummyQuests
+
   // Filter quests by region & valid date
   const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD
   const validQuests = useMemo(() => {
-    if (!quests) return []
-
-    return quests.filter((quest) => {
-      const questEndDate = quest.quest_end?.split('T')[0] || ''
+    return allQuests.filter((quest) => {
+      const questEndDate = quest.quest_end?.split('T')[0] ?? ''
       const matchesRegion =
         selectedRegion === 'Browse all' || quest.region === selectedRegion
       return matchesRegion && questEndDate >= today
     })
-  }, [quests, selectedRegion, today])
+  }, [allQuests, selectedRegion, today])
 
   return (
     <div
@@ -38,19 +65,23 @@ export default function HomePage() {
       {!isLoading &&
         !error &&
         validQuests.length > 0 &&
-        validQuests.map((quest) => (
-          <QuestListItem
-            key={quest.id}
-            quest={{
-              ...quest,
-              quest_name: quest.quest_name ?? 'Untitled Quest',
-              quest_image: quest.quest_image ?? undefined,
-              quest_start: quest.quest_start ?? undefined,
-              quest_end: quest.quest_end ?? undefined,
-              region: quest.region ?? 'Unknown',
-            }}
-          />
-        ))}
+        validQuests.map(
+          (
+            quest: Quest // <-- explicitly type here
+          ) => (
+            <QuestListItem
+              key={quest.id}
+              quest={{
+                ...quest,
+                quest_name: quest.quest_name ?? 'Untitled Quest',
+                quest_image: quest.quest_image ?? undefined,
+                quest_start: quest.quest_start ?? undefined,
+                quest_end: quest.quest_end ?? undefined,
+                region: quest.region ?? 'Unknown',
+              }}
+            />
+          )
+        )}
     </div>
   )
 }

@@ -6,18 +6,29 @@ type QuestListItemProps = {
   quest: Quest
 }
 
-export const defaultImage =
-  'https://notjustdev-dummy.s3.us-east-2.amazonaws.com/food/default.png'
+export const defaultImage = '@/assets/images/willow_cat.png'
 
 export default function QuestListItem({ quest }: QuestListItemProps) {
-  // const { data: profiles, error, isLoading } = useProfile(quest.creator_id)
+  // const {
+  //   data: profiles,
+  //   error,
+  //   isLoading,
+  // } = useProfile(quest.creator_id as string, {
+  //   enabled: !!quest.creator_id, // only runs if creator_id is truthy
+  // })
   const {
     data: profiles,
     error,
     isLoading,
   } = useProfile(quest.creator_id as string, {
-    enabled: !!quest.creator_id, // only runs if creator_id is truthy
+    enabled: !!quest.creator_id && quest.creator_id !== 'sandbox-user',
   })
+
+  // Use a dummy profile if this is a sandbox quest
+  const profileData =
+    quest.creator_id === 'sandbox-user'
+      ? { organization_name: 'Sandbox Org' }
+      : profiles
 
   const reformatDate = (dateStr?: string) => {
     if (!dateStr) return ''
@@ -42,7 +53,7 @@ export default function QuestListItem({ quest }: QuestListItemProps) {
         </p>
         <p className="text-sm">Region: {quest.region}</p>
         <p className="text-sm">
-          Organisation: {profiles?.organization_name || 'N/A'}
+          Organisation: {profileData?.organization_name || 'N/A'}
         </p>
       </div>
     </Link>

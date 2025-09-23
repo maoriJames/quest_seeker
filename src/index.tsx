@@ -13,6 +13,7 @@ import HomePage from './user/home'
 import './index.css'
 import { Amplify } from 'aws-amplify'
 import outputs from '../amplify_outputs.json'
+import QuestDetailPage from './user/home/QuestDetailPage'
 
 Amplify.configure(outputs)
 // Create a single QueryClient instance
@@ -30,6 +31,7 @@ root.render(
             <Route path="/user/region" element={<RegionPage />} />
             <Route path="/user/account" element={<AccountPage />} />
             <Route path="/user/home" element={<HomePage />} />
+            <Route path="/home/:id" element={<QuestDetailPage />} />
           </Routes>
         </BrowserRouter>
       </QueryClientProvider>

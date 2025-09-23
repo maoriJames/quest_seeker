@@ -1,6 +1,6 @@
 import { generateClient } from 'aws-amplify/api'
 import { useQuery } from '@tanstack/react-query'
-import { listQuests } from '@/graphql/queries'
+import { listQuests, getQuest } from '@/graphql/queries'
 import type { ListQuestsQuery } from '@/graphql/API'
 
 const client = generateClient()
@@ -28,18 +28,20 @@ export const useQuestList = (region?: string) => {
   })
 }
 
-// export const useQuest = (id: string) => {
-//   return useQuery({
-//     queryKey: ['quests', id],
-//     queryFn: async () => {
-//       const { data } = await client.graphql({
-//         query: getQuest,
-//         variables: { id },
-//       })
-//       return data.getQuest
-//     },
-//   })
-// }
+export const useQuest = (id: string) => {
+  return useQuery({
+    queryKey: ['quest', id],
+    queryFn: async () => {
+      const result = await client.graphql({
+        query: getQuest,
+        variables: { id },
+        authMode: 'userPool', // 👈 ensures the logged-in user's token is sent
+      })
+      return result.data?.getQuest
+    },
+    enabled: !!id, // optional: only run if id is truthy
+  })
+}
 
 // export const useSeekerQuests = (userId: string) => {
 //   return useQuery({
