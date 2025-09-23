@@ -25,29 +25,32 @@ export default function HomePage() {
     })
   }, [quests, selectedRegion, today])
 
-  if (isLoading) return <p>Loading quests...</p>
-  if (error) return <p>Failed to fetch quests.</p>
-  if (validQuests.length === 0)
-    return <p>No quests were found for this region.</p>
-
   return (
     <div
       className="min-h-screen flex items-center justify-center bg-cover bg-center"
       style={{ backgroundImage: `url(${bg})` }}
     >
-      {validQuests.map((quest) => (
-        <QuestListItem
-          key={quest.id}
-          quest={{
-            ...quest,
-            quest_name: quest.quest_name ?? 'Untitled Quest',
-            quest_image: quest.quest_image ?? undefined,
-            quest_start: quest.quest_start ?? undefined,
-            quest_end: quest.quest_end ?? undefined,
-            region: quest.region ?? 'Unknown',
-          }}
-        />
-      ))}
+      {isLoading && <p>Loading quests...</p>}
+      {error && <p>Failed to fetch quests.</p>}
+      {!isLoading && !error && validQuests.length === 0 && (
+        <p>No quests were found for this region.</p>
+      )}
+      {!isLoading &&
+        !error &&
+        validQuests.length > 0 &&
+        validQuests.map((quest) => (
+          <QuestListItem
+            key={quest.id}
+            quest={{
+              ...quest,
+              quest_name: quest.quest_name ?? 'Untitled Quest',
+              quest_image: quest.quest_image ?? undefined,
+              quest_start: quest.quest_start ?? undefined,
+              quest_end: quest.quest_end ?? undefined,
+              region: quest.region ?? 'Unknown',
+            }}
+          />
+        ))}
     </div>
   )
 }

@@ -4,7 +4,6 @@ import {
   useQuery,
   useQueryClient,
   UseQueryOptions,
-  // UseQueryResult,
 } from '@tanstack/react-query'
 import {
   UpdateProfileMutation,
