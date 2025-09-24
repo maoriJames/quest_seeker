@@ -28,18 +28,23 @@ export const useQuestList = (region?: string) => {
   })
 }
 
-export const useQuest = (id: string) => {
+export const useQuest = (id?: string) => {
   return useQuery({
     queryKey: ['quest', id],
     queryFn: async () => {
+      if (!id) {
+        throw new Error('No quest ID provided')
+      }
+
       const result = await client.graphql({
         query: getQuest,
         variables: { id },
-        authMode: 'userPool', // 👈 ensures the logged-in user's token is sent
+        authMode: 'userPool', // ensure the logged-in user's token is sent
       })
+
       return result.data?.getQuest
     },
-    enabled: !!id, // optional: only run if id is truthy
+    enabled: !!id, // don’t run until id exists
   })
 }
 

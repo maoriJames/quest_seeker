@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom'
-import { useQuest } from '@/hooks/userQuests' // or however you fetch a single quest
+import { useQuest } from '@/hooks/userQuests'
 import { useProfile } from '@/hooks/userProfiles'
 
 export default function QuestDetailPage() {
