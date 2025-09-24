@@ -12,6 +12,7 @@ export const onCreateProfile = /* GraphQL */ `subscription OnCreateProfile($filt
   onCreateProfile(filter: $filter) {
     business_type
     createdAt
+    email
     full_name
     id
     image
@@ -22,6 +23,7 @@ export const onCreateProfile = /* GraphQL */ `subscription OnCreateProfile($filt
     primary_contact_phone
     primary_contact_position
     registration_number
+    role
     secondary_contact_name
     secondary_contact_phone
     secondary_contact_position
@@ -61,6 +63,7 @@ export const onDeleteProfile = /* GraphQL */ `subscription OnDeleteProfile($filt
   onDeleteProfile(filter: $filter) {
     business_type
     createdAt
+    email
     full_name
     id
     image
@@ -71,6 +74,7 @@ export const onDeleteProfile = /* GraphQL */ `subscription OnDeleteProfile($filt
     primary_contact_phone
     primary_contact_position
     registration_number
+    role
     secondary_contact_name
     secondary_contact_phone
     secondary_contact_position
@@ -110,6 +114,7 @@ export const onUpdateProfile = /* GraphQL */ `subscription OnUpdateProfile($filt
   onUpdateProfile(filter: $filter) {
     business_type
     createdAt
+    email
     full_name
     id
     image
@@ -120,6 +125,7 @@ export const onUpdateProfile = /* GraphQL */ `subscription OnUpdateProfile($filt
     primary_contact_phone
     primary_contact_position
     registration_number
+    role
     secondary_contact_name
     secondary_contact_phone
     secondary_contact_position

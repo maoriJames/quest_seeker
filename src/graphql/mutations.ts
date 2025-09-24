@@ -15,6 +15,7 @@ export const createProfile = /* GraphQL */ `mutation CreateProfile(
   createProfile(condition: $condition, input: $input) {
     business_type
     createdAt
+    email
     full_name
     id
     image
@@ -25,6 +26,7 @@ export const createProfile = /* GraphQL */ `mutation CreateProfile(
     primary_contact_phone
     primary_contact_position
     registration_number
+    role
     secondary_contact_name
     secondary_contact_phone
     secondary_contact_position
@@ -70,6 +72,7 @@ export const deleteProfile = /* GraphQL */ `mutation DeleteProfile(
   deleteProfile(condition: $condition, input: $input) {
     business_type
     createdAt
+    email
     full_name
     id
     image
@@ -80,6 +83,7 @@ export const deleteProfile = /* GraphQL */ `mutation DeleteProfile(
     primary_contact_phone
     primary_contact_position
     registration_number
+    role
     secondary_contact_name
     secondary_contact_phone
     secondary_contact_position
@@ -125,6 +129,7 @@ export const updateProfile = /* GraphQL */ `mutation UpdateProfile(
   updateProfile(condition: $condition, input: $input) {
     business_type
     createdAt
+    email
     full_name
     id
     image
@@ -135,6 +140,7 @@ export const updateProfile = /* GraphQL */ `mutation UpdateProfile(
     primary_contact_phone
     primary_contact_position
     registration_number
+    role
     secondary_contact_name
     secondary_contact_phone
     secondary_contact_position

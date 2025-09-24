@@ -12,6 +12,7 @@ export const getProfile = /* GraphQL */ `query GetProfile($id: ID!) {
   getProfile(id: $id) {
     business_type
     createdAt
+    email
     full_name
     id
     image
@@ -22,6 +23,7 @@ export const getProfile = /* GraphQL */ `query GetProfile($id: ID!) {
     primary_contact_phone
     primary_contact_position
     registration_number
+    role
     secondary_contact_name
     secondary_contact_phone
     secondary_contact_position
@@ -63,6 +65,7 @@ export const listProfiles = /* GraphQL */ `query ListProfiles(
     items {
       business_type
       createdAt
+      email
       full_name
       id
       image
@@ -73,6 +76,7 @@ export const listProfiles = /* GraphQL */ `query ListProfiles(
       primary_contact_phone
       primary_contact_position
       registration_number
+      role
       secondary_contact_name
       secondary_contact_phone
       secondary_contact_position
