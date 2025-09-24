@@ -21,6 +21,7 @@ const schema = a.schema({
   Profile: a
     .model({
       full_name: a.string(),
+      email: a.string(),
       organization_name: a.string(),
       registration_number: a.string(),
       business_type: a.string(),
@@ -33,6 +34,7 @@ const schema = a.schema({
       secondary_contact_phone: a.string(),
       image: a.string(),
       my_quests: a.json(),
+      role: a.enum(['seeker', 'creator']),
     })
     .authorization((allow) => [allow.authenticated()]),
 })

@@ -1,96 +1,50 @@
 import { useCurrentUserProfile, useUpdateProfile } from '@/hooks/userProfiles'
 import { useEffect, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
-import bg from '@/assets/images/background_main.png'
 import { Button } from '@/components/ui/button'
+import bg from '@/assets/images/background_main.png'
+import { useNavigate } from 'react-router-dom'
 
 export default function AccountPage() {
-  const [seekerName, setSeekerName] = useState('')
+  const { currentProfile } = useCurrentUserProfile()
+  const { mutate: updateProfile } = useUpdateProfile({
+    onSuccess: () => {
+      setDetailsVisible(false)
+      window.alert('Profile updated successfully!')
+    },
+  })
+
   const [detailsVisible, setDetailsVisible] = useState(false)
-  // const [seekerEmail, setSeekerEmail] = useState('')
-  const [seekerPhone, setSeekerPhone] = useState('')
   const [profileId, setProfileId] = useState('')
-  const {
-    currentProfile,
-    // error: profile,
-    // isLoading: currentLoading,
-  } = useCurrentUserProfile()
-  // const { data: quests, error, isLoading } = useSeekerQuests()
-  const { mutate: updateProfile } = useUpdateProfile()
+  const [seekerName, setSeekerName] = useState('')
+  const [seekerPhone, setSeekerPhone] = useState('')
 
-  const toggleDetails = () => {
-    setDetailsVisible(!detailsVisible)
-  }
-
-  const onUpdate = async () => {
-    updateProfile(
-      {
-        input: {
-          id: profileId,
-          primary_contact_phone: seekerPhone,
-        },
-      },
-      {
-        onSuccess: () => {
-          window.alert('Update Successful!')
-          setDetailsVisible(!detailsVisible)
-        },
-      }
-    )
-  }
-
+  // Load current profile data when it changes
   useEffect(() => {
     if (!currentProfile) return
-    const fetchCurrentId = async () => {
-      try {
-        console.log('What is the currentProfile', currentProfile)
-        const id = currentProfile?.id
-        if (!id) {
-          console.log('Cant find the id')
-        } else setProfileId(id)
-      } catch (error) {
-        console.error('Error fetching quests:', error)
-        throw error
-      }
-    }
-    const fetchCurrentUser = async () => {
-      try {
-        const fetchedName = currentProfile?.full_name
-        if (fetchedName === undefined || !fetchedName) {
-          setSeekerName('Update Name')
-        } else setSeekerName(fetchedName)
-      } catch (error) {
-        console.error('Error fetching quests:', error)
-        throw error
-      }
-    }
-    // const fetchCurrentEmail = async () => {
-    //   try {
-    //     const fetchedEmail = currentProfile?.email
-    //     if (fetchedEmail === undefined || !fetchedEmail) {
-    //       setSeekerEmail('Update Email')
-    //     } else setSeekerEmail(fetchedEmail)
-    //   } catch (error) {
-    //     console.error('Error fetching quests:', error)
-    //     throw error
-    //   }
-    // }
-    const fetchCurrentPhone = async () => {
-      try {
-        const fetchedPhone = currentProfile?.primary_contact_phone
-        if (fetchedPhone === undefined || !fetchedPhone) {
-          setSeekerPhone('Update Phone')
-        } else setSeekerPhone(fetchedPhone)
-      } catch (error) {
-        console.error('Error fetching quests:', error)
-        throw error
-      }
-    }
-    fetchCurrentId()
-    fetchCurrentUser()
-    // fetchCurrentEmail()
-    fetchCurrentPhone()
+    setProfileId(currentProfile.id)
+    setSeekerName(currentProfile.full_name ?? 'Update Name')
+    setSeekerPhone(currentProfile.primary_contact_phone ?? 'Update Phone')
   }, [currentProfile])
+
+  const toggleDetails = () => setDetailsVisible(!detailsVisible)
+
+  const navigate = useNavigate()
+
+  const onUpdate = () => {
+    if (!profileId) return
+    updateProfile({
+      input: {
+        id: profileId,
+        full_name: seekerName,
+        primary_contact_phone: seekerPhone,
+      },
+    })
+  }
+
+  const onReturn = () => {
+    navigate('/user/region')
+  }
 
   return (
     <div
@@ -101,10 +55,10 @@ export default function AccountPage() {
         <CardContent>
           <div>
             <p>Name: {seekerName}</p>
-            {/* <p>Email: {seekerEmail}</p> */}
             <p>Phone: {seekerPhone}</p>
           </div>
           <Button onClick={toggleDetails}>Update Details</Button>
+          <Button onClick={onReturn}>Return to Quest Page</Button>
           {detailsVisible && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
               <div className="bg-white p-6 rounded shadow-lg relative">
@@ -131,21 +85,11 @@ export default function AccountPage() {
                     onChange={(e) => setSeekerPhone(e.target.value)}
                     className="border p-2 rounded"
                   />
-
                   <Button onClick={onUpdate}>Update</Button>
                 </div>
               </div>
             </div>
           )}
-          {/* {error ? (
-            <p>Failed to fetch quests...</p>
-          ) : (
-            <div className="grid grid-cols-2 gap-4">
-              {quests?.map((quest) => (
-                <QuestListItem key={quest.id} quest={quest} />
-              ))}
-            </div>
-          )} */}
         </CardContent>
       </Card>
     </div>
