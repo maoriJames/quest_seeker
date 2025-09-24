@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import logo from '@/assets/images/logo_trans.png'
 import bg from '@/assets/images/background_main.png'
 import { useCurrentUserProfile } from '@/hooks/userProfiles'
+import SignOutButton from '@/components/SignOutButton'
 
 export default function RegionPage() {
   const [selectedRegion, setSelectedRegion] = useState('')
@@ -63,6 +64,7 @@ export default function RegionPage() {
           <Button className="w-full mt-6" onClick={updateAccount}>
             Update Account
           </Button>
+          <SignOutButton />
         </CardContent>
       </Card>
     </div>

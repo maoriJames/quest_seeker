@@ -2,7 +2,6 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { Authenticator } from '@aws-amplify/ui-react'
 import '@aws-amplify/ui-react/styles.css'
 import IndexPage from './app/main'
 // import SignInPage from './auth/index'
@@ -14,6 +13,8 @@ import './index.css'
 import { Amplify } from 'aws-amplify'
 import outputs from '../amplify_outputs.json'
 import QuestDetailPage from './user/home/QuestDetailPage'
+import { Authenticator } from '@aws-amplify/ui-react'
+// import AppAuthenticator from './components/AppAuthenticator'
 
 Amplify.configure(outputs)
 // Create a single QueryClient instance
