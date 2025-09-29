@@ -79,14 +79,27 @@ export type Profile = {
 //   onNewPrize: OnNewPrizeFunction
 // }
 
-// export type Task = {
-//   id: number
-//   description: string
-//   isImage: boolean
-//   isChecked: boolean
-//   caption: string
-//   answer: string
-// }
+export type Task = {
+  id: number
+  description: string
+  isImage: boolean
+  isChecked: boolean
+  caption: string
+  answer: string
+}
+
+export type Sponsor = {
+  id: string
+  name: string
+  sponsorImage: boolean
+  image: string
+}
+
+export type Prize = {
+  id: string
+  name: string
+  contributor: string
+}
 
 // export type OnNewTaskFunction = (updatedTasks: Task[]) => void
 
@@ -111,17 +124,4 @@ export type Profile = {
 
 // export type MyQuest = {
 //   questId: uuid
-// }
-
-// export type Sponsor = {
-//   id: string
-//   name: string
-//   sponsorImage: boolean
-//   image: string
-// }
-
-// export type Prize = {
-//   id: string
-//   name: string
-//   contributor: string
 // }

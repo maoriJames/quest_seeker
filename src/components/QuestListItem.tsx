@@ -40,7 +40,7 @@ export default function QuestListItem({ quest }: QuestListItemProps) {
   if (error) return <p>Failed to fetch profile.</p>
 
   return (
-    <Link to={`/home/${quest.id}`} className="block">
+    <Link to={`/quest/${quest.id}`} className="block">
       <div className="bg-white rounded-2xl p-4 shadow flex flex-col gap-2">
         <img
           src={quest.quest_image || defaultImage}
