@@ -37,7 +37,7 @@ export default function CreateQuestPage() {
 
   const [name, setName] = useState('')
   const [details, setDetails] = useState('')
-  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imageFile, setImageFile] = useState<string | null>(null)
   const [previewImage, setPreviewImage] = useState<string>('')
   const [startDate, setStartDate] = useState<string>(
     new Date().toISOString().split('T')[0]
@@ -113,7 +113,11 @@ export default function CreateQuestPage() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    setImageFile(file)
+
+    // Example: store the file name (or construct a path for your bucket)
+    setImageFile(file.name)
+
+    // For preview, you can still create a URL
     setPreviewImage(URL.createObjectURL(file))
   }
 
@@ -145,7 +149,7 @@ export default function CreateQuestPage() {
     const payloadBase = {
       quest_name: name,
       quest_details: details,
-      quest_image: previewImage,
+      quest_image: imageFile,
       quest_start: startDate,
       quest_end: endDate,
       quest_prize: prizeEnabled,
@@ -158,6 +162,9 @@ export default function CreateQuestPage() {
     }
 
     if (isUpdating) {
+      if (!validateInput()) {
+        return
+      }
       const updatePayload: UpdateQuestInput = {
         ...payloadBase,
         id: questId!, // required for update
@@ -183,10 +190,10 @@ export default function CreateQuestPage() {
   }
 
   // Stub for image upload
-  const uploadImage = async (file: File) => {
-    // Replace with your Supabase or API upload logic
-    return previewImage
-  }
+  // const uploadImage = async (file: File) => {
+  //   // Replace with your Supabase or API upload logic
+  //   return previewImage
+  // }
 
   return (
     <div className="space-y-4 max-w-3xl mx-auto p-4">
