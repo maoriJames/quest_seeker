@@ -1,4 +1,5 @@
 import { signOut } from '@aws-amplify/auth'
+import { Button } from '@/components/ui/button'
 
 export default function SignOutButton() {
   const handleSignOut = async () => {
@@ -11,11 +12,8 @@ export default function SignOutButton() {
   }
 
   return (
-    <button
-      onClick={handleSignOut}
-      className="px-4 py-2 bg-red-500 text-white rounded"
-    >
+    <Button onClick={handleSignOut} className="w-full mt-6">
       Sign Out
-    </button>
+    </Button>
   )
 }

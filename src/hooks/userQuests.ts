@@ -1,7 +1,12 @@
 import { generateClient } from 'aws-amplify/api'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { listQuests, getQuest } from '@/graphql/queries'
-import type { ListQuestsQuery } from '@/graphql/API'
+import type {
+  CreateQuestInput,
+  ListQuestsQuery,
+  UpdateQuestInput,
+} from '@/graphql/API'
+import { createQuest, deleteQuest, updateQuest } from '@/graphql/mutations'
 
 const client = generateClient()
 
@@ -28,7 +33,7 @@ export const useQuestList = (region?: string) => {
   })
 }
 
-export const useQuest = (id?: string) => {
+export const useQuest = (id?: string | number) => {
   return useQuery({
     queryKey: ['quest', id],
     queryFn: async () => {
@@ -38,13 +43,13 @@ export const useQuest = (id?: string) => {
 
       const result = await client.graphql({
         query: getQuest,
-        variables: { id },
-        authMode: 'userPool', // ensure the logged-in user's token is sent
+        variables: { id: String(id) }, // GraphQL expects string for ID
+        authMode: 'userPool',
       })
 
       return result.data?.getQuest
     },
-    enabled: !!id, // don’t run until id exists
+    enabled: !!id,
   })
 }
 
@@ -77,53 +82,53 @@ export const useQuest = (id?: string) => {
 //   })
 // }
 
-// export const useInsertQuest = () => {
-//   const queryClient = useQueryClient()
+export const useInsertQuest = () => {
+  const queryClient = useQueryClient()
 
-//   return useMutation({
-//     mutationFn: async (questInput: CreateQuestInput) => {
-//       const { data } = await client.graphql({
-//         query: createQuest,
-//         variables: { input: questInput },
-//       })
-//       return data.createQuest
-//     },
-//     onSuccess: () => {
-//       queryClient.invalidateQueries({ queryKey: ['quests'] })
-//     },
-//   })
-// }
+  return useMutation({
+    mutationFn: async (questInput: CreateQuestInput) => {
+      const { data } = await client.graphql({
+        query: createQuest,
+        variables: { input: questInput },
+      })
+      return data.createQuest
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quests'] })
+    },
+  })
+}
 
-// export const useUpdateQuest = () => {
-//   const queryClient = useQueryClient()
+export const useUpdateQuest = () => {
+  const queryClient = useQueryClient()
 
-//   return useMutation({
-//     mutationFn: async (questInput: UpdateQuestInput) => {
-//       const { data } = await client.graphql({
-//         query: updateQuest,
-//         variables: { input: questInput },
-//       })
-//       return data.updateQuest
-//     },
-//     onSuccess: (_, { id }) => {
-//       queryClient.invalidateQueries({ queryKey: ['quests'] })
-//       queryClient.invalidateQueries({ queryKey: ['quests', id] })
-//     },
-//   })
-// }
+  return useMutation({
+    mutationFn: async (questInput: UpdateQuestInput) => {
+      const { data } = await client.graphql({
+        query: updateQuest,
+        variables: { input: questInput },
+      })
+      return data.updateQuest
+    },
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['quests'] })
+      queryClient.invalidateQueries({ queryKey: ['quests', id] })
+    },
+  })
+}
 
-// export const useDeleteQuest = () => {
-//   const queryClient = useQueryClient()
+export const useDeleteQuest = () => {
+  const queryClient = useQueryClient()
 
-//   return useMutation({
-//     mutationFn: async (id: string) => {
-//       await client.graphql({
-//         query: deleteQuest,
-//         variables: { input: { id } },
-//       })
-//     },
-//     onSuccess: () => {
-//       queryClient.invalidateQueries({ queryKey: ['quests'] })
-//     },
-//   })
-// }
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await client.graphql({
+        query: deleteQuest,
+        variables: { input: { id } },
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quests'] })
+    },
+  })
+}

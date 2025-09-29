@@ -8,7 +8,7 @@ const schema = a.schema({
       quest_image: a.string(),
       quest_start: a.date(),
       quest_end: a.date(),
-      quest_prize: a.string(),
+      quest_prize: a.boolean(),
       quest_prize_info: a.string(),
       quest_sponsor: a.string(),
       region: a.string(),
