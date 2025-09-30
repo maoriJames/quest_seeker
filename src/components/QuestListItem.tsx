@@ -6,7 +6,7 @@ type QuestListItemProps = {
   quest: Quest
 }
 
-export const defaultImage = '@/assets/images/willow_cat.png'
+export const defaultImage = '@/assets/images/placeholder_view_vector.svg'
 
 export default function QuestListItem({ quest }: QuestListItemProps) {
   // const {

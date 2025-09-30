@@ -13,11 +13,12 @@ import {
   DialogClose,
 } from '@/components/ui/dialog'
 import { Calendar } from '@/components/ui/calendar'
-// import RemoteImage from '@/components/RemoteImage'
-import willowCat from '@/assets/images/willow_cat.png'
-// import TaskCreatorButton from '@/components/TaskCreation'
+import TaskCreatorButton from '@/components/TaskCreatorButton'
 // import SponsorCreatorButton from '@/components/SponsorCreator'
 // import PrizeCreationButton from '@/components/PrizeCreation'
+import RemoteImage from '@/components/RemoteImage'
+import placeHold from '@/assets/images/placeholder_view_vector.svg'
+import bg from '@/assets/images/background_main.png'
 // import { defaultImage } from '@/components/QuestListItem'
 import {
   useInsertQuest,
@@ -196,122 +197,118 @@ export default function CreateQuestPage() {
   // }
 
   return (
-    <div className="space-y-4 max-w-3xl mx-auto p-4">
-      <h1 className="text-2xl font-bold">
-        {isUpdating ? 'Update Quest' : 'Create Quest'}
-      </h1>
+    <div
+      className="min-h-screen flex items-center justify-center bg-cover bg-center"
+      style={{ backgroundImage: `url(${bg})` }}
+    >
+      <div className="w-full max-w-3xl p-6 bg-white/80 rounded-lg shadow-md">
+        <h1 className="text-2xl font-bold">
+          {isUpdating ? 'Update Quest' : 'Create Quest'}
+        </h1>
 
-      {previewImage ? (
-        <img src={previewImage} className="w-1/2 mx-auto rounded-lg" />
-      ) : (
-        // <RemoteImage
-        //   path={previewImage}
-        //   fallback={defaultImage}
-        //   className="w-1/2 mx-auto rounded-lg"
-        // />
-        <img
-          src={willowCat}
-          alt={'placeholder'}
-          className="w-full aspect-square rounded-2xl object-cover"
-        />
-      )}
+        {previewImage ? (
+          <img src={previewImage} className="w-1/2 mx-auto rounded-lg" />
+        ) : (
+          <RemoteImage
+            path={previewImage} // S3 object key
+            fallback={placeHold}
+            className="w-1/2 mx-auto rounded-lg"
+          />
+        )}
 
-      <input type="file" accept="image/*" onChange={handleImageChange} />
-      <label className="block text-sm font-medium">
-        Quest Title
-        <Input value={name} onChange={(e) => setName(e.target.value)} />
-      </label>
-      <label className="block text-sm font-medium">
-        Quest Details
-        <Textarea
-          value={details}
-          onChange={(e) => setDetails(e.target.value)}
-          className="border rounded p-2 w-full"
-        />
-      </label>
-      <label className="block text-sm font-medium">
-        Seeker Entry Fee
-        <Input
-          value={currencyValue}
-          onChange={(e) => setCurrencyValue(e.target.value)}
-        />
-      </label>
-      {/* Date Pickers */}
-      <div className="flex space-x-2">
-        <Dialog open={openStart} onOpenChange={setOpenStart}>
-          <DialogTrigger asChild>
-            <Button>{`Start Date: ${startDate}`}</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <Calendar
-              mode="single"
-              selected={startDate ? new Date(startDate) : undefined}
-              onSelect={(date) => {
-                if (date) {
-                  setStartDate(date.toISOString().split('T')[0])
-                }
-              }}
-            />
-            <DialogClose asChild>
-              <Button>Confirm</Button>
-            </DialogClose>
-          </DialogContent>
-        </Dialog>
+        <input type="file" accept="image/*" onChange={handleImageChange} />
+        <label className="block text-sm font-medium">
+          Quest Title
+          <Input value={name} onChange={(e) => setName(e.target.value)} />
+        </label>
+        <label className="block text-sm font-medium">
+          Quest Details
+          <Textarea
+            value={details}
+            onChange={(e) => setDetails(e.target.value)}
+            className="border rounded p-2 w-full"
+          />
+        </label>
+        <label className="block text-sm font-medium">
+          Seeker Entry Fee
+          <Input
+            value={currencyValue}
+            onChange={(e) => setCurrencyValue(e.target.value)}
+          />
+        </label>
+        {/* Date Pickers */}
+        <div className="flex space-x-2">
+          <Dialog open={openStart} onOpenChange={setOpenStart}>
+            <DialogTrigger asChild>
+              <Button>{`Start Date: ${startDate}`}</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <Calendar
+                mode="single"
+                selected={startDate ? new Date(startDate) : undefined}
+                onSelect={(date) => {
+                  if (date) {
+                    setStartDate(date.toISOString().split('T')[0])
+                  }
+                }}
+              />
+              <DialogClose asChild>
+                <Button>Confirm</Button>
+              </DialogClose>
+            </DialogContent>
+          </Dialog>
 
-        <Dialog open={openEnd} onOpenChange={setOpenEnd}>
-          <DialogTrigger asChild>
-            <Button>{`End Date: ${endDate}`}</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <Calendar
-              mode="single"
-              selected={endDate ? new Date(endDate) : undefined}
-              onSelect={(date) => {
-                if (date) {
-                  setEndDate(date.toISOString().split('T')[0])
-                }
-              }}
-            />
-            <DialogClose asChild>
-              <Button>Confirm</Button>
-            </DialogClose>
-          </DialogContent>
-        </Dialog>
-      </div>
+          <Dialog open={openEnd} onOpenChange={setOpenEnd}>
+            <DialogTrigger asChild>
+              <Button>{`End Date: ${endDate}`}</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <Calendar
+                mode="single"
+                selected={endDate ? new Date(endDate) : undefined}
+                onSelect={(date) => {
+                  if (date) {
+                    setEndDate(date.toISOString().split('T')[0])
+                  }
+                }}
+              />
+              <DialogClose asChild>
+                <Button>Confirm</Button>
+              </DialogClose>
+            </DialogContent>
+          </Dialog>
+        </div>
 
-      {/* Prize toggle */}
-      <div className="flex items-center space-x-2">
-        <Switch checked={prizeEnabled} onCheckedChange={setPrizeEnabled} />
-        <span>{prizeEnabled ? 'PRIZES' : 'NO PRIZES'}</span>
-      </div>
+        {/* Prize toggle */}
+        <div className="flex items-center space-x-2">
+          <Switch checked={prizeEnabled} onCheckedChange={setPrizeEnabled} />
+          <span>{prizeEnabled ? 'PRIZES' : 'NO PRIZES'}</span>
+        </div>
 
-      {prizeEnabled && (
-        // <PrizeCreationButton prizeUpdates={prizes} onNewPrize={setPrizes} />
-        <Button className="w-full mt-6" onClick={() => {}}>
-          Add Prize
-        </Button>
-      )}
-      {/* <SponsorCreatorButton
+        {prizeEnabled && (
+          // <PrizeCreationButton prizeUpdates={prizes} onNewPrize={setPrizes} />
+          <Button className="w-full mt-6" onClick={() => {}}>
+            Add Prize
+          </Button>
+        )}
+        {/* <SponsorCreatorButton
         sponsorUpdates={sponsors}
         onNewSponsor={setSponsors}
-      />
-      <TaskCreatorButton questUpdates={tasks} onNewTask={setTasks} /> */}
-      <Button className="w-full mt-6" onClick={() => {}}>
-        Add Sponsor
-      </Button>
-
-      <Button className="w-full mt-6" onClick={() => {}}>
-        Create Task
-      </Button>
-
-      <Button onClick={onSubmit}>{isUpdating ? 'Update' : 'Create'}</Button>
-      {isUpdating && (
-        <Button variant="destructive" onClick={confirmDelete}>
-          Delete
+      />*/}
+        <TaskCreatorButton questUpdates={tasks} onNewTask={setTasks} />
+        <Button className="w-full mt-6" onClick={() => {}}>
+          Add Sponsor
         </Button>
-      )}
 
-      {errors && <p className="text-red-600">{errors}</p>}
+        <Button onClick={onSubmit}>{isUpdating ? 'Update' : 'Create'}</Button>
+        {isUpdating && (
+          <Button variant="destructive" onClick={confirmDelete}>
+            Delete
+          </Button>
+        )}
+
+        {errors && <p className="text-red-600">{errors}</p>}
+      </div>
     </div>
   )
 }

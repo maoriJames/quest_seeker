@@ -4,7 +4,7 @@ import { useQuestList } from '@/hooks/userQuests'
 import { useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import bg from '@/assets/images/background_main.png'
-import willowCat from '@/assets/images/willow_cat.png'
+import placeHold from '@/assets/images/placeholder_view_vector.svg'
 import type { Quest } from '@/types' // <-- import your Quest type
 import AddQuestButton from '@/components/AddQuestButton'
 
@@ -24,7 +24,7 @@ export default function QuestPage() {
       quest_details: 'Dummy quest details',
       quest_start: '2025-09-23',
       quest_end: '2025-12-31',
-      quest_image: willowCat,
+      quest_image: placeHold,
       region: 'Auckland',
       creator_id: 'sandbox-user',
     },
@@ -34,7 +34,7 @@ export default function QuestPage() {
       quest_details: 'Another dummy quest',
       quest_start: '2025-09-25',
       quest_end: '2025-12-31',
-      quest_image: willowCat,
+      quest_image: placeHold,
       region: 'Wellington',
       creator_id: 'sandbox-user',
     },

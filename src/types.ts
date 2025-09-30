@@ -1,4 +1,4 @@
-// import { Dispatch, ReactNode, SetStateAction } from 'react'
+import { Dispatch, SetStateAction, ImgHTMLAttributes } from 'react'
 
 export type Quest = {
   id: string
@@ -31,17 +31,29 @@ export type Profile = {
 //   children: ReactNode
 // }
 
-// export interface TaskModalProps {
-//   tasks: Array<{ id: number; description: string; isImage: boolean }>
-//   setTasks: Dispatch<
-//     SetStateAction<Array<{ id: number; description: string; isImage: boolean }>>
-//   >
-//   setTask: Dispatch<SetStateAction<string>>
-//   setEditIndex: Dispatch<SetStateAction<number>>
-//   visible: boolean
-//   onClose: () => void
-//   onNewTask: OnNewTaskFunction
-// }
+export type Task = {
+  id: number
+  description: string
+  isImage: boolean
+  isChecked: boolean
+  caption: string
+  answer: string
+}
+export interface TaskModalProps {
+  tasks: Task[]
+  setTasks: Dispatch<SetStateAction<Task[]>>
+  setTask: Dispatch<SetStateAction<string>>
+  setEditIndex: Dispatch<SetStateAction<number>>
+  visible: boolean
+  onClose: () => void
+  onNewTask: OnNewTaskFunction
+}
+
+export type RemoteImageProps = {
+  path?: string | null
+  fallback: string
+} & Omit<ImgHTMLAttributes<HTMLImageElement>, 'src'>
+
 // export interface SponsorModalProps {
 //   sponsors: Array<{
 //     id: string
@@ -79,15 +91,6 @@ export type Profile = {
 //   onNewPrize: OnNewPrizeFunction
 // }
 
-export type Task = {
-  id: number
-  description: string
-  isImage: boolean
-  isChecked: boolean
-  caption: string
-  answer: string
-}
-
 export type Sponsor = {
   id: string
   name: string
@@ -101,16 +104,16 @@ export type Prize = {
   contributor: string
 }
 
-// export type OnNewTaskFunction = (updatedTasks: Task[]) => void
+export type OnNewTaskFunction = (updatedTasks: Task[]) => void
 
 // export type OnNewSponsorFunction = (updatedSponsors: Sponsor[]) => void
 
 // export type OnNewPrizeFunction = (updatedPrizes: Prize[]) => void
 
-// export interface TaskCreatorButtonProps {
-//   questUpdates: Task[]
-//   onNewTask: OnNewTaskFunction
-// }
+export interface TaskCreatorButtonProps {
+  questUpdates: Task[]
+  onNewTask: OnNewTaskFunction
+}
 
 // export interface SponsorCreatorButtonProps {
 //   sponsorUpdates: Sponsor[]
