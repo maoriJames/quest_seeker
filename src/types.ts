@@ -54,25 +54,25 @@ export type RemoteImageProps = {
   fallback: string
 } & Omit<ImgHTMLAttributes<HTMLImageElement>, 'src'>
 
-// export interface SponsorModalProps {
-//   sponsors: Array<{
-//     id: string
-//     name: string
-//     sponsorImage: boolean
-//     image: string
-//   }>
-//   setSponsors: Dispatch<
-//     SetStateAction<
-//       Array<{ id: string; name: string; sponsorImage: boolean; image: string }>
-//     >
-//   >
-//   setSponsor: Dispatch<SetStateAction<string>>
-//   setImage: Dispatch<SetStateAction<string | null>>
-//   setEditIndex: Dispatch<SetStateAction<number>>
-//   visible: boolean
-//   onClose: () => void
-//   onNewSponsor: OnNewSponsorFunction
-// }
+export interface SponsorModalProps {
+  sponsors: Array<{
+    id: string
+    name: string
+    sponsorImage: boolean
+    image: string
+  }>
+  setSponsors: Dispatch<
+    SetStateAction<
+      Array<{ id: string; name: string; sponsorImage: boolean; image: string }>
+    >
+  >
+  setSponsor: Dispatch<SetStateAction<string>>
+  setImage: Dispatch<SetStateAction<string | null>>
+  setEditIndex: Dispatch<SetStateAction<number>>
+  visible: boolean
+  onClose: () => void
+  onNewSponsor: OnNewSponsorFunction
+}
 
 // export interface PrizeModalProps {
 //   prizes: Array<{
@@ -106,7 +106,7 @@ export type Prize = {
 
 export type OnNewTaskFunction = (updatedTasks: Task[]) => void
 
-// export type OnNewSponsorFunction = (updatedSponsors: Sponsor[]) => void
+export type OnNewSponsorFunction = (updatedSponsors: Sponsor[]) => void
 
 // export type OnNewPrizeFunction = (updatedPrizes: Prize[]) => void
 
@@ -115,10 +115,10 @@ export interface TaskCreatorButtonProps {
   onNewTask: OnNewTaskFunction
 }
 
-// export interface SponsorCreatorButtonProps {
-//   sponsorUpdates: Sponsor[]
-//   onNewSponsor: OnNewSponsorFunction
-// }
+export interface SponsorCreatorButtonProps {
+  sponsorUpdates: Sponsor[]
+  onNewSponsor: OnNewSponsorFunction
+}
 
 // export interface PrizeCreatorButtonProps {
 //   prizeUpdates: Prize[]

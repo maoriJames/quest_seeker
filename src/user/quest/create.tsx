@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog'
 import { Calendar } from '@/components/ui/calendar'
 import TaskCreatorButton from '@/components/TaskCreatorButton'
-// import SponsorCreatorButton from '@/components/SponsorCreator'
+import SponsorCreatorButton from '@/components/SponsorCreatorButton'
 // import PrizeCreationButton from '@/components/PrizeCreation'
 import RemoteImage from '@/components/RemoteImage'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
@@ -291,14 +291,11 @@ export default function CreateQuestPage() {
             Add Prize
           </Button>
         )}
-        {/* <SponsorCreatorButton
-        sponsorUpdates={sponsors}
-        onNewSponsor={setSponsors}
-      />*/}
+        <SponsorCreatorButton
+          sponsorUpdates={sponsors}
+          onNewSponsor={setSponsors}
+        />
         <TaskCreatorButton questUpdates={tasks} onNewTask={setTasks} />
-        <Button className="w-full mt-6" onClick={() => {}}>
-          Add Sponsor
-        </Button>
 
         <Button onClick={onSubmit}>{isUpdating ? 'Update' : 'Create'}</Button>
         {isUpdating && (
