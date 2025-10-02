@@ -4,7 +4,7 @@ import { useQuestList } from '@/hooks/userQuests'
 import { useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import bg from '@/assets/images/background_main.png'
-import placeHold from '@/assets/images/placeholder_view_vector.svg'
+// import placeHold from '@/assets/images/placeholder_view_vector.svg'
 import type { Quest } from '@/types' // <-- import your Quest type
 import AddQuestButton from '@/components/AddQuestButton'
 
@@ -17,31 +17,32 @@ export default function QuestPage() {
   const { data: quests, error, isLoading } = useQuestList()
 
   // Dummy quests for testing
-  const dummyQuests: Quest[] = [
-    {
-      id: 'dummy1',
-      quest_name: 'Find the Chuchill',
-      quest_details: 'Dummy quest details',
-      quest_start: '2025-09-23',
-      quest_end: '2025-12-31',
-      quest_image: placeHold,
-      region: 'Auckland',
-      creator_id: 'sandbox-user',
-    },
-    {
-      id: 'dummy2',
-      quest_name: 'Test Quest 2',
-      quest_details: 'Another dummy quest',
-      quest_start: '2025-09-25',
-      quest_end: '2025-12-31',
-      quest_image: placeHold,
-      region: 'Wellington',
-      creator_id: 'sandbox-user',
-    },
-  ]
+  // const dummyQuests: Quest[] = [
+  //   {
+  //     id: 'dummy1',
+  //     quest_name: 'Find the Chuchill',
+  //     quest_details: 'Dummy quest details',
+  //     quest_start: '2025-09-23',
+  //     quest_end: '2025-12-31',
+  //     quest_image: placeHold,
+  //     region: 'Auckland',
+  //     creator_id: 'sandbox-user',
+  //   },
+  //   {
+  //     id: 'dummy2',
+  //     quest_name: 'Test Quest 2',
+  //     quest_details: 'Another dummy quest',
+  //     quest_start: '2025-09-25',
+  //     quest_end: '2025-12-31',
+  //     quest_image: placeHold,
+  //     region: 'Wellington',
+  //     creator_id: 'sandbox-user',
+  //   },
+  // ]
 
   // Use real quests if available, otherwise fallback to dummy quests
-  const allQuests: Quest[] = quests?.length ? quests : dummyQuests
+  // const allQuests: Quest[] = quests?.length ? quests : dummyQuests
+  const allQuests: Quest[] = quests ?? []
 
   // Filter quests by region & valid date
   const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD

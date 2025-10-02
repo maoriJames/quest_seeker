@@ -14,8 +14,8 @@ import {
 } from '@/graphql/API'
 import type { GraphQLResult } from '@aws-amplify/api'
 import { generateClient } from 'aws-amplify/api'
-import { listProfiles } from '@/graphql/queries'
-import { updateProfile } from '@/graphql/mutations'
+import { listProfiles, getProfile } from '@/graphql/queries'
+import { updateProfile, createProfile } from '@/graphql/mutations'
 import { getCurrentUser } from 'aws-amplify/auth'
 // import { Profile } from '../types'
 
@@ -31,9 +31,6 @@ export const useProfileList = () => {
   })
 }
 
-import { getProfile } from '@/graphql/queries'
-import { createProfile } from '@/graphql/mutations'
-
 export const useProfile = (
   id: string,
   options?: Omit<
@@ -44,9 +41,12 @@ export const useProfile = (
   return useQuery<GetProfileQuery['getProfile'] | null, Error>({
     queryKey: ['profiles', id],
     queryFn: async () => {
+      if (!id) return null // ✅ skip if no id
+
       const result = await client.graphql<GraphQLResult<GetProfileQuery>>({
         query: getProfile,
         variables: { id },
+        authMode: 'userPool', // ✅ force Cognito auth
       })
 
       if ('data' in result) {
@@ -54,7 +54,8 @@ export const useProfile = (
       }
       return null
     },
-    ...options, // safe to spread now ✅
+    enabled: !!id, // ✅ don’t run if id is falsy
+    ...options,
   })
 }
 

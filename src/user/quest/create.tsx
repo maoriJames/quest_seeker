@@ -17,6 +17,7 @@ import TaskCreatorButton from '@/components/TaskCreatorButton'
 import SponsorCreatorButton from '@/components/SponsorCreatorButton'
 // import PrizeCreationButton from '@/components/PrizeCreation'
 import RemoteImage from '@/components/RemoteImage'
+import PickRegion from '@/components/PickRegion'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
 import bg from '@/assets/images/background_main.png'
 // import { defaultImage } from '@/components/QuestListItem'
@@ -27,8 +28,11 @@ import {
   useQuest,
 } from '@/hooks/userQuests'
 import { Prize, Sponsor, Task } from '@/types'
-import { CreateQuestInput, UpdateQuestInput } from '@/graphql/API'
+// import { CreateQuestInput, UpdateQuestInput } from '@/graphql/API'
 import { useCurrentUserProfile } from '@/hooks/userProfiles'
+import { DialogTitle } from '@radix-ui/react-dialog'
+import { VisuallyHidden } from '@aws-amplify/ui-react'
+import { uploadData } from 'aws-amplify/storage'
 
 export default function CreateQuestPage() {
   const navigate = useNavigate()
@@ -38,8 +42,9 @@ export default function CreateQuestPage() {
 
   const [name, setName] = useState('')
   const [details, setDetails] = useState('')
-  const [imageFile, setImageFile] = useState<string | null>(null)
+  const [imageFile, setImageFile] = useState<File | null>(null)
   const [previewImage, setPreviewImage] = useState<string>('')
+
   const [startDate, setStartDate] = useState<string>(
     new Date().toISOString().split('T')[0]
   )
@@ -115,11 +120,8 @@ export default function CreateQuestPage() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Example: store the file name (or construct a path for your bucket)
-    setImageFile(file.name)
-
-    // For preview, you can still create a URL
-    setPreviewImage(URL.createObjectURL(file))
+    setImageFile(file) // keep for upload
+    setPreviewImage(URL.createObjectURL(file)) // preview locally
   }
 
   const validateInput = () => {
@@ -143,14 +145,16 @@ export default function CreateQuestPage() {
     return true
   }
 
-  const onSubmit = () => {
-    if (!updatingQuest) return
+  const onSubmit = async () => {
+    if (!validateInput()) return
 
-    // Build the common payload fields
-    const payloadBase = {
+    // If a new file was selected, upload it
+    const imagePath = imageFile ? await uploadImage(imageFile) : previewImage
+
+    const payload = {
       quest_name: name,
       quest_details: details,
-      quest_image: imageFile,
+      quest_image: imagePath, // only string
       quest_start: startDate,
       quest_end: endDate,
       quest_prize: prizeEnabled,
@@ -163,20 +167,16 @@ export default function CreateQuestPage() {
     }
 
     if (isUpdating) {
-      if (!validateInput()) {
-        return
-      }
-      const updatePayload: UpdateQuestInput = {
-        ...payloadBase,
-        id: questId!, // required for update
-      }
-      updateQuest(updatePayload, { onSuccess: () => navigate(-1) })
+      updateQuest(
+        { id: questId!, ...payload },
+        { onSuccess: () => navigate(-1) }
+      )
     } else {
-      const createPayload: CreateQuestInput = {
-        ...payloadBase,
-      }
-      insertQuest(createPayload, { onSuccess: () => navigate(-1) })
+      insertQuest(payload, { onSuccess: () => navigate(-1) })
     }
+
+    // Clear temp file state
+    setImageFile(null)
   }
 
   const onDelete = () => {
@@ -190,11 +190,26 @@ export default function CreateQuestPage() {
     if (confirm('Delete this quest?')) onDelete()
   }
 
-  // Stub for image upload
-  // const uploadImage = async (file: File) => {
-  //   // Replace with your Supabase or API upload logic
-  //   return previewImage
-  // }
+  const uploadImage = async (file: File, isPublic = true): Promise<string> => {
+    const prefix = isPublic ? 'public/' : 'private/'
+    const path = `${prefix}${crypto.randomUUID()}-${file.name}`
+
+    try {
+      const { result } = await uploadData({
+        path,
+        data: file,
+        options: {
+          contentType: file.type,
+        },
+      })
+
+      // Access the path from result
+      return (await result).path
+    } catch (err) {
+      console.error('Error uploading file:', err)
+      return ''
+    }
+  }
 
   return (
     <div
@@ -210,7 +225,7 @@ export default function CreateQuestPage() {
           <img src={previewImage} className="w-1/2 mx-auto rounded-lg" />
         ) : (
           <RemoteImage
-            path={previewImage} // S3 object key
+            path={previewImage}
             fallback={placeHold}
             className="w-1/2 mx-auto rounded-lg"
           />
@@ -220,6 +235,10 @@ export default function CreateQuestPage() {
         <label className="block text-sm font-medium">
           Quest Title
           <Input value={name} onChange={(e) => setName(e.target.value)} />
+        </label>
+        <label className="block text-sm font-medium">
+          Quest Region
+          <PickRegion value={selectedRegion} onChange={setSelectedRegion} />
         </label>
         <label className="block text-sm font-medium">
           Quest Details
@@ -243,6 +262,9 @@ export default function CreateQuestPage() {
               <Button>{`Start Date: ${startDate}`}</Button>
             </DialogTrigger>
             <DialogContent>
+              <DialogTitle>
+                <VisuallyHidden>Choose Start Date</VisuallyHidden>
+              </DialogTitle>
               <Calendar
                 mode="single"
                 selected={startDate ? new Date(startDate) : undefined}
@@ -257,12 +279,14 @@ export default function CreateQuestPage() {
               </DialogClose>
             </DialogContent>
           </Dialog>
-
           <Dialog open={openEnd} onOpenChange={setOpenEnd}>
             <DialogTrigger asChild>
               <Button>{`End Date: ${endDate}`}</Button>
             </DialogTrigger>
             <DialogContent>
+              <DialogTitle>
+                <VisuallyHidden>Choose End Date</VisuallyHidden>
+              </DialogTitle>
               <Calendar
                 mode="single"
                 selected={endDate ? new Date(endDate) : undefined}
