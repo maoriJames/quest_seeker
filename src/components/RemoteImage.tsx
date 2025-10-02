@@ -7,7 +7,6 @@ const RemoteImage = ({ path, fallback, ...imgProps }: RemoteImageProps) => {
 
   useEffect(() => {
     if (!path) return
-
     ;(async () => {
       try {
         const { url } = await getUrl({

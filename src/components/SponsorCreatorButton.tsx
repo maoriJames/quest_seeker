@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-// import { randomUUID } from "crypto";
 import { SponsorCreatorButtonProps, Sponsor } from '@/types'
 import { SponsorModal } from './SponsorModal'
 import { uploadData } from 'aws-amplify/storage'
@@ -10,17 +9,19 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
 }) => {
   const [sponsor, setSponsor] = useState('')
   const [sponsorImage, setSponsorImage] = useState(false)
-  const [imageFile, setImageFile] = useState<string | null>(null)
-  const [sponsors, setSponsors] = useState<Sponsor[]>(sponsorUpdates || [])
+  const [imageFile, setImageFile] = useState<File | null>(null)
 
+  const [sponsors, setSponsors] = useState<Sponsor[]>(sponsorUpdates || [])
   const [editIndex, setEditIndex] = useState(-1)
   const [modalVisible, setModalVisible] = useState(false)
 
   useEffect(() => {
-    if (sponsorUpdates) {
-      setSponsors(sponsorUpdates)
-    }
+    if (sponsorUpdates) setSponsors(sponsorUpdates)
   }, [sponsorUpdates])
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setImageFile(e.target.files?.[0] || null)
+  }
 
   const handleAddSponsor = async () => {
     if (!sponsor) return
@@ -28,11 +29,9 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
     const updatedSponsors = [...sponsors]
     let imagePath = ''
 
+    // Upload file if checked
     if (sponsorImage && imageFile) {
-      // imageFile is already the path string (or upload it if needed)
-      imagePath = imageFile.startsWith('http')
-        ? imageFile
-        : await uploadImage(imageFile)
+      imagePath = await uploadImage(imageFile) // returns string path
     }
 
     if (editIndex !== -1) {
@@ -52,27 +51,30 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
       updatedSponsors.push(newSponsor)
     }
 
-    onNewSponsor(updatedSponsors)
     setSponsors(updatedSponsors)
+    onNewSponsor(updatedSponsors)
 
-    // reset form
+    // Reset form
     setSponsor('')
     setImageFile(null)
     setEditIndex(-1)
   }
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    // Instead of storing the File object, immediately store the file name or path
-    setImageFile(file.name) // or the path you want to use
-  }
-
-  const uploadImage = async (filePath: string): Promise<string> => {
-    const fileData = await fetch(filePath).then((res) => res.blob())
-    const { result } = await uploadData({ path: filePath, data: fileData })
-    return (await result).path
+  const uploadImage = async (file: File, isPublic = true): Promise<string> => {
+    const prefix = isPublic ? 'public/' : 'private/'
+    const path = `${prefix}${crypto.randomUUID()}-${file.name}`
+    try {
+      const { result } = await uploadData({
+        path,
+        data: file,
+        options: { contentType: file.type },
+      })
+      // S3 path or URL
+      return (await result).path
+    } catch (err) {
+      console.error('Error uploading file:', err)
+      return ''
+    }
   }
 
   return (

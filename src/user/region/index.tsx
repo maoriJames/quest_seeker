@@ -11,7 +11,6 @@ import SignOutButton from '@/components/SignOutButton'
 export default function RegionPage() {
   const [selectedRegion, setSelectedRegion] = useState('')
   const [seekerName, setSeekerName] = useState('')
-  // const { currentProfile, currentError, isLoading } = useCurrentUserProfile()
   const { currentProfile, isLoading } = useCurrentUserProfile()
 
   const navigate = useNavigate()

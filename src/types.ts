@@ -49,30 +49,15 @@ export interface TaskModalProps {
   onNewTask: OnNewTaskFunction
 }
 
+export interface TaskCreatorButtonProps {
+  questUpdates: Task[]
+  onNewTask: OnNewTaskFunction
+}
+
 export type RemoteImageProps = {
   path?: string | null
   fallback: string
 } & Omit<ImgHTMLAttributes<HTMLImageElement>, 'src'>
-
-export interface SponsorModalProps {
-  sponsors: Array<{
-    id: string
-    name: string
-    sponsorImage: boolean
-    image: string
-  }>
-  setSponsors: Dispatch<
-    SetStateAction<
-      Array<{ id: string; name: string; sponsorImage: boolean; image: string }>
-    >
-  >
-  setSponsor: Dispatch<SetStateAction<string>>
-  setImage: Dispatch<SetStateAction<string | null>>
-  setEditIndex: Dispatch<SetStateAction<number>>
-  visible: boolean
-  onClose: () => void
-  onNewSponsor: OnNewSponsorFunction
-}
 
 // export interface PrizeModalProps {
 //   prizes: Array<{
@@ -98,6 +83,33 @@ export type Sponsor = {
   image: string
 }
 
+export interface SponsorModalProps {
+  sponsors: Array<{
+    id: string
+    name: string
+    sponsorImage: boolean
+    image: string // string now
+  }>
+  setSponsors: React.Dispatch<
+    React.SetStateAction<
+      Array<{ id: string; name: string; sponsorImage: boolean; image: string }>
+    >
+  >
+  setSponsor: React.Dispatch<React.SetStateAction<string>>
+  // setImage: React.Dispatch<React.SetStateAction<File | null>>
+  setEditIndex: React.Dispatch<React.SetStateAction<number>>
+  visible: boolean
+  onClose: () => void
+  onNewSponsor: OnNewSponsorFunction
+}
+
+export interface SponsorCreatorButtonProps {
+  sponsorUpdates: Sponsor[]
+  onNewSponsor: OnNewSponsorFunction
+}
+
+export type OnNewSponsorFunction = (updatedSponsors: Sponsor[]) => void
+
 export type Prize = {
   id: string
   name: string
@@ -106,19 +118,7 @@ export type Prize = {
 
 export type OnNewTaskFunction = (updatedTasks: Task[]) => void
 
-export type OnNewSponsorFunction = (updatedSponsors: Sponsor[]) => void
-
 // export type OnNewPrizeFunction = (updatedPrizes: Prize[]) => void
-
-export interface TaskCreatorButtonProps {
-  questUpdates: Task[]
-  onNewTask: OnNewTaskFunction
-}
-
-export interface SponsorCreatorButtonProps {
-  sponsorUpdates: Sponsor[]
-  onNewSponsor: OnNewSponsorFunction
-}
 
 // export interface PrizeCreatorButtonProps {
 //   prizeUpdates: Prize[]

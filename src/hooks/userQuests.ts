@@ -90,6 +90,7 @@ export const useInsertQuest = () => {
       const { data } = await client.graphql({
         query: createQuest,
         variables: { input: questInput },
+        authMode: 'userPool',
       })
       return data.createQuest
     },
