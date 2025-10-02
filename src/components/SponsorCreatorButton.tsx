@@ -126,7 +126,6 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
           sponsors={sponsors}
           setSponsors={setSponsors}
           setSponsor={setSponsor}
-          setImage={setImageFile}
           setEditIndex={setEditIndex}
           visible={modalVisible}
           onClose={() => setModalVisible(false)}

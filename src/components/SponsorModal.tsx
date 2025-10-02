@@ -5,7 +5,6 @@ export const SponsorModal: React.FC<SponsorModalProps> = ({
   sponsors,
   setSponsors,
   setSponsor,
-  setImage,
   setEditIndex,
   visible,
   onClose,
@@ -15,9 +14,8 @@ export const SponsorModal: React.FC<SponsorModalProps> = ({
 
   const handleEditSponsor = (index: number) => {
     const sponsorToEdit = sponsors[index].name
-    const sponsorImageToEdit = sponsors[index].image
+    // const sponsorImageToEdit = sponsors[index].image // removed
     setSponsor(sponsorToEdit)
-    setImage(sponsorImageToEdit)
     setEditIndex(index)
     onClose()
   }
