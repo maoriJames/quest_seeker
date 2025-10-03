@@ -32,7 +32,7 @@ import { Prize, Sponsor, Task } from '@/types'
 import { useCurrentUserProfile } from '@/hooks/userProfiles'
 import { DialogTitle } from '@radix-ui/react-dialog'
 import { VisuallyHidden } from '@aws-amplify/ui-react'
-import { uploadData } from 'aws-amplify/storage'
+import { uploadData, getUrl } from 'aws-amplify/storage'
 
 export default function CreateQuestPage() {
   const navigate = useNavigate()
@@ -195,16 +195,15 @@ export default function CreateQuestPage() {
     const path = `${prefix}${crypto.randomUUID()}-${file.name}`
 
     try {
-      const { result } = await uploadData({
+      await uploadData({
         path,
         data: file,
-        options: {
-          contentType: file.type,
-        },
+        options: { contentType: file.type },
       })
 
-      // Access the path from result
-      return (await result).path
+      const result = await getUrl({ path })
+
+      return result.url.toString() // <-- convert URL to string
     } catch (err) {
       console.error('Error uploading file:', err)
       return ''

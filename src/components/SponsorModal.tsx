@@ -1,30 +1,36 @@
 import React from 'react'
-import { SponsorModalProps } from '@/types'
+import { Sponsor } from '@/types'
+
+interface SponsorModalProps {
+  sponsors: Sponsor[]
+  setSponsors: React.Dispatch<React.SetStateAction<Sponsor[]>>
+  setSponsor: React.Dispatch<React.SetStateAction<string>>
+  setPreview: React.Dispatch<React.SetStateAction<string | null>>
+  setEditIndex: React.Dispatch<React.SetStateAction<number>>
+  visible: boolean
+  onClose: () => void
+  onNewSponsor: (updated: Sponsor[]) => void
+  handleEdit: (index: number) => void
+}
 
 export const SponsorModal: React.FC<SponsorModalProps> = ({
   sponsors,
   setSponsors,
-  setSponsor,
-  setEditIndex,
+  // setSponsor,
+  // setPreview,
+  // setEditIndex,
   visible,
   onClose,
   onNewSponsor,
+  handleEdit,
 }) => {
   if (!visible) return null
 
-  const handleEditSponsor = (index: number) => {
-    const sponsorToEdit = sponsors[index].name
-    // const sponsorImageToEdit = sponsors[index].image // removed
-    setSponsor(sponsorToEdit)
-    setEditIndex(index)
-    onClose()
-  }
-
-  const handleDeleteSponsor = (index: number) => {
-    const updatedSponsors = [...sponsors]
-    updatedSponsors.splice(index, 1)
-    setSponsors(updatedSponsors)
-    onNewSponsor(updatedSponsors)
+  const handleDelete = (index: number) => {
+    const updated = [...sponsors]
+    updated.splice(index, 1)
+    setSponsors(updated)
+    onNewSponsor(updated)
   }
 
   return (
@@ -32,22 +38,31 @@ export const SponsorModal: React.FC<SponsorModalProps> = ({
       <div className="bg-white p-6 rounded-lg shadow-lg w-96 max-w-full">
         <h2 className="text-xl font-bold mb-4 text-center">Sponsors</h2>
         <ul className="space-y-3 max-h-64 overflow-y-auto">
-          {sponsors.map((sponsor, index) => (
+          {sponsors.map((s, i) => (
             <li
-              key={sponsor.id}
+              key={s.id}
               className="flex justify-between items-center border-b pb-1"
             >
-              <span className="truncate">{sponsor.name}</span>
+              <div className="flex items-center gap-2">
+                {s.image && (
+                  <img
+                    src={s.image}
+                    alt={s.name}
+                    className="h-10 w-10 rounded object-cover"
+                  />
+                )}
+                <span className="truncate">{s.name}</span>
+              </div>
               <div className="flex gap-2">
                 <button
                   className="text-green-600 font-bold"
-                  onClick={() => handleEditSponsor(index)}
+                  onClick={() => handleEdit(i)}
                 >
                   Edit
                 </button>
                 <button
                   className="text-red-600 font-bold"
-                  onClick={() => handleDeleteSponsor(index)}
+                  onClick={() => handleDelete(i)}
                 >
                   Delete
                 </button>
