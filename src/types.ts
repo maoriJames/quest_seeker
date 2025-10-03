@@ -1,17 +1,19 @@
 import { Dispatch, SetStateAction, ImgHTMLAttributes } from 'react'
 
+// ---------------- Quests ----------------
 export type Quest = {
   id: string
   quest_name: string
   quest_details: string
   quest_start?: string
   quest_end?: string | null
-  quest_image?: string | null
+  quest_image?: string | null // string path or URL
   quest_entry?: number | null
   region?: string | null
   creator_id?: string | null
 }
 
+// ---------------- Profiles ----------------
 export type Profile = {
   id: string
   organization_name: string
@@ -24,13 +26,10 @@ export type Profile = {
   secondary_contact_name: string
   secondary_contact_position: string
   secondary_contact_phone: string
-  image: string
+  image: string // string path or URL
 }
 
-// export interface MyComponentProps {
-//   children: ReactNode
-// }
-
+// ---------------- Tasks ----------------
 export type Task = {
   id: number
   description: string
@@ -39,6 +38,7 @@ export type Task = {
   caption: string
   answer: string
 }
+
 export interface TaskModalProps {
   tasks: Task[]
   setTasks: Dispatch<SetStateAction<Task[]>>
@@ -54,53 +54,32 @@ export interface TaskCreatorButtonProps {
   onNewTask: OnNewTaskFunction
 }
 
+export type OnNewTaskFunction = (updatedTasks: Task[]) => void
+
+// ---------------- Remote Image ----------------
 export type RemoteImageProps = {
   path?: string | null
   fallback: string
 } & Omit<ImgHTMLAttributes<HTMLImageElement>, 'src'>
 
-// export interface PrizeModalProps {
-//   prizes: Array<{
-//     id: string
-//     name: string
-//     contributor: string
-//   }>
-//   setPrizes: Dispatch<
-//     SetStateAction<Array<{ id: string; name: string; contributor: string }>>
-//   >
-//   setPrize: Dispatch<SetStateAction<string>>
-//   setContributor: Dispatch<SetStateAction<string>>
-//   setEditIndex: Dispatch<SetStateAction<number>>
-//   visible: boolean
-//   onClose: () => void
-//   onNewPrize: OnNewPrizeFunction
-// }
-
+// ---------------- Sponsors ----------------
 export type Sponsor = {
   id: string
   name: string
   sponsorImage: boolean
-  image: string
+  image: string // string path/URL
 }
 
 export interface SponsorModalProps {
-  sponsors: Array<{
-    id: string
-    name: string
-    sponsorImage: boolean
-    image: string // string now
-  }>
-  setSponsors: React.Dispatch<
-    React.SetStateAction<
-      Array<{ id: string; name: string; sponsorImage: boolean; image: string }>
-    >
-  >
-  setSponsor: React.Dispatch<React.SetStateAction<string>>
-  // setImage: React.Dispatch<React.SetStateAction<File | null>>
-  setEditIndex: React.Dispatch<React.SetStateAction<number>>
+  sponsors: Sponsor[]
+  setSponsors: Dispatch<SetStateAction<Sponsor[]>>
+  setSponsor: Dispatch<SetStateAction<string>>
+  setPreview: Dispatch<SetStateAction<string | null>> // renamed from setImage
+  setEditIndex: Dispatch<SetStateAction<number>>
   visible: boolean
   onClose: () => void
   onNewSponsor: OnNewSponsorFunction
+  handleEdit?: (index: number) => void // optional if you pass edit handler
 }
 
 export interface SponsorCreatorButtonProps {
@@ -110,21 +89,16 @@ export interface SponsorCreatorButtonProps {
 
 export type OnNewSponsorFunction = (updatedSponsors: Sponsor[]) => void
 
+// ---------------- Prizes ----------------
 export type Prize = {
   id: string
   name: string
   contributor: string
 }
 
-export type OnNewTaskFunction = (updatedTasks: Task[]) => void
-
+// ---------------- Optional future prize types ----------------
 // export type OnNewPrizeFunction = (updatedPrizes: Prize[]) => void
-
 // export interface PrizeCreatorButtonProps {
 //   prizeUpdates: Prize[]
 //   onNewPrize: OnNewPrizeFunction
-// }
-
-// export type MyQuest = {
-//   questId: uuid
 // }

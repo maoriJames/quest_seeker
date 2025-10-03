@@ -10,6 +10,7 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
   const [sponsor, setSponsor] = useState('')
   const [sponsorImage, setSponsorImage] = useState(false)
   const [imageFile, setImageFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
   const [sponsors, setSponsors] = useState<Sponsor[]>(sponsorUpdates || [])
   const [editIndex, setEditIndex] = useState(-1)
@@ -20,43 +21,44 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
   }, [sponsorUpdates])
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setImageFile(e.target.files?.[0] || null)
+    const file = e.target.files?.[0] || null
+    setImageFile(file)
+    if (file) setPreviewUrl(URL.createObjectURL(file))
+    else setPreviewUrl(null)
   }
 
   const handleAddSponsor = async () => {
     if (!sponsor) return
 
     const updatedSponsors = [...sponsors]
-    let imagePath = ''
+    let imagePath = editIndex !== -1 ? updatedSponsors[editIndex].image : ''
 
     // Upload file if checked
     if (sponsorImage && imageFile) {
-      imagePath = await uploadImage(imageFile) // returns string path
+      imagePath = await uploadImage(imageFile) // S3 path string
+    }
+
+    const newSponsor: Sponsor = {
+      id:
+        editIndex !== -1 ? updatedSponsors[editIndex].id : crypto.randomUUID(),
+      name: sponsor,
+      sponsorImage,
+      image: imagePath,
     }
 
     if (editIndex !== -1) {
-      updatedSponsors[editIndex] = {
-        ...updatedSponsors[editIndex],
-        name: sponsor,
-        sponsorImage: sponsorImage,
-        image: imagePath || updatedSponsors[editIndex].image,
-      }
+      updatedSponsors[editIndex] = newSponsor
     } else {
-      const newSponsor: Sponsor = {
-        id: crypto.randomUUID(),
-        name: sponsor,
-        sponsorImage: sponsorImage,
-        image: imagePath || '',
-      }
       updatedSponsors.push(newSponsor)
     }
 
     setSponsors(updatedSponsors)
     onNewSponsor(updatedSponsors)
 
-    // Reset form
+    // reset form
     setSponsor('')
     setImageFile(null)
+    setPreviewUrl(null)
     setEditIndex(-1)
   }
 
@@ -69,12 +71,19 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
         data: file,
         options: { contentType: file.type },
       })
-      // S3 path or URL
       return (await result).path
     } catch (err) {
       console.error('Error uploading file:', err)
       return ''
     }
+  }
+
+  const handleEdit = (index: number) => {
+    setEditIndex(index)
+    setSponsor(sponsors[index].name)
+    setPreviewUrl(sponsors[index].image || null)
+    setSponsorImage(!!sponsors[index].image)
+    setModalVisible(false)
   }
 
   return (
@@ -107,6 +116,14 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
         )}
       </div>
 
+      {sponsorImage && previewUrl && (
+        <img
+          src={previewUrl}
+          alt="Preview"
+          className="h-20 w-20 rounded object-cover mb-2"
+        />
+      )}
+
       <button
         className="w-full p-2 mb-2 text-white bg-blue-600 rounded hover:bg-blue-700"
         onClick={handleAddSponsor}
@@ -126,10 +143,12 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
           sponsors={sponsors}
           setSponsors={setSponsors}
           setSponsor={setSponsor}
+          setPreview={setPreviewUrl} // renamed for clarity
           setEditIndex={setEditIndex}
           visible={modalVisible}
           onClose={() => setModalVisible(false)}
           onNewSponsor={onNewSponsor}
+          handleEdit={handleEdit} // pass edit handler
         />
       )}
     </div>

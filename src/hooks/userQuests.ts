@@ -126,6 +126,7 @@ export const useDeleteQuest = () => {
       await client.graphql({
         query: deleteQuest,
         variables: { input: { id } },
+        authMode: 'userPool',
       })
     },
     onSuccess: () => {
