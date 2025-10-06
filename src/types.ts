@@ -7,13 +7,15 @@ export type Quest = {
   quest_details: string
   quest_start?: string
   quest_end?: string | null
-  quest_image?: string | null // string path or URL
+  quest_image?: string | null
   quest_entry?: number | null
   region?: string | null
   creator_id?: string | null
 }
 
 // ---------------- Profiles ----------------
+export type Role = 'seeker' | 'creator'
+
 export type Profile = {
   id: string
   organization_name: string
@@ -26,7 +28,8 @@ export type Profile = {
   secondary_contact_name: string
   secondary_contact_position: string
   secondary_contact_phone: string
-  image: string // string path or URL
+  image: string
+  role: Role
 }
 
 // ---------------- Tasks ----------------

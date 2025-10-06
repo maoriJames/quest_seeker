@@ -32,8 +32,20 @@ export default function QuestDetailPage() {
       // Delete the quest image from S3 if it exists
       if (quest.quest_image) {
         try {
-          await remove({ path: quest.quest_image })
-          console.log('Quest image deleted from S3:', quest.quest_image)
+          let key = quest.quest_image
+
+          // If it's a full URL, extract the pathname and keep the 'public/' prefix
+          try {
+            const url = new URL(quest.quest_image)
+            key = url.pathname.slice(1) // removes leading '/', keeps 'public/...' intact
+          } catch {
+            // If it's already a key, leave it as-is
+          }
+
+          console.log('Deleting S3 object with key:', key)
+          console.log('path.key: ', { path: key })
+          await remove({ path: key })
+          console.log('Quest image deleted from S3:', key)
         } catch (err) {
           console.error('Failed to delete S3 image:', err)
         }

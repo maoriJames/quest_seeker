@@ -66,7 +66,7 @@ export default function CreateQuestPage() {
   const { mutate: updateQuest } = useUpdateQuest()
   const { mutate: deleteQuest } = useDeleteQuest()
   const { data: currentUser } = useCurrentUserProfile()
-  const creatorId = currentUser?.id
+  const creatorId = currentUser?.id || ''
 
   const { data: updatingQuest } = useQuest(questId)
 
@@ -190,8 +190,8 @@ export default function CreateQuestPage() {
     if (confirm('Delete this quest?')) onDelete()
   }
 
-  const uploadImage = async (file: File, isPublic = true): Promise<string> => {
-    const prefix = isPublic ? 'public/' : 'private/'
+  const uploadImage = async (file: File): Promise<string> => {
+    const prefix = 'public/'
     const path = `${prefix}${crypto.randomUUID()}-${file.name}`
 
     try {
