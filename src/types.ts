@@ -18,6 +18,8 @@ export type Role = 'seeker' | 'creator'
 
 export type Profile = {
   id: string
+  full_name: string
+  email: string
   organization_name: string
   registration_number: string
   business_type: string
