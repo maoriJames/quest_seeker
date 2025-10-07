@@ -1,49 +1,99 @@
-import { useCurrentUserProfile, useUpdateProfile } from '@/hooks/userProfiles'
-import { useEffect, useState } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import bg from '@/assets/images/background_main.png'
-import { useNavigate } from 'react-router-dom'
+import UpdateAccount from '@/components/UpdateAccount'
+import { useCurrentUserProfile, useUpdateProfile } from '@/hooks/userProfiles'
+import { useState, useEffect } from 'react'
+import type { Profile } from '@/types'
+import { UpdateProfileInput } from '@/graphql/API'
+import { toProfileRole } from '@/hooks/toProfileTole'
 
 export default function AccountPage() {
   const { currentProfile } = useCurrentUserProfile()
-  const { mutate: updateProfile } = useUpdateProfile({
-    onSuccess: () => {
-      setDetailsVisible(false)
-      window.alert('Profile updated successfully!')
-    },
+  const { mutate: updateProfile } = useUpdateProfile()
+
+  const [profileData, setProfileData] = useState<Profile>({
+    id: '',
+    full_name: '',
+    email: '',
+    organization_name: '',
+    registration_number: '',
+    business_type: '',
+    organization_description: '',
+    primary_contact_name: '',
+    primary_contact_position: '',
+    primary_contact_phone: '',
+    secondary_contact_name: '',
+    secondary_contact_position: '',
+    secondary_contact_phone: '',
+    image: '',
+    role: 'seeker', // default
   })
 
-  const [detailsVisible, setDetailsVisible] = useState(false)
-  const [profileId, setProfileId] = useState('')
-  const [seekerName, setSeekerName] = useState('')
-  const [seekerPhone, setSeekerPhone] = useState('')
-
-  // Load current profile data when it changes
+  // Load current profile into state
   useEffect(() => {
     if (!currentProfile) return
-    setProfileId(currentProfile.id)
-    setSeekerName(currentProfile.full_name ?? 'Update Name')
-    setSeekerPhone(currentProfile.primary_contact_phone ?? 'Update Phone')
+    setProfileData({
+      id: currentProfile.id,
+      full_name: currentProfile.full_name ?? '',
+      email: currentProfile.email ?? '',
+      organization_name: currentProfile.organization_name ?? '',
+      registration_number: currentProfile.registration_number ?? '',
+      business_type: currentProfile.business_type ?? '',
+      organization_description: currentProfile.organization_description ?? '',
+      primary_contact_name: currentProfile.primary_contact_name ?? '',
+      primary_contact_position: currentProfile.primary_contact_position ?? '',
+      primary_contact_phone: currentProfile.primary_contact_phone ?? '',
+      secondary_contact_name: currentProfile.secondary_contact_name ?? '',
+      secondary_contact_position:
+        currentProfile.secondary_contact_position ?? '',
+      secondary_contact_phone: currentProfile.secondary_contact_phone ?? '',
+      image: currentProfile.image ?? '',
+      role: currentProfile.role ?? 'seeker',
+    })
   }, [currentProfile])
 
-  const toggleDetails = () => setDetailsVisible(!detailsVisible)
+  // 🔹 Fully typed, type-safe update handler
+  const handleUpdate = (updates: Partial<Profile>) => {
+    if (!profileData.id) return
 
-  const navigate = useNavigate()
+    // 1️⃣ Optimistic update
+    setProfileData((prev) => ({
+      ...prev,
+      ...updates,
+    }))
 
-  const onUpdate = () => {
-    if (!profileId) return
-    updateProfile({
-      input: {
-        id: profileId,
-        full_name: seekerName,
-        primary_contact_phone: seekerPhone,
-      },
-    })
-  }
+    // 2️⃣ Prepare GraphQL input
+    const input: UpdateProfileInput = {
+      id: profileData.id,
+      full_name: updates.full_name ?? profileData.full_name,
+      email: updates.email ?? profileData.email,
+      organization_name:
+        updates.organization_name ?? profileData.organization_name,
+      registration_number:
+        updates.registration_number ?? profileData.registration_number,
+      business_type: updates.business_type ?? profileData.business_type,
+      organization_description:
+        updates.organization_description ??
+        profileData.organization_description,
+      primary_contact_name:
+        updates.primary_contact_name ?? profileData.primary_contact_name,
+      primary_contact_position:
+        updates.primary_contact_position ??
+        profileData.primary_contact_position,
+      primary_contact_phone:
+        updates.primary_contact_phone ?? profileData.primary_contact_phone,
+      secondary_contact_name:
+        updates.secondary_contact_name ?? profileData.secondary_contact_name,
+      secondary_contact_position:
+        updates.secondary_contact_position ??
+        profileData.secondary_contact_position,
+      secondary_contact_phone:
+        updates.secondary_contact_phone ?? profileData.secondary_contact_phone,
+      image: updates.image ?? profileData.image,
+      role: toProfileRole(updates.role ?? profileData.role), // type-safe
+    }
 
-  const onReturn = () => {
-    navigate('/user/region')
+    // 3️⃣ Call backend
+    updateProfile({ input })
   }
 
   return (
@@ -51,47 +101,7 @@ export default function AccountPage() {
       className="min-h-screen flex items-center justify-center bg-cover bg-center"
       style={{ backgroundImage: `url(${bg})` }}
     >
-      <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl p-8 max-w-md w-full text-center">
-        <CardContent>
-          <div>
-            <p>Name: {seekerName}</p>
-            <p>Phone: {seekerPhone}</p>
-          </div>
-          <Button onClick={toggleDetails}>Update Details</Button>
-          <Button onClick={onReturn}>Return to Quest Page</Button>
-          {detailsVisible && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-              <div className="bg-white p-6 rounded shadow-lg relative">
-                <button
-                  className="absolute top-2 right-2"
-                  onClick={toggleDetails}
-                >
-                  ✖
-                </button>
-
-                <div className="flex flex-col gap-4">
-                  <label>Name:</label>
-                  <input
-                    type="text"
-                    value={seekerName}
-                    onChange={(e) => setSeekerName(e.target.value)}
-                    className="border p-2 rounded"
-                  />
-
-                  <label>Phone:</label>
-                  <input
-                    type="text"
-                    value={seekerPhone}
-                    onChange={(e) => setSeekerPhone(e.target.value)}
-                    className="border p-2 rounded"
-                  />
-                  <Button onClick={onUpdate}>Update</Button>
-                </div>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <UpdateAccount profile={profileData} onUpdate={handleUpdate} />
     </div>
   )
 }
