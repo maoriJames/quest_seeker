@@ -5,7 +5,7 @@ import { CardContent } from './ui/card'
 import InlineEditField from './InlineEditField'
 import RemoteImage from './RemoteImage'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
-import { uploadData, getUrl } from 'aws-amplify/storage'
+import { uploadData, remove } from 'aws-amplify/storage'
 import type { Profile } from '@/types'
 
 type ProfileProps = {
@@ -15,30 +15,47 @@ type ProfileProps = {
 
 export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
   const navigate = useNavigate()
-  const [previewImage, setPreviewImage] = useState(profile.image || '')
 
-  // Handle image selection & upload
+  const [previewImage, setPreviewImage] = useState(profile.image || '')
+  const [oldImagePath, setOldImagePath] = useState(profile.image || '') // track the existing stored path
+
+  // 🔹 Handle image selection & upload
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file || !profile.id) return
 
-    setPreviewImage(URL.createObjectURL(file)) // preview locally
-    console.log('PreviewImage: ', previewImage)
+    // Show local preview immediately
+    setPreviewImage(URL.createObjectURL(file))
 
     try {
-      const uploadedUrl = await uploadImage(file)
-      if (uploadedUrl) {
-        // Update parent profile state & GraphQL backend
-        onUpdate({ image: uploadedUrl })
+      // Upload the new image
+      const newPath = await uploadImage(file)
+      if (!newPath) return
+
+      // Delete the old image from the bucket (if applicable)
+      if (oldImagePath && !oldImagePath.startsWith('http')) {
+        try {
+          const cleanPath = oldImagePath.startsWith('/')
+            ? oldImagePath.slice(1)
+            : oldImagePath
+          await remove({ path: cleanPath })
+          console.log('✅ Old image removed:', cleanPath)
+        } catch (err) {
+          console.error('Error deleting old image:', err)
+        }
       }
+
+      // Save new image path to profile and state
+      setOldImagePath(newPath)
+      onUpdate({ image: newPath })
     } catch (err) {
       console.error('Error uploading image:', err)
     }
   }
 
+  // 🔹 Upload image to S3 and return its path (not signed URL)
   const uploadImage = async (file: File): Promise<string> => {
-    const prefix = 'public/'
-    const path = `${prefix}${crypto.randomUUID()}-${file.name}`
+    const path = `public/${crypto.randomUUID()}-${file.name}`
 
     try {
       await uploadData({
@@ -47,8 +64,8 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
         options: { contentType: file.type },
       })
 
-      const result = await getUrl({ path })
-      return result.url.toString()
+      console.log('✅ Uploaded new image to:', path)
+      return path // store path in DB, not signed URL
     } catch (err) {
       console.error('Error uploading file:', err)
       return ''
@@ -81,7 +98,7 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
           />
         </div>
 
-        {/* Inline editable fields */}
+        {/* Editable fields */}
         <InlineEditField
           label="Name"
           value={profile.full_name}

@@ -19,7 +19,6 @@ const RemoteImage = ({ path, fallback, ...imgProps }: RemoteImageProps) => {
         const cleanPath = path.startsWith('/') ? path.slice(1) : path
         const { url } = await getUrl({
           path: cleanPath,
-          options: { expiresIn: 300 },
         })
         setImage(url.toString())
       } catch (err) {
