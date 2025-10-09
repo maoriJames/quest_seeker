@@ -32,6 +32,7 @@ export type Profile = {
   secondary_contact_phone: string
   image: string
   role: Role
+  my_quests?: QuestTask[]
 }
 
 // ---------------- Tasks ----------------
@@ -42,6 +43,7 @@ export type Task = {
   isChecked: boolean
   caption: string
   answer: string
+  completed: boolean
 }
 
 export interface TaskModalProps {
@@ -60,6 +62,14 @@ export interface TaskCreatorButtonProps {
 }
 
 export type OnNewTaskFunction = (updatedTasks: Task[]) => void
+
+export type QuestTask = {
+  quest_id: string
+  description: string | undefined
+  tasks: Task[]
+  progress?: number
+  completed: boolean
+}
 
 // ---------------- Remote Image ----------------
 export type RemoteImageProps = {

@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
-import { getUrl } from 'aws-amplify/storage'
+
+const REGION = 'ap-southeast-2'
+const BUCKET = 'amplify-amplifyvitereactt-amplifyquestseekerbucket-beyjfgpn1vr2'
 
 export function useS3Image(path?: string | null) {
   const [url, setUrl] = useState<string | null>(null)
@@ -10,23 +12,20 @@ export function useS3Image(path?: string | null) {
       return
     }
 
-    // If the path is already a full URL, return it directly
+    // Already a full URL → just use it
     if (path.startsWith('http')) {
       setUrl(path)
       return
     }
 
-    const fetchUrl = async () => {
-      try {
-        const result = await getUrl({ path })
-        setUrl(result.url.toString()) // <- convert URL -> string
-      } catch (err) {
-        console.error('Error fetching S3 image URL:', err)
-        setUrl(null)
-      }
+    // For public images, build permanent URL
+    if (path.startsWith('public/')) {
+      setUrl(`https://${BUCKET}.s3.${REGION}.amazonaws.com/${path}`)
+      return
     }
 
-    fetchUrl()
+    // If path doesn’t match known patterns, fallback
+    setUrl(null)
   }, [path])
 
   return url

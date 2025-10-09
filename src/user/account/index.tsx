@@ -2,9 +2,13 @@ import bg from '@/assets/images/background_main.png'
 import UpdateAccount from '@/components/UpdateAccount'
 import { useCurrentUserProfile, useUpdateProfile } from '@/hooks/userProfiles'
 import { useState, useEffect } from 'react'
-import type { Profile } from '@/types'
+import type { Profile, QuestTask } from '@/types'
 import { UpdateProfileInput } from '@/graphql/API'
 import { toProfileRole } from '@/hooks/toProfileTole'
+import { generateClient } from 'aws-amplify/api'
+import { getQuest } from '@/graphql/queries'
+
+const client = generateClient()
 
 export default function AccountPage() {
   const { currentProfile } = useCurrentUserProfile()
@@ -25,12 +29,21 @@ export default function AccountPage() {
     secondary_contact_position: '',
     secondary_contact_phone: '',
     image: '',
-    role: 'seeker', // default
+    role: 'seeker',
+    my_quests: [],
   })
 
-  // Load current profile into state
+  // 🧠 Load current profile into local state
   useEffect(() => {
     if (!currentProfile) return
+
+    const quests = Array.isArray(currentProfile.my_quests)
+      ? currentProfile.my_quests
+      : currentProfile.my_quests
+        ? JSON.parse(currentProfile.my_quests)
+        : []
+
+    // explicitly normalize all potentially-null string fields
     setProfileData({
       id: currentProfile.id,
       full_name: currentProfile.full_name ?? '',
@@ -48,20 +61,64 @@ export default function AccountPage() {
       secondary_contact_phone: currentProfile.secondary_contact_phone ?? '',
       image: currentProfile.image ?? '',
       role: currentProfile.role ?? 'seeker',
+      my_quests: quests,
     })
   }, [currentProfile])
 
-  // 🔹 Fully typed, type-safe update handler
+  // 🧹 Check for deleted quests on load (parallel & type-safe)
+  useEffect(() => {
+    const cleanUpDeletedQuests = async () => {
+      if (!profileData?.my_quests?.length) return
+
+      try {
+        // Check all quests in parallel
+        const questsStatus = await Promise.all(
+          profileData.my_quests.map(async (quest) => {
+            try {
+              const result = await client.graphql({
+                query: getQuest,
+                variables: { id: quest.quest_id },
+                authMode: 'userPool',
+              })
+              return result.data?.getQuest ? quest : null
+            } catch {
+              console.warn(
+                `Quest ${quest.quest_id} not found, removing from profile.`
+              )
+              return null
+            }
+          })
+        )
+
+        // Filter out nulls → deleted quests
+        const validQuests: QuestTask[] = questsStatus.filter(
+          Boolean
+        ) as QuestTask[]
+
+        // Update state & backend only if something changed
+        if (validQuests.length !== profileData.my_quests.length) {
+          setProfileData((prev) => ({ ...prev, my_quests: validQuests }))
+
+          const input: UpdateProfileInput = {
+            id: profileData.id,
+            my_quests: JSON.stringify(validQuests), // backend expects string
+          }
+          updateProfile({ input })
+        }
+      } catch (err) {
+        console.error('Error cleaning up deleted quests:', err)
+      }
+    }
+
+    if (profileData.id) cleanUpDeletedQuests()
+  }, [profileData.id])
+
+  // 🧩 Generic profile update handler
   const handleUpdate = (updates: Partial<Profile>) => {
     if (!profileData.id) return
 
-    // 1️⃣ Optimistic update
-    setProfileData((prev) => ({
-      ...prev,
-      ...updates,
-    }))
+    setProfileData((prev) => ({ ...prev, ...updates }))
 
-    // 2️⃣ Prepare GraphQL input
     const input: UpdateProfileInput = {
       id: profileData.id,
       full_name: updates.full_name ?? profileData.full_name,
@@ -89,10 +146,9 @@ export default function AccountPage() {
       secondary_contact_phone:
         updates.secondary_contact_phone ?? profileData.secondary_contact_phone,
       image: updates.image ?? profileData.image,
-      role: toProfileRole(updates.role ?? profileData.role), // type-safe
+      role: toProfileRole(updates.role ?? profileData.role),
     }
 
-    // 3️⃣ Call backend
     updateProfile({ input })
   }
 
