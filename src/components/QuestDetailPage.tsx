@@ -110,7 +110,13 @@ export default function QuestDetailPage() {
     currentUserProfile?.id === quest.creator_id &&
     currentUserProfile?.role === 'creator'
 
-  console.log('Quests? ', currentUserProfile?.my_quests)
+  // First, safely compute if the current user has joined this quest
+  const myQuestsArray: QuestTask[] =
+    typeof currentUserProfile?.my_quests === 'string'
+      ? JSON.parse(currentUserProfile.my_quests)
+      : (currentUserProfile?.my_quests ?? [])
+
+  const hasJoined = myQuestsArray.some((q) => q.quest_id === quest.id)
 
   return (
     <div
@@ -124,7 +130,6 @@ export default function QuestDetailPage() {
             alt={quest.quest_name ?? 'Untitled Quest'}
             className="w-1/3 h-auto object-cover"
           />
-
           <h1 className="text-2xl font-bold mb-2">{quest.quest_name}</h1>
           <p className="text-gray-700 mb-2">{quest.quest_details}</p>
           <p className="text-sm text-gray-500 mb-1">Region: {quest.region}</p>
@@ -137,25 +142,33 @@ export default function QuestDetailPage() {
           </p>
           <p className="text-sm text-gray-500">End: {quest.quest_end}</p>
 
-          {/* Conditional button rendering */}
-          {isOwner ? (
+          {/* Conditional button / status rendering */}
+          {isOwner && (
             <button
               onClick={handleDelete}
               className="mt-4 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
             >
               Delete Quest
             </button>
-          ) : currentUserProfile?.role === 'seeker' ? (
-            <button
-              onClick={handleJoinQuest}
-              disabled={joining} // prevent multiple clicks
-              className={`mt-4 px-4 py-2 rounded text-white ${
-                joining ? 'bg-yellow-300' : 'bg-[#facc15] hover:bg-[#ca8a04]'
-              }`}
-            >
-              {joining ? 'Joining...' : 'Join the quest!'}
-            </button>
-          ) : null}
+          )}
+
+          {!isOwner &&
+            currentUserProfile?.role === 'seeker' &&
+            (hasJoined ? (
+              <p className="mt-4 text-green-600 font-semibold">
+                ✅ You have joined this quest!
+              </p>
+            ) : (
+              <button
+                onClick={handleJoinQuest}
+                disabled={joining}
+                className={`mt-4 px-4 py-2 rounded text-white ${
+                  joining ? 'bg-yellow-300' : 'bg-[#facc15] hover:bg-[#ca8a04]'
+                }`}
+              >
+                {joining ? 'Joining...' : 'Join the quest!'}
+              </button>
+            ))}
         </CardContent>
       </Card>
     </div>
