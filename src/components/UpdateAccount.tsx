@@ -18,6 +18,10 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
 
   const [previewImage, setPreviewImage] = useState(profile.image || '')
   const [oldImagePath, setOldImagePath] = useState(profile.image || '') // track the existing stored path
+  const safeProfile = {
+    ...profile,
+    my_quests: profile.my_quests ?? [], // ← guarantees it’s an array
+  }
 
   // 🔹 Handle image selection & upload
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -175,6 +179,23 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
             />
           </>
         )}
+        <div className="mt-4">
+          <h2 className="font-semibold text-lg mb-2">My Quests</h2>
+          {safeProfile.my_quests.length === 0 ? (
+            <p className="text-gray-500">You haven’t joined any quests yet.</p>
+          ) : (
+            <ul className="list-disc pl-5">
+              {safeProfile.my_quests.map((myQuest) =>
+                myQuest.tasks.map((task, index) => (
+                  <li key={`${myQuest.quest_id}-${index}`}>
+                    {task.description} (
+                    {task.completed ? 'Completed' : 'In Progress'})
+                  </li>
+                ))
+              )}
+            </ul>
+          )}
+        </div>
 
         {/* Return button */}
         <button

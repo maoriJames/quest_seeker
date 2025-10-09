@@ -26,6 +26,7 @@ export default function AccountPage() {
     secondary_contact_phone: '',
     image: '',
     role: 'seeker', // default
+    my_quests: [],
   })
 
   // Load current profile into state
@@ -48,6 +49,11 @@ export default function AccountPage() {
       secondary_contact_phone: currentProfile.secondary_contact_phone ?? '',
       image: currentProfile.image ?? '',
       role: currentProfile.role ?? 'seeker',
+      my_quests: Array.isArray(currentProfile.my_quests)
+        ? currentProfile.my_quests
+        : currentProfile.my_quests
+          ? JSON.parse(currentProfile.my_quests) // parse string to array
+          : [], // default empty array
     })
   }, [currentProfile])
 

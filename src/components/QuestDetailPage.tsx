@@ -7,9 +7,13 @@ import bg from '@/assets/images/background_main.png'
 import { Card } from '@aws-amplify/ui-react'
 import { CardContent } from './ui/card'
 import { useS3Image } from '@/hooks/useS3Image'
+import { useState } from 'react'
+import { QuestTask, Task } from '@/types'
+import { addQuestToProfile } from '@/hooks/addQuestToProfile'
 
 export default function QuestDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const [joining, setJoining] = useState(false)
   const navigate = useNavigate()
 
   // 🧩 Fetch quest data
@@ -70,10 +74,43 @@ export default function QuestDetailPage() {
     }
   }
 
+  const handleJoinQuest = async () => {
+    if (!quest?.id || !quest?.quest_tasks) return
+
+    setJoining(true)
+
+    try {
+      // Ensure tasks are an array of Task
+      const tasks: Task[] = Array.isArray(quest.quest_tasks)
+        ? (quest.quest_tasks as Task[])
+        : []
+
+      const userQuestEntry: QuestTask = {
+        quest_id: quest.id,
+        description: quest.quest_name ?? 'Untitled Quest',
+        tasks,
+        progress: 0,
+        completed: false,
+      }
+
+      // Add this quest to the user's profile
+      await addQuestToProfile(quest.id, [userQuestEntry])
+
+      alert('✅ Quest added to your profile!')
+    } catch (err) {
+      console.error(err)
+      alert('❌ Failed to join quest.')
+    } finally {
+      setJoining(false)
+    }
+  }
+
   // 🧭 Check if current user is creator of this quest
   const isOwner =
     currentUserProfile?.id === quest.creator_id &&
     currentUserProfile?.role === 'creator'
+
+  console.log('Quests? ', currentUserProfile?.my_quests)
 
   return (
     <div
@@ -81,12 +118,13 @@ export default function QuestDetailPage() {
       style={{ backgroundImage: `url(${bg})` }}
     >
       <Card className="bg-white/90 backdrop-blur-md shadow-xl rounded-2xl max-w-2xl w-full flex overflow-hidden">
-        <img
-          src={questImageUrl ?? '/fallback-image.png'}
-          alt={quest.quest_name ?? 'Untitled Quest'}
-          className="w-1/3 h-auto object-cover"
-        />
         <CardContent className="p-6 flex-1 text-left">
+          <img
+            src={questImageUrl ?? '/fallback-image.png'}
+            alt={quest.quest_name ?? 'Untitled Quest'}
+            className="w-1/3 h-auto object-cover"
+          />
+
           <h1 className="text-2xl font-bold mb-2">{quest.quest_name}</h1>
           <p className="text-gray-700 mb-2">{quest.quest_details}</p>
           <p className="text-sm text-gray-500 mb-1">Region: {quest.region}</p>
@@ -109,10 +147,13 @@ export default function QuestDetailPage() {
             </button>
           ) : currentUserProfile?.role === 'seeker' ? (
             <button
-              onClick={() => navigate('/user/region')}
-              className="mt-4 bg-[#facc15] hover:bg-[#ca8a04] text-white px-4 py-2 rounded"
+              onClick={handleJoinQuest}
+              disabled={joining} // prevent multiple clicks
+              className={`mt-4 px-4 py-2 rounded text-white ${
+                joining ? 'bg-yellow-300' : 'bg-[#facc15] hover:bg-[#ca8a04]'
+              }`}
             >
-              Join the quest!
+              {joining ? 'Joining...' : 'Join the quest!'}
             </button>
           ) : null}
         </CardContent>
