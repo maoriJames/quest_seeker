@@ -6,10 +6,11 @@ import { useDeleteQuest } from '@/hooks/userQuests'
 import bg from '@/assets/images/background_main.png'
 import { Card } from '@aws-amplify/ui-react'
 import { CardContent } from './ui/card'
-import { useS3Image } from '@/hooks/useS3Image'
 import { useState } from 'react'
 import { QuestTask, Task } from '@/types'
 import { addQuestToProfile } from '@/hooks/addQuestToProfile'
+import RemoteImage from './RemoteImage'
+import placeHold from '@/assets/images/placeholder_view_vector.svg'
 
 export default function QuestDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -22,7 +23,6 @@ export default function QuestDetailPage() {
   const { data: currentUserProfile } = useCurrentUserProfile()
 
   const deleteQuestMutation = useDeleteQuest()
-  const questImageUrl = useS3Image(quest?.quest_image ?? null)
 
   if (isLoading) return <p>Loading quest...</p>
   if (error) return <p>Failed to fetch quest.</p>
@@ -80,7 +80,6 @@ export default function QuestDetailPage() {
     setJoining(true)
 
     try {
-      // Ensure tasks are an array of Task
       const tasks: Task[] = Array.isArray(quest.quest_tasks)
         ? (quest.quest_tasks as Task[])
         : []
@@ -93,9 +92,7 @@ export default function QuestDetailPage() {
         completed: false,
       }
 
-      // Add this quest to the user's profile
       await addQuestToProfile(quest.id, [userQuestEntry])
-
       alert('✅ Quest added to your profile!')
     } catch (err) {
       console.error(err)
@@ -105,12 +102,10 @@ export default function QuestDetailPage() {
     }
   }
 
-  // 🧭 Check if current user is creator of this quest
   const isOwner =
     currentUserProfile?.id === quest.creator_id &&
     currentUserProfile?.role === 'creator'
 
-  // First, safely compute if the current user has joined this quest
   const myQuestsArray: QuestTask[] =
     typeof currentUserProfile?.my_quests === 'string'
       ? JSON.parse(currentUserProfile.my_quests)
@@ -125,9 +120,9 @@ export default function QuestDetailPage() {
     >
       <Card className="bg-white/90 backdrop-blur-md shadow-xl rounded-2xl max-w-2xl w-full flex overflow-hidden">
         <CardContent className="p-6 flex-1 text-left">
-          <img
-            src={questImageUrl ?? '/fallback-image.png'}
-            alt={quest.quest_name ?? 'Untitled Quest'}
+          <RemoteImage
+            path={quest.quest_image || placeHold}
+            fallback={placeHold}
             className="w-1/3 h-auto object-cover"
           />
           <h1 className="text-2xl font-bold mb-2">{quest.quest_name}</h1>
