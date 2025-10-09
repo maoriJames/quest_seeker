@@ -110,6 +110,7 @@ export default function CreateQuestPage() {
               isChecked: false,
               caption: '',
               answer: '',
+              completed: false,
             }))
           : []
       )
