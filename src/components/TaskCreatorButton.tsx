@@ -44,6 +44,7 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
           isChecked,
           caption,
           answer,
+          completed: false,
         }
         updatedTasks.push(newTask)
       }
