@@ -15,12 +15,10 @@ import {
 import { Calendar } from '@/components/ui/calendar'
 import TaskCreatorButton from '@/components/TaskCreatorButton'
 import SponsorCreatorButton from '@/components/SponsorCreatorButton'
-// import PrizeCreationButton from '@/components/PrizeCreation'
 import RemoteImage from '@/components/RemoteImage'
 import PickRegion from '@/components/PickRegion'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
 import bg from '@/assets/images/background_main.png'
-// import { defaultImage } from '@/components/QuestListItem'
 import {
   useInsertQuest,
   useUpdateQuest,
@@ -28,23 +26,21 @@ import {
   useQuest,
 } from '@/hooks/userQuests'
 import { Prize, Sponsor, Task } from '@/types'
-// import { CreateQuestInput, UpdateQuestInput } from '@/graphql/API'
 import { useCurrentUserProfile } from '@/hooks/userProfiles'
 import { DialogTitle } from '@radix-ui/react-dialog'
 import { VisuallyHidden } from '@aws-amplify/ui-react'
-import { uploadData, getUrl } from 'aws-amplify/storage'
+import { uploadData } from 'aws-amplify/storage'
 
 export default function CreateQuestPage() {
   const navigate = useNavigate()
   const params = useParams()
-  const questId = params.id // string | undefined
+  const questId = params.id
   const isUpdating = !!questId
 
   const [name, setName] = useState('')
   const [details, setDetails] = useState('')
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [previewImage, setPreviewImage] = useState<string>('')
-
   const [startDate, setStartDate] = useState<string>(
     new Date().toISOString().split('T')[0]
   )
@@ -58,7 +54,6 @@ export default function CreateQuestPage() {
   const [currencyValue, setCurrencyValue] = useState('')
   const [selectedRegion, setSelectedRegion] = useState('')
   const [errors, setErrors] = useState<string>('')
-  // const [isLoading, setIsLoading] = useState(false)
   const [openStart, setOpenStart] = useState(false)
   const [openEnd, setOpenEnd] = useState(false)
 
@@ -66,96 +61,82 @@ export default function CreateQuestPage() {
   const { mutate: updateQuest } = useUpdateQuest()
   const { mutate: deleteQuest } = useDeleteQuest()
   const { data: currentUser } = useCurrentUserProfile()
-  const creatorId = currentUser?.id || ''
+  const creatorId = currentUser?.id ?? ''
 
   const { data: updatingQuest } = useQuest(questId)
 
-  // Pre-fill fields if editing
+  // --- Pre-fill fields if editing ---
   useEffect(() => {
-    if (updatingQuest) {
-      setName(updatingQuest?.quest_name ?? '')
-      setDetails(updatingQuest?.quest_details ?? '')
-      setPreviewImage(updatingQuest?.quest_image ?? '')
-      setStartDate(updatingQuest?.quest_start ?? startDate)
-      setEndDate(updatingQuest?.quest_end ?? endDate)
-      setPrizeEnabled(!!updatingQuest?.quest_prize)
-      setPrizes(
-        updatingQuest?.quest_prize_info
-          ? updatingQuest.quest_prize_info.split(',').map((p, index) => ({
-              id: `temp-${index}`,
-              name: p.trim(),
-              contributor: '',
-            }))
-          : []
-      )
-      setSponsors(
-        updatingQuest?.quest_sponsor
-          ? updatingQuest.quest_sponsor.split(',').map((s, i) => ({
-              id: `temp-${i}`,
-              name: s.trim(),
-              sponsorImage: false,
-              image: '',
-            }))
-          : []
-      )
-      setSelectedRegion(updatingQuest?.region ?? '')
-      setCurrencyValue(updatingQuest?.quest_entry?.toString() ?? '')
+    if (!updatingQuest) return
 
-      setTasks(
-        updatingQuest?.quest_tasks
-          ? updatingQuest.quest_tasks.split(',').map((t, i) => ({
-              id: i,
-              description: t.trim(),
-              isImage: false,
-              isChecked: false,
-              caption: '',
-              answer: '',
-              completed: false,
-            }))
-          : []
-      )
-    }
+    setName(updatingQuest.quest_name ?? '')
+    setDetails(updatingQuest.quest_details ?? '')
+    setPreviewImage(updatingQuest.quest_image ?? '')
+    setStartDate(updatingQuest.quest_start ?? startDate)
+    setEndDate(updatingQuest.quest_end ?? endDate)
+    setPrizeEnabled(!!updatingQuest.quest_prize)
+    setPrizes(
+      updatingQuest.quest_prize_info
+        ? JSON.parse(updatingQuest.quest_prize_info)
+        : []
+    )
+    setSponsors(
+      updatingQuest.quest_sponsor ? JSON.parse(updatingQuest.quest_sponsor) : []
+    )
+    setSelectedRegion(updatingQuest.region ?? '')
+    setCurrencyValue(updatingQuest.quest_entry?.toString() ?? '')
+    setTasks(
+      updatingQuest.quest_tasks ? JSON.parse(updatingQuest.quest_tasks) : []
+    )
   }, [updatingQuest])
+
+  // --- Helpers ---
+  const getPublicUrl = (path: string) =>
+    `https://amplify-amplifyvitereactt-amplifyquestseekerbucket-beyjfgpn1vr2.s3.ap-southeast-2.amazonaws.com/${path}`
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    setImageFile(file) // keep for upload
-    setPreviewImage(URL.createObjectURL(file)) // preview locally
+    setImageFile(file)
+    setPreviewImage(URL.createObjectURL(file))
   }
 
   const validateInput = () => {
     setErrors('')
-    if (!name) {
-      setErrors('Name is required')
-      return false
-    }
-    if (!details) {
-      setErrors('Details are required')
-      return false
-    }
-    if (!startDate) {
-      setErrors('Start date required')
-      return false
-    }
-    if (!endDate) {
-      setErrors('End date required')
-      return false
-    }
+    if (!name) return (setErrors('Name is required'), false)
+    if (!details) return (setErrors('Details are required'), false)
+    if (!startDate) return (setErrors('Start date required'), false)
+    if (!endDate) return (setErrors('End date required'), false)
     return true
+  }
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const path = `public/${crypto.randomUUID()}-${file.name}`
+
+    try {
+      await uploadData({
+        path,
+        data: file,
+        options: { contentType: file.type },
+      })
+
+      return path // store path in DB, generate full URL when rendering
+    } catch (err) {
+      console.error('Error uploading file:', err)
+      return ''
+    }
   }
 
   const onSubmit = async () => {
     if (!validateInput()) return
 
-    // If a new file was selected, upload it
     const imagePath = imageFile ? await uploadImage(imageFile) : previewImage
 
     const payload = {
       quest_name: name,
       quest_details: details,
-      quest_image: imagePath, // only string
+      quest_image: imagePath,
       quest_start: startDate,
       quest_end: endDate,
       quest_prize: prizeEnabled,
@@ -164,7 +145,7 @@ export default function CreateQuestPage() {
       region: selectedRegion,
       quest_entry: Number(currencyValue),
       quest_tasks: JSON.stringify(tasks),
-      creator_id: creatorId ?? '',
+      creator_id: creatorId,
     }
 
     if (isUpdating) {
@@ -176,7 +157,6 @@ export default function CreateQuestPage() {
       insertQuest(payload, { onSuccess: () => navigate(-1) })
     }
 
-    // Clear temp file state
     setImageFile(null)
   }
 
@@ -191,26 +171,7 @@ export default function CreateQuestPage() {
     if (confirm('Delete this quest?')) onDelete()
   }
 
-  const uploadImage = async (file: File): Promise<string> => {
-    const prefix = 'public/'
-    const path = `${prefix}${crypto.randomUUID()}-${file.name}`
-
-    try {
-      await uploadData({
-        path,
-        data: file,
-        options: { contentType: file.type },
-      })
-
-      const result = await getUrl({ path })
-
-      return result.url.toString() // <-- convert URL to string
-    } catch (err) {
-      console.error('Error uploading file:', err)
-      return ''
-    }
-  }
-
+  // --- Render ---
   return (
     <div
       className="min-h-screen flex items-center justify-center bg-cover bg-center"
@@ -222,24 +183,30 @@ export default function CreateQuestPage() {
         </h1>
 
         {previewImage ? (
-          <img src={previewImage} className="w-1/2 mx-auto rounded-lg" />
+          <img
+            src={imageFile ? previewImage : getPublicUrl(previewImage)}
+            className="w-1/2 mx-auto rounded-lg"
+          />
         ) : (
           <RemoteImage
-            path={previewImage}
+            path={placeHold}
             fallback={placeHold}
             className="w-1/2 mx-auto rounded-lg"
           />
         )}
 
         <input type="file" accept="image/*" onChange={handleImageChange} />
+
         <label className="block text-sm font-medium">
           Quest Title
           <Input value={name} onChange={(e) => setName(e.target.value)} />
         </label>
+
         <label className="block text-sm font-medium">
           Quest Region
           <PickRegion value={selectedRegion} onChange={setSelectedRegion} />
         </label>
+
         <label className="block text-sm font-medium">
           Quest Details
           <Textarea
@@ -248,6 +215,7 @@ export default function CreateQuestPage() {
             className="border rounded p-2 w-full"
           />
         </label>
+
         <label className="block text-sm font-medium">
           Seeker Entry Fee
           <Input
@@ -255,7 +223,7 @@ export default function CreateQuestPage() {
             onChange={(e) => setCurrencyValue(e.target.value)}
           />
         </label>
-        {/* Date Pickers */}
+
         <div className="flex space-x-2">
           <Dialog open={openStart} onOpenChange={setOpenStart}>
             <DialogTrigger asChild>
@@ -268,17 +236,16 @@ export default function CreateQuestPage() {
               <Calendar
                 mode="single"
                 selected={startDate ? new Date(startDate) : undefined}
-                onSelect={(date) => {
-                  if (date) {
-                    setStartDate(date.toISOString().split('T')[0])
-                  }
-                }}
+                onSelect={(date) =>
+                  date && setStartDate(date.toISOString().split('T')[0])
+                }
               />
               <DialogClose asChild>
                 <Button>Confirm</Button>
               </DialogClose>
             </DialogContent>
           </Dialog>
+
           <Dialog open={openEnd} onOpenChange={setOpenEnd}>
             <DialogTrigger asChild>
               <Button>{`End Date: ${endDate}`}</Button>
@@ -290,11 +257,9 @@ export default function CreateQuestPage() {
               <Calendar
                 mode="single"
                 selected={endDate ? new Date(endDate) : undefined}
-                onSelect={(date) => {
-                  if (date) {
-                    setEndDate(date.toISOString().split('T')[0])
-                  }
-                }}
+                onSelect={(date) =>
+                  date && setEndDate(date.toISOString().split('T')[0])
+                }
               />
               <DialogClose asChild>
                 <Button>Confirm</Button>
@@ -303,18 +268,17 @@ export default function CreateQuestPage() {
           </Dialog>
         </div>
 
-        {/* Prize toggle */}
         <div className="flex items-center space-x-2">
           <Switch checked={prizeEnabled} onCheckedChange={setPrizeEnabled} />
           <span>{prizeEnabled ? 'PRIZES' : 'NO PRIZES'}</span>
         </div>
 
         {prizeEnabled && (
-          // <PrizeCreationButton prizeUpdates={prizes} onNewPrize={setPrizes} />
           <Button className="w-full mt-6" onClick={() => {}}>
             Add Prize
           </Button>
         )}
+
         <SponsorCreatorButton
           sponsorUpdates={sponsors}
           onNewSponsor={setSponsors}
@@ -322,13 +286,18 @@ export default function CreateQuestPage() {
         <TaskCreatorButton questUpdates={tasks} onNewTask={setTasks} />
 
         <Button onClick={onSubmit}>{isUpdating ? 'Update' : 'Create'}</Button>
+
         {isUpdating && (
-          <Button variant="destructive" onClick={confirmDelete}>
+          <Button
+            variant="destructive"
+            onClick={confirmDelete}
+            className="mt-2"
+          >
             Delete
           </Button>
         )}
 
-        {errors && <p className="text-red-600">{errors}</p>}
+        {errors && <p className="text-red-600 mt-2">{errors}</p>}
       </div>
     </div>
   )
