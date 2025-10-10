@@ -40,7 +40,7 @@ export type Task = {
   id: number
   description: string
   isImage: boolean
-  isChecked: boolean
+  requiresCaption: boolean
   caption: string
   answer: string
   completed: boolean
@@ -85,17 +85,17 @@ export type Sponsor = {
   image: string // string path/URL
 }
 
-export interface SponsorModalProps {
-  sponsors: Sponsor[]
-  setSponsors: Dispatch<SetStateAction<Sponsor[]>>
-  setSponsor: Dispatch<SetStateAction<string>>
-  setPreview: Dispatch<SetStateAction<string | null>> // renamed from setImage
-  setEditIndex: Dispatch<SetStateAction<number>>
-  visible: boolean
-  onClose: () => void
-  onNewSponsor: OnNewSponsorFunction
-  handleEdit?: (index: number) => void // optional if you pass edit handler
-}
+// export interface SponsorModalProps {
+//   sponsors: Sponsor[]
+//   setSponsors: Dispatch<SetStateAction<Sponsor[]>>
+//   setSponsor: Dispatch<SetStateAction<string>>
+//   setPreview: Dispatch<SetStateAction<string | null>> // renamed from setImage
+//   setEditIndex: Dispatch<SetStateAction<number>>
+//   visible: boolean
+//   onClose: () => void
+//   onNewSponsor: OnNewSponsorFunction
+//   handleEdit?: (index: number) => void // optional if you pass edit handler
+// }
 
 export interface SponsorCreatorButtonProps {
   sponsorUpdates: Sponsor[]
@@ -108,9 +108,30 @@ export type OnNewSponsorFunction = (updatedSponsors: Sponsor[]) => void
 export type Prize = {
   id: string
   name: string
+  prizeImage: boolean
+  image: string
   contributor: string
 }
 
+// export interface PrizeModalProps {
+//   prizes: Prize[]
+//   setPrizes: Dispatch<SetStateAction<Prize[]>>
+//   setPrize: Dispatch<SetStateAction<string>>
+//   setContributor: Dispatch<SetStateAction<string>>
+//   setPreview: Dispatch<SetStateAction<string | null>> // renamed from setImage
+//   setEditIndex: Dispatch<SetStateAction<number>>
+//   visible: boolean
+//   onClose: () => void
+//   OnNewPrize: OnNewPrizeFunction
+//   handleEdit?: (index: number) => void // optional if you pass edit handler
+// }
+
+export interface PrizeCreatorButtonProps {
+  prizeUpdates: Prize[]
+  onNewPrize: OnNewPrizeFunction
+}
+
+export type OnNewPrizeFunction = (updatedPrizes: Prize[]) => void
 // ---------------- Optional future prize types ----------------
 // export type OnNewPrizeFunction = (updatedPrizes: Prize[]) => void
 // export interface PrizeCreatorButtonProps {

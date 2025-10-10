@@ -7,7 +7,7 @@ import bg from '@/assets/images/background_main.png'
 import { Card } from '@aws-amplify/ui-react'
 import { CardContent } from './ui/card'
 import { useState } from 'react'
-import { QuestTask, Task } from '@/types'
+import { QuestTask, Sponsor, Task } from '@/types'
 import { addQuestToProfile } from '@/hooks/addQuestToProfile'
 import RemoteImage from './RemoteImage'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
@@ -113,6 +113,15 @@ export default function QuestDetailPage() {
 
   const hasJoined = myQuestsArray.some((q) => q.quest_id === quest.id)
 
+  // Parse sponsors (safe check in case it's undefined or malformed)
+  const sponsors: Sponsor[] = (() => {
+    try {
+      return quest.quest_sponsor ? JSON.parse(quest.quest_sponsor) : []
+    } catch {
+      return []
+    }
+  })()
+
   return (
     <div
       className="relative min-h-screen flex items-center justify-center bg-cover bg-center"
@@ -120,11 +129,46 @@ export default function QuestDetailPage() {
     >
       <Card className="bg-white/90 backdrop-blur-md shadow-xl rounded-2xl max-w-2xl w-full flex overflow-hidden">
         <CardContent className="p-6 flex-1 text-left">
-          <RemoteImage
-            path={quest.quest_image || placeHold}
-            fallback={placeHold}
-            className="w-1/3 h-auto object-cover"
-          />
+          {/* Top row: Quest image + optional sponsor */}
+          <div className="flex items-start justify-between mb-4 w-full">
+            {/* Quest image */}
+            <RemoteImage
+              path={quest.quest_image || placeHold}
+              fallback={placeHold}
+              className="w-1/3 h-auto object-cover rounded-lg"
+            />
+
+            {/* Sponsors (if any) */}
+            {sponsors.length > 0 && (
+              <div className="flex flex-col items-center gap-2">
+                {/* Only show this label once */}
+                <span className="text-xs text-gray-500 mb-1">
+                  This quest is brought to you by:
+                </span>
+
+                {/* Row of sponsor images */}
+                <div className="flex gap-4">
+                  {sponsors.map((sponsor) => (
+                    <div
+                      key={sponsor.id}
+                      className="flex flex-col items-center w-20 text-center"
+                    >
+                      <RemoteImage
+                        path={sponsor.image || placeHold}
+                        fallback={placeHold}
+                        className="w-16 h-16 object-cover rounded-full"
+                      />
+                      <span className="text-xs mt-1 font-semibold text-gray-700">
+                        {sponsor.name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Quest details */}
           <h1 className="text-2xl font-bold mb-2">{quest.quest_name}</h1>
           <p className="text-gray-700 mb-2">{quest.quest_details}</p>
           <p className="text-sm text-gray-500 mb-1">Region: {quest.region}</p>

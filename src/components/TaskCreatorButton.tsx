@@ -7,9 +7,9 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
   questUpdates,
 }) => {
   const [task, setTask] = useState('')
-  // const [taskDescription, setTaskDescription] = useState('')
   const [isImageTask, setIsImageTask] = useState(true)
-  const [isChecked, setIsChecked] = useState(false)
+  const [requiresCaption, setRequiresCaption] = useState(false)
+  // const [isChecked, setIsChecked] = useState(false)
   const [answer, setAnswer] = useState('')
   const [caption, setCaption] = useState('')
   const [tasks, setTasks] = useState<Task[]>(questUpdates)
@@ -31,7 +31,7 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
           description: task,
           // shortDescription: taskDescription,
           isImage: isImageTask,
-          isChecked,
+          requiresCaption,
           caption,
           answer,
         }
@@ -39,13 +39,13 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
         const newTask: Task = {
           id: Date.now(),
           description: task,
-          // shortDescription: taskDescription,
           isImage: isImageTask,
-          isChecked,
-          caption,
-          answer,
+          requiresCaption, // <-- new property
+          caption: '', // reset initially
+          answer: '', // reset initially
           completed: false,
         }
+
         updatedTasks.push(newTask)
       }
 
@@ -54,7 +54,7 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
       setTask('')
       // setTaskDescription('')
       setEditIndex(-1)
-      setIsChecked(false)
+      setRequiresCaption(false)
       setAnswer('')
       setCaption('')
     }
@@ -93,9 +93,16 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
           checked={isImageTask}
           onChange={(e) => setIsImageTask(e.target.checked)}
         />
-        <span>
-          {isImageTask ? 'TYPE OF TASK: IMAGE' : 'TYPE OF TASK: TEXT'}
-        </span>
+        <span>Enable Image</span>
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <input
+          type="checkbox"
+          checked={requiresCaption}
+          onChange={(e) => setRequiresCaption(e.target.checked)}
+        />
+        <span>Enable Caption / String Answer</span>
       </div>
 
       <button
