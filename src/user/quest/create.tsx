@@ -236,9 +236,9 @@ export default function CreateQuestPage() {
               <Calendar
                 mode="single"
                 selected={startDate ? new Date(startDate) : undefined}
-                onSelect={(date) =>
-                  date && setStartDate(date.toISOString().split('T')[0])
-                }
+                onSelect={(date) => {
+                  if (date) setStartDate(date.toLocaleDateString('en-NZ'))
+                }}
               />
               <DialogClose asChild>
                 <Button>Confirm</Button>
@@ -257,9 +257,9 @@ export default function CreateQuestPage() {
               <Calendar
                 mode="single"
                 selected={endDate ? new Date(endDate) : undefined}
-                onSelect={(date) =>
-                  date && setEndDate(date.toISOString().split('T')[0])
-                }
+                onSelect={(date) => {
+                  if (date) setEndDate(date.toLocaleDateString('en-NZ'))
+                }}
               />
               <DialogClose asChild>
                 <Button>Confirm</Button>

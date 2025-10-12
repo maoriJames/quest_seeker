@@ -35,7 +35,7 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
       // Upload the new image
       const newPath = await uploadImage(file)
       if (!newPath) return
-
+      console.log('oldImagePath: ', oldImagePath)
       // Delete the old image from the bucket (if applicable)
       if (oldImagePath && !oldImagePath.startsWith('http')) {
         try {

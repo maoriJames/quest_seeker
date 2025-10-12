@@ -51,16 +51,25 @@ export default function QuestDetailPage() {
 
     try {
       // Delete quest image
+      console.log('quest image:', quest.quest_image)
       if (quest.quest_image) {
         await deleteS3Object(quest.quest_image)
       }
-
+      console.log('Type of quest_sponsor:', typeof quest.quest_sponsor)
       // Delete all sponsor images
-      if (Array.isArray(quest.quest_sponsor)) {
-        for (const sponsor of quest.quest_sponsor) {
-          if (sponsor.sponsorImage && sponsor.image) {
-            await deleteS3Object(sponsor.image)
-          }
+      const sponsors = Array.isArray(quest.quest_sponsor)
+        ? quest.quest_sponsor
+        : JSON.parse(quest.quest_sponsor || '[]')
+      console.log(sponsors, ' is array')
+      for (const sponsor of sponsors) {
+        console.log(
+          'SponsorImage: ',
+          sponsor.sponsorImage,
+          ' image: ',
+          sponsor.image
+        )
+        if (sponsor.sponsorImage && sponsor.image) {
+          await deleteS3Object(sponsor.image)
         }
       }
 
