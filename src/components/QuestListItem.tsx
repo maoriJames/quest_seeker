@@ -23,22 +23,28 @@ export default function QuestListItem({ quest }: QuestListItemProps) {
 
   return (
     <Link to={`/quest/${quest.id}`} className="block">
-      <div className="bg-white rounded-2xl p-4 shadow flex flex-col gap-2">
-        {/* <img
-          src={questImageUrl || defaultImage}
-          alt={quest.quest_name}
-          className="w-full aspect-square rounded-2xl object-cover"
-        /> */}
+      <div className="bg-white rounded-2xl p-4 shadow flex flex-col items-center gap-2">
+        {/* Centered circular image */}
         <RemoteImage
           path={quest.quest_image || placeHold}
           fallback={placeHold}
-          className="w-32 h-32 rounded-full object-cover"
+          className="w-32 h-32 rounded-full object-cover mx-auto"
         />
-        <h3 className="text-lg font-bold">{quest.quest_name}</h3>
-        <p className="text-blue-500 font-bold">
+
+        {/* Quest name with single-line ellipsis */}
+        <h3 className="text-lg font-bold text-center truncate w-full">
+          {quest.quest_name}
+        </h3>
+
+        {/* Start date */}
+        <p className="text-blue-500 font-bold text-center">
           {reformatDate(quest.quest_start)}
         </p>
-        <p className="text-sm">Region: {quest.region}</p>
+
+        {/* Region with single-line ellipsis if too long */}
+        <p className="text-sm text-center truncate w-full">
+          Region: {quest.region}
+        </p>
       </div>
     </Link>
   )

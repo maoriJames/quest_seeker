@@ -47,7 +47,7 @@ export default function QuestPage() {
           )}
 
           {/* Quest list */}
-          <div className="w-full flex flex-col gap-3 max-h-[60vh] overflow-y-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {!isLoading &&
               !error &&
               validQuests.length > 0 &&

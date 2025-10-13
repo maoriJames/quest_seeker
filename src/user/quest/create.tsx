@@ -30,6 +30,7 @@ import { useCurrentUserProfile } from '@/hooks/userProfiles'
 import { DialogTitle } from '@radix-ui/react-dialog'
 import { VisuallyHidden } from '@aws-amplify/ui-react'
 import { uploadData } from 'aws-amplify/storage'
+import PrizeCreatorButton from '@/components/PrizeCreatorButton'
 
 export default function CreateQuestPage() {
   const navigate = useNavigate()
@@ -147,7 +148,7 @@ export default function CreateQuestPage() {
       quest_tasks: JSON.stringify(tasks),
       creator_id: creatorId,
     }
-
+    console.log(payload)
     if (isUpdating) {
       updateQuest(
         { id: questId!, ...payload },
@@ -227,7 +228,17 @@ export default function CreateQuestPage() {
         <div className="flex space-x-2">
           <Dialog open={openStart} onOpenChange={setOpenStart}>
             <DialogTrigger asChild>
-              <Button>{`Start Date: ${startDate}`}</Button>
+              <Button>
+                {`Start Date: ${
+                  startDate
+                    ? new Date(startDate).toLocaleDateString('en-NZ', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                      })
+                    : 'Not set'
+                }`}
+              </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogTitle>
@@ -237,7 +248,13 @@ export default function CreateQuestPage() {
                 mode="single"
                 selected={startDate ? new Date(startDate) : undefined}
                 onSelect={(date) => {
-                  if (date) setStartDate(date.toLocaleDateString('en-NZ'))
+                  if (date) {
+                    // Adjust for timezone so we don’t get “day before”
+                    const localDate = new Date(
+                      date.getTime() - date.getTimezoneOffset() * 60000
+                    )
+                    setStartDate(localDate.toISOString().split('T')[0]) // "YYYY-MM-DD"
+                  }
                 }}
               />
               <DialogClose asChild>
@@ -248,7 +265,17 @@ export default function CreateQuestPage() {
 
           <Dialog open={openEnd} onOpenChange={setOpenEnd}>
             <DialogTrigger asChild>
-              <Button>{`End Date: ${endDate}`}</Button>
+              <Button>
+                {`End Date: ${
+                  endDate
+                    ? new Date(endDate).toLocaleDateString('en-NZ', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                      })
+                    : 'Not set'
+                }`}
+              </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogTitle>
@@ -258,7 +285,13 @@ export default function CreateQuestPage() {
                 mode="single"
                 selected={endDate ? new Date(endDate) : undefined}
                 onSelect={(date) => {
-                  if (date) setEndDate(date.toLocaleDateString('en-NZ'))
+                  if (date) {
+                    // Adjust for timezone so we don’t get “day before”
+                    const localDate = new Date(
+                      date.getTime() - date.getTimezoneOffset() * 60000
+                    )
+                    setEndDate(localDate.toISOString().split('T')[0]) // "YYYY-MM-DD"
+                  }
                 }}
               />
               <DialogClose asChild>
@@ -274,9 +307,7 @@ export default function CreateQuestPage() {
         </div>
 
         {prizeEnabled && (
-          <Button className="w-full mt-6" onClick={() => {}}>
-            Add Prize
-          </Button>
+          <PrizeCreatorButton prizeUpdates={prizes} onNewPrize={setPrizes} />
         )}
 
         <SponsorCreatorButton
