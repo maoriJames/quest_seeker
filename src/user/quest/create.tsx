@@ -228,7 +228,17 @@ export default function CreateQuestPage() {
         <div className="flex space-x-2">
           <Dialog open={openStart} onOpenChange={setOpenStart}>
             <DialogTrigger asChild>
-              <Button>{`Start Date: ${startDate}`}</Button>
+              <Button>
+                {`Start Date: ${
+                  startDate
+                    ? new Date(startDate).toLocaleDateString('en-NZ', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                      })
+                    : 'Not set'
+                }`}
+              </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogTitle>
@@ -255,7 +265,17 @@ export default function CreateQuestPage() {
 
           <Dialog open={openEnd} onOpenChange={setOpenEnd}>
             <DialogTrigger asChild>
-              <Button>{`End Date: ${endDate}`}</Button>
+              <Button>
+                {`End Date: ${
+                  endDate
+                    ? new Date(endDate).toLocaleDateString('en-NZ', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                      })
+                    : 'Not set'
+                }`}
+              </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogTitle>

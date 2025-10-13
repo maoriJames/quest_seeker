@@ -11,6 +11,7 @@ import { Prize, QuestTask, Sponsor, Task } from '@/types'
 import { addQuestToProfile } from '@/hooks/addQuestToProfile'
 import RemoteImage from './RemoteImage'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
+import HomeButton from './HomeButton'
 
 export default function QuestDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -271,6 +272,7 @@ export default function QuestDetailPage() {
                 {joining ? 'Joining...' : 'Join the quest!'}
               </button>
             ))}
+          <HomeButton />
         </CardContent>
       </Card>
     </div>
