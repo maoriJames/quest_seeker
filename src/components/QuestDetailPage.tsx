@@ -205,57 +205,6 @@ export default function QuestDetailPage() {
                     </div>
                   ))}
                 </div>
-
-                {/* Prize Information Button below sponsors */}
-                {prizes.length > 0 && (
-                  <Dialog>
-                    {/* Trigger Button */}
-                    <DialogTrigger asChild>
-                      <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
-                        Prize Information
-                      </button>
-                    </DialogTrigger>
-
-                    {/* Overlay covering the entire viewport */}
-                    <DialogOverlay className="fixed inset-0 bg-black/30 z-50" />
-
-                    {/* Modal Content */}
-                    <DialogContent className="fixed top-1/2 left-1/2 z-50 max-w-md w-full bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2">
-                      <DialogTitle className="text-lg font-bold mb-4">
-                        Prize Information
-                      </DialogTitle>
-
-                      {/* Prize Images Row */}
-                      <div className="flex flex-wrap justify-center gap-4">
-                        {prizes.map((prize) => (
-                          <div
-                            key={prize.id}
-                            className="flex flex-col items-center w-20 text-center"
-                          >
-                            <RemoteImage
-                              path={prize.image || placeHold}
-                              fallback={placeHold}
-                              className="w-16 h-16 object-cover rounded-full"
-                            />
-                            <span className="text-xs mt-1 font-semibold text-gray-700">
-                              {prize.name}
-                            </span>
-                            <span className="text-xs mt-1 font-semibold text-gray-700">
-                              {prize.contributor}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Close Button */}
-                      <DialogClose asChild>
-                        <button className="mt-4 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
-                          Close
-                        </button>
-                      </DialogClose>
-                    </DialogContent>
-                  </Dialog>
-                )}
               </div>
             )}
           </div>
@@ -273,34 +222,89 @@ export default function QuestDetailPage() {
           </p>
           <p className="text-sm text-gray-500">End: {quest.quest_end}</p>
 
-          {/* Conditional button / status rendering */}
-          {isOwner && (
-            <button
-              onClick={handleDelete}
-              className="mt-4 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
-            >
-              Delete Quest
-            </button>
-          )}
+          {/* Action Buttons Row */}
+          <div className="mt-4 flex items-center justify-between w-full">
+            {/* Delete Button Left */}
+            <div>
+              {isOwner && (
+                <button
+                  onClick={handleDelete}
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+                >
+                  Delete Quest
+                </button>
+              )}
 
-          {!isOwner &&
-            currentUserProfile?.role === 'seeker' &&
-            (hasJoined ? (
-              <p className="mt-4 text-green-600 font-semibold">
-                ✅ You have joined this quest!
-              </p>
-            ) : (
-              <button
-                onClick={handleJoinQuest}
-                disabled={joining}
-                className={`mt-4 px-4 py-2 rounded text-white ${
-                  joining ? 'bg-yellow-300' : 'bg-[#facc15] hover:bg-[#ca8a04]'
-                }`}
-              >
-                {joining ? 'Joining...' : 'Join the quest!'}
-              </button>
-            ))}
-          <HomeButton />
+              {!isOwner &&
+                currentUserProfile?.role === 'seeker' &&
+                (hasJoined ? (
+                  <p className="text-green-600 font-semibold">
+                    ✅ You have joined this quest!
+                  </p>
+                ) : (
+                  <button
+                    onClick={handleJoinQuest}
+                    disabled={joining}
+                    className={`px-4 py-2 rounded text-white ${
+                      joining
+                        ? 'bg-yellow-300'
+                        : 'bg-[#facc15] hover:bg-[#ca8a04]'
+                    }`}
+                  >
+                    {joining ? 'Joining...' : 'Join the quest!'}
+                  </button>
+                ))}
+            </div>
+
+            {/* Center: Home button */}
+            <div className="flex justify-center flex-1">
+              <HomeButton />
+            </div>
+            {/* Prize Information button inline */}
+            <div>
+              {prizes.length > 0 && (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                      Prize Information
+                    </button>
+                  </DialogTrigger>
+
+                  <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
+
+                  <DialogContent className="fixed top-1/2 left-1/2 z-50 max-w-md w-full bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2">
+                    <DialogTitle className="text-lg font-bold mb-4">
+                      Prize Information
+                    </DialogTitle>
+
+                    <div className="flex flex-wrap justify-center gap-4">
+                      {prizes.map((prize) => (
+                        <div
+                          key={prize.id}
+                          className="flex flex-col items-center w-20 text-center"
+                        >
+                          <RemoteImage
+                            path={prize.image || placeHold}
+                            fallback={placeHold}
+                            className="w-16 h-16 object-cover rounded-full"
+                          />
+                          <span className="text-xs mt-1 font-semibold text-gray-700">
+                            {prize.name}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <DialogClose asChild>
+                      <button className="mt-4 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
+                        Close
+                      </button>
+                    </DialogClose>
+                  </DialogContent>
+                </Dialog>
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
