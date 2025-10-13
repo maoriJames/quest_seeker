@@ -7,7 +7,7 @@ import bg from '@/assets/images/background_main.png'
 import { Card } from '@aws-amplify/ui-react'
 import { CardContent } from './ui/card'
 import { useState } from 'react'
-import { QuestTask, Sponsor, Task } from '@/types'
+import { Prize, QuestTask, Sponsor, Task } from '@/types'
 import { addQuestToProfile } from '@/hooks/addQuestToProfile'
 import RemoteImage from './RemoteImage'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
@@ -55,21 +55,38 @@ export default function QuestDetailPage() {
       if (quest.quest_image) {
         await deleteS3Object(quest.quest_image)
       }
-      console.log('Type of quest_sponsor:', typeof quest.quest_sponsor)
+      // console.log('Type of quest_sponsor:', typeof quest.quest_sponsor)
       // Delete all sponsor images
       const sponsors = Array.isArray(quest.quest_sponsor)
         ? quest.quest_sponsor
         : JSON.parse(quest.quest_sponsor || '[]')
-      console.log(sponsors, ' is array')
+      // console.log(sponsors, ' is array')
       for (const sponsor of sponsors) {
-        console.log(
-          'SponsorImage: ',
-          sponsor.sponsorImage,
-          ' image: ',
-          sponsor.image
-        )
+        // console.log(
+        //   'SponsorImage: ',
+        //   sponsor.sponsorImage,
+        //   ' image: ',
+        //   sponsor.image
+        // )
         if (sponsor.sponsorImage && sponsor.image) {
           await deleteS3Object(sponsor.image)
+        }
+      }
+
+      // Delete all sponsor images
+      const prizes = Array.isArray(quest.quest_prize_info)
+        ? quest.quest_prize_info
+        : JSON.parse(quest.quest_prize_info || '[]')
+      // console.log(sponsors, ' is array')
+      for (const prize of prizes) {
+        // console.log(
+        //   'SponsorImage: ',
+        //   sponsor.sponsorImage,
+        //   ' image: ',
+        //   sponsor.image
+        // )
+        if (prize.prizeImage && prize.image) {
+          await deleteS3Object(prize.image)
         }
       }
 
@@ -131,6 +148,15 @@ export default function QuestDetailPage() {
     }
   })()
 
+  // Parse prizes (safe check in case it's undefined or malformed)
+  const prizes: Prize[] = (() => {
+    try {
+      return quest.quest_prize_info ? JSON.parse(quest.quest_prize_info) : []
+    } catch {
+      return []
+    }
+  })()
+
   return (
     <div
       className="relative min-h-screen flex items-center justify-center bg-cover bg-center"
@@ -169,6 +195,34 @@ export default function QuestDetailPage() {
                       />
                       <span className="text-xs mt-1 font-semibold text-gray-700">
                         {sponsor.name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Prizes (if any) */}
+            {prizes.length > 0 && (
+              <div className="flex flex-col items-center gap-2">
+                {/* Only show this label once */}
+                <span className="text-xs text-gray-500 mb-1">
+                  Prize information:
+                </span>
+                {/* Row of prize images */}
+                <div className="flex gap-4">
+                  {prizes.map((prize) => (
+                    <div
+                      key={prize.id}
+                      className="flex flex-col items-center w-20 text-center"
+                    >
+                      <RemoteImage
+                        path={prize.image || placeHold}
+                        fallback={placeHold}
+                        className="w-16 h-16 object-cover rounded-full"
+                      />
+                      <span className="text-xs mt-1 font-semibold text-gray-700">
+                        {prize.name}
                       </span>
                     </div>
                   ))}

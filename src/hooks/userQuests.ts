@@ -84,7 +84,7 @@ export const useQuest = (id?: string | number) => {
 
 export const useInsertQuest = () => {
   const queryClient = useQueryClient()
-
+  console.log('prize fire 1?')
   return useMutation({
     mutationFn: async (questInput: CreateQuestInput) => {
       const { data } = await client.graphql({
@@ -95,6 +95,7 @@ export const useInsertQuest = () => {
       return data.createQuest
     },
     onSuccess: () => {
+      console.log('prize fire success?')
       queryClient.invalidateQueries({ queryKey: ['quests'] })
     },
   })

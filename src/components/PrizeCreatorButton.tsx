@@ -100,6 +100,14 @@ const PrizeCreatorButton: React.FC<PrizeCreatorButtonProps> = ({
         onChange={(e) => setPrize(e.target.value)}
       />
 
+      <input
+        type="text"
+        className="w-full p-2 mb-2 border rounded"
+        placeholder="Enter Prize Contributor"
+        value={contributor}
+        onChange={(e) => setContributor(e.target.value)}
+      />
+
       <div className="flex items-center gap-2 mb-2">
         <input
           type="checkbox"
