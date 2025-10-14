@@ -20,10 +20,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@radix-ui/react-dialog'
+import TaskInformationWindow from './TaskInformationWindow'
 
 export default function QuestDetailPage() {
   const { id } = useParams<{ id: string }>()
   const [joining, setJoining] = useState(false)
+
   const navigate = useNavigate()
 
   // 🧩 Fetch quest data
@@ -166,6 +168,18 @@ export default function QuestDetailPage() {
     }
   })()
 
+  // Parse quest tasks (safe check in case it's undefined or malformed)
+  const questTasks: Task[] = (() => {
+    try {
+      if (!quest.quest_tasks) return []
+      return Array.isArray(quest.quest_tasks)
+        ? quest.quest_tasks
+        : JSON.parse(quest.quest_tasks)
+    } catch {
+      console.warn('⚠️ Could not parse quest_tasks:', quest.quest_tasks)
+      return []
+    }
+  })()
   return (
     <div
       className="relative min-h-screen flex items-center justify-center bg-cover bg-center"
@@ -209,18 +223,33 @@ export default function QuestDetailPage() {
             )}
           </div>
 
-          {/* Quest details */}
-          <h1 className="text-2xl font-bold mb-2">{quest.quest_name}</h1>
-          <p className="text-gray-700 mb-2">{quest.quest_details}</p>
-          <p className="text-sm text-gray-500 mb-1">Region: {quest.region}</p>
-          <p className="text-sm text-gray-500 mb-1">
-            Organisation:{' '}
-            {questCreatorProfile?.data?.organization_name || 'N/A'}
-          </p>
-          <p className="text-sm text-gray-500 mb-1">
-            Start: {quest.quest_start}
-          </p>
-          <p className="text-sm text-gray-500">End: {quest.quest_end}</p>
+          {/* Quest details + Task list side by side */}
+          <div className="flex flex-col md:flex-row gap-6 mt-2">
+            {/* Left: Quest details */}
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold mb-2">{quest.quest_name}</h1>
+              <p className="text-gray-700 mb-2">{quest.quest_details}</p>
+              <p className="text-sm text-gray-500 mb-1">
+                Region: {quest.region}
+              </p>
+              <p className="text-sm text-gray-500 mb-1">
+                Organisation:{' '}
+                {questCreatorProfile?.data?.organization_name || 'N/A'}
+              </p>
+              <p className="text-sm text-gray-500 mb-1">
+                Start: {quest.quest_start}
+              </p>
+              <p className="text-sm text-gray-500">End: {quest.quest_end}</p>
+              <p className="text-sm text-gray-500">
+                Entry: {quest.quest_entry}
+              </p>
+            </div>
+
+            {/* Right: Scrollable task list */}
+            {currentUserProfile?.role === 'seeker' && hasJoined && (
+              <TaskInformationWindow questId={quest.id} tasks={questTasks} />
+            )}
+          </div>
 
           {/* Action Buttons Row */}
           <div className="mt-4 flex items-center justify-between w-full">
