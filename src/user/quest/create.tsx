@@ -220,8 +220,11 @@ export default function CreateQuestPage() {
         <label className="block text-sm font-medium">
           Seeker Entry Fee
           <Input
+            type="number"
             value={currencyValue}
             onChange={(e) => setCurrencyValue(e.target.value)}
+            min="0"
+            step="0.01" // optional, allows decimals like 1.50
           />
         </label>
 
