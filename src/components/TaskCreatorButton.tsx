@@ -37,7 +37,7 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
         }
       } else {
         const newTask: Task = {
-          id: Date.now(),
+          id: Date.now().toString(),
           description: task,
           isImage: isImageTask,
           requiresCaption, // <-- new property

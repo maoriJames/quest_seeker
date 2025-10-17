@@ -7,7 +7,7 @@ import bg from '@/assets/images/background_main.png'
 import { Card } from '@aws-amplify/ui-react'
 import { CardContent } from './ui/card'
 import { useState } from 'react'
-import { Prize, QuestTask, Sponsor, Task } from '@/types'
+import { Prize, MyQuest, Sponsor, Task } from '@/types'
 import { addQuestToProfile } from '@/hooks/addQuestToProfile'
 import RemoteImage from './RemoteImage'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
@@ -121,9 +121,9 @@ export default function QuestDetailPage() {
         ? (quest.quest_tasks as Task[])
         : []
 
-      const userQuestEntry: QuestTask = {
+      const userQuestEntry: MyQuest = {
         quest_id: quest.id,
-        description: quest.quest_name ?? 'Untitled Quest',
+        title: quest.quest_name ?? 'Untitled Quest',
         tasks,
         progress: 0,
         completed: false,
@@ -143,7 +143,7 @@ export default function QuestDetailPage() {
     currentUserProfile?.id === quest.creator_id &&
     currentUserProfile?.role === 'creator'
 
-  const myQuestsArray: QuestTask[] =
+  const myQuestsArray: MyQuest[] =
     typeof currentUserProfile?.my_quests === 'string'
       ? JSON.parse(currentUserProfile.my_quests)
       : (currentUserProfile?.my_quests ?? [])

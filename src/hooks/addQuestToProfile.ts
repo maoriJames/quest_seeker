@@ -2,24 +2,16 @@ import { generateClient } from 'aws-amplify/api'
 import { getCurrentUser } from 'aws-amplify/auth'
 import { getProfile } from '@/graphql/queries'
 import { updateProfile } from '@/graphql/mutations'
+import { MyQuest } from '@/types'
 
 const client = generateClient()
-interface QuestTask {
-  quest_id: string
-  description?: string
-  completed: boolean
-}
 
-interface MyQuest {
-  quest_id: string
-  tasks: QuestTask[]
-}
+// interface MyQuest {
+//   quest_id: string
+//   tasks: Task[]
+// }
 
-export async function addQuestToProfile(
-  questId: string,
-  questTasks: QuestTask[]
-) {
-  console.log('addQuestToProfile called with:', questId, questTasks)
+export async function addQuestToProfile(questId: string, MyQuests: MyQuest[]) {
   try {
     const user = await getCurrentUser()
     const userId = user.userId // or user.sub depending on your setup
@@ -29,38 +21,64 @@ export async function addQuestToProfile(
       variables: { id: userId },
       authMode: 'userPool',
     })
+
     const profile = data?.getProfile
     if (!profile) throw new Error('Profile not found')
 
-    // Parse existing my_quests JSON, or start with empty array
+    // Parse my_quests from JSON if needed
     const existingQuests: MyQuest[] = profile.my_quests
       ? JSON.parse(profile.my_quests)
       : []
-    // Prevent duplicates
-    if (existingQuests.some((q) => q.quest_id === questId)) {
-      console.log('⚠️ Quest already in profile, skipping update.')
-      return
+
+    const existingQuest = existingQuests.find((q) => q.quest_id === questId)
+
+    // 🟢 If no quest exists yet, add it
+    if (!existingQuest) {
+      console.log('🆕 Adding new quest to profile')
+      existingQuests.push({
+        quest_id: questId,
+        tasks: MyQuests.flatMap((qt) => qt.tasks),
+        title: MyQuests[0].title,
+        completed: false, // merge all incoming MyQuest.tasks into one array
+      })
+    } else {
+      // 🔄 Merge/update existing tasks
+      console.log('✏️ Updating existing quest tasks')
+
+      MyQuests.forEach((newMyQuest) => {
+        newMyQuest.tasks.forEach((newTask) => {
+          const existingTaskIndex = existingQuest!.tasks.findIndex(
+            (t) => t.id === newTask.id
+          )
+
+          if (existingTaskIndex >= 0) {
+            console.log(`✏️ Updating existing task: ${newTask.id}`)
+            existingQuest!.tasks[existingTaskIndex] = {
+              ...existingQuest!.tasks[existingTaskIndex],
+              ...newTask,
+            }
+          } else {
+            console.log(`➕ Adding new task: ${newTask.id}`)
+            existingQuest!.tasks.push(newTask)
+          }
+        })
+      })
     }
 
-    const updatedQuests: MyQuest[] = [
-      ...existingQuests,
-      { quest_id: questId, tasks: questTasks },
-    ]
-
-    // Save back to profile as JSON
+    // 🧩 Save updated quests array
     const updateResult = await client.graphql({
       query: updateProfile,
       variables: {
         input: {
           id: profile.id,
-          my_quests: JSON.stringify(updatedQuests),
+          my_quests: JSON.stringify(existingQuests),
         },
       },
       authMode: 'userPool',
     })
-    console.log('updateProfile result:', updateResult)
-    console.log('✅ Quest with typed tasks added to profile.')
+
+    console.log('✅ Profile updated successfully:', updateResult)
   } catch (err) {
-    console.error('❌ Failed to add quest to profile:', err)
+    console.error('❌ Failed to add/update quest in profile:', err)
   }
 }
