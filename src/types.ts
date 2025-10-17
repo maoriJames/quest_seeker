@@ -32,12 +32,12 @@ export type Profile = {
   secondary_contact_phone: string
   image: string
   role: Role
-  my_quests?: QuestTask[]
+  my_quests?: MyQuest[]
 }
 
 // ---------------- Tasks ----------------
 export type Task = {
-  id: number
+  id: string
   description: string
   isImage: boolean
   requiresCaption: boolean
@@ -63,9 +63,9 @@ export interface TaskCreatorButtonProps {
 
 export type OnNewTaskFunction = (updatedTasks: Task[]) => void
 
-export type QuestTask = {
+export type MyQuest = {
   quest_id: string
-  description: string | undefined
+  title: string | undefined
   tasks: Task[]
   progress?: number
   completed: boolean

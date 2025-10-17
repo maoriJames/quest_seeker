@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Task, QuestTask } from '@/types'
+import { Task, MyQuest } from '@/types'
 import {
   Dialog,
   DialogClose,
@@ -26,11 +26,12 @@ export default function TaskInformationWindow({
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
-  // Prefill caption and image if user has already answered
+  // Prefill caption/image if already answered
   useEffect(() => {
+    console.log('caption ', caption)
     if (!selectedTask || !currentUserProfile) return
 
-    const myQuestsArray: QuestTask[] =
+    const myQuestsArray: MyQuest[] =
       typeof currentUserProfile.my_quests === 'string'
         ? JSON.parse(currentUserProfile.my_quests)
         : (currentUserProfile.my_quests ?? [])
@@ -38,19 +39,30 @@ export default function TaskInformationWindow({
     const questEntry = myQuestsArray.find((q) => q.quest_id === questId)
     if (!questEntry) return
 
+    // find the specific task within the quest
     const taskAnswer = questEntry.tasks.find((t) => t.id === selectedTask.id)
+    console.log('myQuestsArray ', myQuestsArray)
+    console.log('questEntry ', questEntry)
     if (taskAnswer) {
+      console.log('taskAnswer = yes')
       setCaption(taskAnswer.caption || '')
-      if (taskAnswer.answer && selectedTask.isImage)
+      if (taskAnswer.answer && selectedTask.isImage) {
         setPreviewUrl(taskAnswer.answer)
+      } else {
+        setPreviewUrl(null)
+      }
+    } else {
+      // reset if not found (to avoid showing previous answers)
+      console.log('taskAnswer = no')
+      setCaption('')
+      setPreviewUrl(null)
     }
   }, [selectedTask, currentUserProfile, questId])
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null
     setImageFile(file)
-    if (file) setPreviewUrl(URL.createObjectURL(file))
-    else setPreviewUrl(null)
+    setPreviewUrl(file ? URL.createObjectURL(file) : null)
   }
 
   const uploadImage = async (file: File, isPublic = true): Promise<string> => {
@@ -73,33 +85,33 @@ export default function TaskInformationWindow({
     if (!selectedTask || !currentUserProfile) return
 
     let uploadedPath = ''
-
     if (selectedTask.isImage && imageFile) {
       uploadedPath = await uploadImage(imageFile)
     }
 
     try {
-      const myQuestsArray: QuestTask[] =
-        typeof currentUserProfile.my_quests === 'string'
-          ? JSON.parse(currentUserProfile.my_quests)
-          : (currentUserProfile.my_quests ?? [])
+      await addQuestToProfile(questId, [
+        {
+          quest_id: questId,
+          tasks: [
+            {
+              id: selectedTask.id,
+              caption,
+              answer: uploadedPath || caption,
+              description: '',
+              isImage: false,
+              requiresCaption: false,
+              completed: false,
+            },
+          ],
+          title: '',
+          completed: false,
+        },
+      ])
 
-      const questEntry = myQuestsArray.find((q) => q.quest_id === questId)
-      if (!questEntry) throw new Error('Quest not found in user profile')
-
-      // Update the task
-      questEntry.tasks = questEntry.tasks.map((t) =>
-        t.id === selectedTask.id
-          ? { ...t, caption, answer: uploadedPath || t.answer }
-          : t
-      )
-      console.log('myquests', myQuestsArray)
-      // Save back to profile
-      await addQuestToProfile(currentUserProfile.id, myQuestsArray)
-
-      alert('✅ Answer saved!')
+      alert('✅ Answer saved successfully!')
     } catch (err) {
-      console.error(err)
+      console.error('❌ Failed to save answer:', err)
       alert('❌ Failed to save answer.')
     } finally {
       setCaption('')

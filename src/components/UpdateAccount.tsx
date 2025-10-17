@@ -185,14 +185,12 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
             <p className="text-gray-500">You haven’t joined any quests yet.</p>
           ) : (
             <ul className="list-disc pl-5">
-              {safeProfile.my_quests.map((myQuest) =>
-                myQuest.tasks.map((task, index) => (
-                  <li key={`${myQuest.quest_id}-${index}`}>
-                    {task.description} (
-                    {task.completed ? 'Completed' : 'In Progress'})
-                  </li>
-                ))
-              )}
+              {safeProfile.my_quests.map((myQuest) => (
+                <li key={`${myQuest.quest_id}`}>
+                  {myQuest.title} (
+                  {myQuest.completed ? 'Completed' : 'In Progress'})
+                </li>
+              ))}
             </ul>
           )}
         </div>
