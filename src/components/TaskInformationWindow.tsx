@@ -97,7 +97,7 @@ export default function TaskInformationWindow({
             {
               id: selectedTask.id,
               caption,
-              answer: uploadedPath || caption,
+              answer: uploadedPath,
               description: '',
               isImage: false,
               requiresCaption: false,
@@ -152,18 +152,18 @@ export default function TaskInformationWindow({
             <DialogTitle className="text-lg font-bold mb-2">
               {selectedTask.description || 'Quest Task'}
             </DialogTitle>
-
-            <label className="block mb-4 text-sm font-medium">
-              Caption:
-              <input
-                type="text"
-                value={caption}
-                onChange={(e) => setCaption(e.target.value)}
-                className="mt-1 w-full border rounded px-3 py-2 text-sm"
-                placeholder="Enter your caption..."
-              />
-            </label>
-
+            {selectedTask.requiresCaption && (
+              <label className="block mb-4 text-sm font-medium">
+                Caption:
+                <input
+                  type="text"
+                  value={caption}
+                  onChange={(e) => setCaption(e.target.value)}
+                  className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                  placeholder="Enter your caption..."
+                />
+              </label>
+            )}
             {selectedTask.isImage && (
               <div className="mb-4">
                 <label className="block text-sm font-medium mb-1">
