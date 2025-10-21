@@ -6,7 +6,7 @@ import { useProfile, useCurrentUserProfile } from '@/hooks/userProfiles'
 import { remove } from '@aws-amplify/storage'
 import { useDeleteQuest } from '@/hooks/userQuests'
 import bg from '@/assets/images/background_main.png'
-import { Card } from '@aws-amplify/ui-react'
+import { Button, Card, VisuallyHidden } from '@aws-amplify/ui-react'
 import { CardContent } from './ui/card'
 import { useEffect, useState } from 'react'
 import { Prize, MyQuest, Sponsor, Task } from '@/types'
@@ -30,6 +30,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@radix-ui/react-tooltip'
+import PickRegion from './PickRegion'
+import { Calendar } from './ui/calendar'
 
 export default function QuestDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -38,13 +40,22 @@ export default function QuestDetailPage() {
   const navigate = useNavigate()
 
   // 🧩 Fetch quest data
-  const { data: quest, isLoading, error } = useQuest(id)
+  const { data: quest, isLoading, error, refetch } = useQuest(id)
   const questCreatorProfile = useProfile(quest?.creator_id || '')
   const { data: currentUserProfile } = useCurrentUserProfile()
   const [editName, setEditName] = useState(quest?.quest_name || '')
   const [editDetails, setEditDetails] = useState(quest?.quest_details || '')
-  const [editStart, setEditStart] = useState(quest?.quest_start || '')
-  const [editEnd, setEditEnd] = useState(quest?.quest_end || '')
+  const [openStart, setOpenStart] = useState(false)
+  const [openEnd, setOpenEnd] = useState(false)
+  const [editStart, setEditStart] = useState<string>(
+    new Date().toISOString().split('T')[0]
+  )
+  const [editEnd, setEditEnd] = useState<string>(
+    new Date().toISOString().split('T')[0]
+  )
+  const [selectedRegion, setSelectedRegion] = useState('')
+  const [open, setOpen] = useState(false)
+
   const deleteQuestMutation = useDeleteQuest()
 
   // Keep them in sync when quest loads
@@ -54,6 +65,7 @@ export default function QuestDetailPage() {
       setEditDetails(quest.quest_details || '')
       setEditStart(quest.quest_start || '')
       setEditEnd(quest.quest_end || '')
+      setSelectedRegion(quest.region ?? '')
     }
   }, [quest])
 
@@ -165,9 +177,9 @@ export default function QuestDetailPage() {
       })
 
       console.log('✅ Quest updated:', result.data.updateQuest)
+      await refetch()
       alert('Quest updated successfully!')
-      // Optional: refresh data
-      // await refetch()
+      setOpen(false)
     } catch (err) {
       console.error('❌ Failed to update quest:', err)
       alert('Failed to update quest.')
@@ -221,75 +233,6 @@ export default function QuestDetailPage() {
       style={{ backgroundImage: `url(${bg})` }}
     >
       <Card className="bg-white/90 backdrop-blur-md shadow-xl rounded-2xl max-w-2xl w-full flex overflow-hidden">
-        {isOwner && (
-          <Dialog>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DialogTrigger asChild>
-                    <button className="absolute top-3 right-3 p-2 rounded-full bg-gray-200 hover:bg-gray-300 shadow">
-                      <Pencil className="w-5 h-5 text-gray-700" />
-                    </button>
-                  </DialogTrigger>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">Edit this quest</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            {/* ✏️ Modal content */}
-            <DialogOverlay className="fixed inset-0 bg-black/40 z-40" />
-            <DialogContent className="fixed top-1/2 left-1/2 z-50 max-w-lg w-full bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2">
-              <DialogTitle className="text-xl font-bold mb-4">
-                Edit Quest
-              </DialogTitle>
-
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  handleEditSubmit()
-                }}
-                className="flex flex-col gap-4"
-              >
-                <label className="flex flex-col text-sm font-medium text-gray-700">
-                  Quest Name
-                  <input
-                    type="text"
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    className="mt-1 border border-gray-300 rounded p-2"
-                  />
-                </label>
-
-                <label className="flex flex-col text-sm font-medium text-gray-700">
-                  Details
-                  <textarea
-                    value={editDetails}
-                    onChange={(e) => setEditDetails(e.target.value)}
-                    className="mt-1 border border-gray-300 rounded p-2"
-                  />
-                </label>
-
-                <div className="flex justify-end gap-3 mt-4">
-                  <DialogClose asChild>
-                    <button
-                      type="button"
-                      className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
-                    >
-                      Cancel
-                    </button>
-                  </DialogClose>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 rounded bg-blue-500 hover:bg-blue-600 text-white"
-                  >
-                    Save Changes
-                  </button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-        )}
-
         <CardContent className="p-6 flex-1 text-left">
           {/* Top row: Quest image + optional sponsor */}
           <div className="flex items-start justify-between mb-4 w-full">
@@ -439,7 +382,174 @@ export default function QuestDetailPage() {
             </div>
           </div>
         </CardContent>
+        {/* Edit button positioned relative to card */}
+        {isOwner && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setOpen(true)}
+                  className="absolute top-3 right-3 p-2 rounded-full bg-gray-200 hover:bg-gray-300 shadow z-20"
+                >
+                  <Pencil className="w-5 h-5 text-gray-700" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Edit this quest</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
       </Card>
+
+      {isOwner && (
+        <Dialog open={open} onOpenChange={setOpen}>
+          {/* <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setOpen(true)}
+                  className="absolute top-3 right-3 p-2 rounded-full bg-gray-200 hover:bg-gray-300 shadow"
+                >
+                  <Pencil className="w-5 h-5 text-gray-700" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Edit this quest</TooltipContent>
+            </Tooltip>
+          </TooltipProvider> */}
+
+          {/* ✏️ Modal content */}
+          <DialogOverlay className="fixed inset-0 bg-black/40 z-40" />
+          <DialogContent className="fixed top-1/2 left-1/2 z-50 max-w-lg w-full bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2">
+            <DialogTitle className="text-xl font-bold mb-4">
+              Edit Quest
+            </DialogTitle>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleEditSubmit()
+              }}
+              className="flex flex-col gap-4"
+            >
+              <label className="flex flex-col text-sm font-medium text-gray-700">
+                Quest Name
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="mt-1 border border-gray-300 rounded p-2"
+                />
+              </label>
+
+              <label className="flex flex-col text-sm font-medium text-gray-700">
+                Details
+                <textarea
+                  value={editDetails}
+                  onChange={(e) => setEditDetails(e.target.value)}
+                  className="mt-1 border border-gray-300 rounded p-2"
+                />
+              </label>
+
+              <label className="block text-sm font-medium">
+                <PickRegion
+                  value={selectedRegion}
+                  onChange={setSelectedRegion}
+                />
+              </label>
+
+              <Dialog open={openStart} onOpenChange={setOpenStart}>
+                <DialogTrigger asChild>
+                  <Button>
+                    {`Start Date: ${
+                      editStart
+                        ? new Date(editStart).toLocaleDateString('en-NZ', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric',
+                          })
+                        : 'Not set'
+                    }`}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogTitle>
+                    <VisuallyHidden>Choose Start Date</VisuallyHidden>
+                  </DialogTitle>
+                  <Calendar
+                    mode="single"
+                    selected={editStart ? new Date(editStart) : undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        // Adjust for timezone so we don’t get “day before”
+                        const localDate = new Date(
+                          date.getTime() - date.getTimezoneOffset() * 60000
+                        )
+                        setEditStart(localDate.toISOString().split('T')[0]) // "YYYY-MM-DD"
+                      }
+                    }}
+                  />
+                  <DialogClose asChild>
+                    <Button>Confirm</Button>
+                  </DialogClose>
+                </DialogContent>
+              </Dialog>
+
+              <Dialog open={openEnd} onOpenChange={setOpenEnd}>
+                <DialogTrigger asChild>
+                  <Button>
+                    {`End Date: ${
+                      editEnd
+                        ? new Date(editEnd).toLocaleDateString('en-NZ', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric',
+                          })
+                        : 'Not set'
+                    }`}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogTitle>
+                    <VisuallyHidden>Choose End Date</VisuallyHidden>
+                  </DialogTitle>
+                  <Calendar
+                    mode="single"
+                    selected={editEnd ? new Date(editEnd) : undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        // Adjust for timezone so we don’t get “day before”
+                        const localDate = new Date(
+                          date.getTime() - date.getTimezoneOffset() * 60000
+                        )
+                        setEditEnd(localDate.toISOString().split('T')[0]) // "YYYY-MM-DD"
+                      }
+                    }}
+                  />
+                  <DialogClose asChild>
+                    <Button>Confirm</Button>
+                  </DialogClose>
+                </DialogContent>
+              </Dialog>
+
+              <div className="flex justify-end gap-3 mt-4">
+                <DialogClose asChild>
+                  <button
+                    type="button"
+                    className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
+                  >
+                    Cancel
+                  </button>
+                </DialogClose>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded bg-blue-500 hover:bg-blue-600 text-white"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }
