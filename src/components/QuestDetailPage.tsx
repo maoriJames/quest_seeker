@@ -32,6 +32,7 @@ import {
 } from '@radix-ui/react-tooltip'
 import PickRegion from './PickRegion'
 import { Calendar } from './ui/calendar'
+import TaskCreatorButton from './TaskCreatorButton'
 
 export default function QuestDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -55,6 +56,7 @@ export default function QuestDetailPage() {
   )
   const [selectedRegion, setSelectedRegion] = useState('')
   const [open, setOpen] = useState(false)
+  const [tasks, setTasks] = useState<Task[]>([])
 
   const deleteQuestMutation = useDeleteQuest()
 
@@ -66,6 +68,19 @@ export default function QuestDetailPage() {
       setEditStart(quest.quest_start || '')
       setEditEnd(quest.quest_end || '')
       setSelectedRegion(quest.region ?? '')
+
+      // Initialize tasks
+      const parsedTasks: Task[] = (() => {
+        try {
+          if (!quest.quest_tasks) return []
+          return Array.isArray(quest.quest_tasks)
+            ? quest.quest_tasks
+            : JSON.parse(quest.quest_tasks)
+        } catch {
+          return []
+        }
+      })()
+      setTasks(parsedTasks)
     }
   }, [quest])
 
@@ -168,13 +183,19 @@ export default function QuestDetailPage() {
         quest_details: editDetails,
         quest_start: editStart,
         quest_end: editEnd,
+        quest_tasks: JSON.stringify(tasks),
+        region: selectedRegion,
       }
+      console.log('input: ', input)
 
       const result = await client.graphql({
         query: mutations.updateQuest,
         variables: { input },
         authMode: 'userPool',
       })
+
+      // Update tasks immediately
+      setTasks(JSON.parse(input.quest_tasks))
 
       console.log('✅ Quest updated:', result.data.updateQuest)
       await refetch()
@@ -184,6 +205,10 @@ export default function QuestDetailPage() {
       console.error('❌ Failed to update quest:', err)
       alert('Failed to update quest.')
     }
+  }
+
+  const handleTasksUpdate = (updatedTasks: Task[]) => {
+    setTasks(updatedTasks)
   }
 
   const isOwner =
@@ -529,6 +554,10 @@ export default function QuestDetailPage() {
                   </DialogClose>
                 </DialogContent>
               </Dialog>
+              <TaskCreatorButton
+                questUpdates={tasks}
+                onNewTask={handleTasksUpdate}
+              />
 
               <div className="flex justify-end gap-3 mt-4">
                 <DialogClose asChild>

@@ -93,6 +93,7 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
       </div>
 
       <button
+        type="button"
         onClick={handleAddTask}
         className="bg-blue-500 text-white font-bold py-2 px-4 rounded"
       >
@@ -100,6 +101,7 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
       </button>
 
       <button
+        type="button"
         onClick={() => setModalVisible(true)}
         className="text-black underline"
       >
