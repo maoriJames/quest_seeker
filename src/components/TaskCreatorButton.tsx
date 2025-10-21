@@ -62,19 +62,6 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
 
   return (
     <div className="p-4 space-y-4">
-      {/* <div>
-        <label className="block font-semibold mb-1">
-          Short Task Description
-        </label>
-        <input
-          type="text"
-          value={taskDescription}
-          onChange={(e) => setTaskDescription(e.target.value.slice(0, 20))}
-          className="w-full border rounded p-2"
-          placeholder="Enter short task description"
-        />
-      </div> */}
-
       <div>
         <label className="block font-semibold mb-1">
           Full Task Description
