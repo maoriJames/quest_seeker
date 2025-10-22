@@ -7,7 +7,7 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
   questUpdates,
 }) => {
   const [task, setTask] = useState('')
-  const [isImageTask, setIsImageTask] = useState(true)
+  const [isImageTask, setIsImageTask] = useState(false)
   const [requiresCaption, setRequiresCaption] = useState(false)
   // const [isChecked, setIsChecked] = useState(false)
   const [answer, setAnswer] = useState('')

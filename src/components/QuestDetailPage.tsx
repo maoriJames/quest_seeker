@@ -33,6 +33,7 @@ import {
 import PickRegion from './PickRegion'
 import { Calendar } from './ui/calendar'
 import TaskCreatorButton from './TaskCreatorButton'
+import { serializeQuestTasks } from '@/tools/questTasks'
 
 export default function QuestDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -46,6 +47,7 @@ export default function QuestDetailPage() {
   const { data: currentUserProfile } = useCurrentUserProfile()
   const [editName, setEditName] = useState(quest?.quest_name || '')
   const [editDetails, setEditDetails] = useState(quest?.quest_details || '')
+  // const
   const [openStart, setOpenStart] = useState(false)
   const [openEnd, setOpenEnd] = useState(false)
   const [editStart, setEditStart] = useState<string>(
@@ -179,23 +181,20 @@ export default function QuestDetailPage() {
     try {
       const input = {
         id: quest.id,
+        // quest_image:
         quest_name: editName,
         quest_details: editDetails,
         quest_start: editStart,
         quest_end: editEnd,
-        quest_tasks: JSON.stringify(tasks),
+        quest_tasks: serializeQuestTasks(tasks),
         region: selectedRegion,
       }
-      console.log('input: ', input)
 
       const result = await client.graphql({
         query: mutations.updateQuest,
         variables: { input },
         authMode: 'userPool',
       })
-
-      // Update tasks immediately
-      setTasks(JSON.parse(input.quest_tasks))
 
       console.log('✅ Quest updated:', result.data.updateQuest)
       await refetch()
