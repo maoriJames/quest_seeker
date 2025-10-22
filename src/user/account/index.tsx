@@ -2,7 +2,7 @@ import bg from '@/assets/images/background_main.png'
 import UpdateAccount from '@/components/UpdateAccount'
 import { useCurrentUserProfile, useUpdateProfile } from '@/hooks/userProfiles'
 import { useState, useEffect } from 'react'
-import type { Profile, QuestTask } from '@/types'
+import type { Profile, MyQuest } from '@/types'
 import { UpdateProfileInput } from '@/graphql/API'
 import { toProfileRole } from '@/hooks/toProfileTole'
 import { generateClient } from 'aws-amplify/api'
@@ -91,9 +91,7 @@ export default function AccountPage() {
         )
 
         // Filter out nulls → deleted quests
-        const validQuests: QuestTask[] = questsStatus.filter(
-          Boolean
-        ) as QuestTask[]
+        const validQuests: MyQuest[] = questsStatus.filter(Boolean) as MyQuest[]
 
         // Update state & backend only if something changed
         if (validQuests.length !== profileData.my_quests.length) {
