@@ -437,7 +437,7 @@ export default function QuestDetailPage() {
                     </button>
                   </DialogTrigger>
                   <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
-                  <DialogContent className="fixed top-1/2 left-1/2 z-50 max-w-md w-full bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2">
+                  <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
                     <DialogTitle className="text-lg font-bold mb-4">
                       Prize Information
                     </DialogTitle>
@@ -475,7 +475,7 @@ export default function QuestDetailPage() {
         <Dialog open={open} onOpenChange={setOpen}>
           {/* ✏️ Modal content */}
           <DialogOverlay className="fixed inset-0 bg-black/40 z-40" />
-          <DialogContent className="fixed top-1/2 left-1/2 z-50 max-w-lg w-full bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2">
+          <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
             <DialogTitle className="text-xl font-bold mb-4">
               Edit Quest
             </DialogTitle>
@@ -554,7 +554,7 @@ export default function QuestDetailPage() {
                     }`}
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
                   <DialogTitle>
                     <VisuallyHidden>Choose Start Date</VisuallyHidden>
                   </DialogTitle>
@@ -591,7 +591,7 @@ export default function QuestDetailPage() {
                     }`}
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
                   <DialogTitle>
                     <VisuallyHidden>Choose End Date</VisuallyHidden>
                   </DialogTitle>
