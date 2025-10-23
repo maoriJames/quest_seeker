@@ -3,7 +3,7 @@ import * as mutations from '@/graphql/mutations'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuest } from '@/hooks/userQuests'
 import { useProfile, useCurrentUserProfile } from '@/hooks/userProfiles'
-import { remove } from '@aws-amplify/storage'
+import { remove, uploadData } from '@aws-amplify/storage'
 import { useDeleteQuest } from '@/hooks/userQuests'
 import bg from '@/assets/images/background_main.png'
 import { Button, Card, VisuallyHidden } from '@aws-amplify/ui-react'
@@ -47,7 +47,9 @@ export default function QuestDetailPage() {
   const { data: currentUserProfile } = useCurrentUserProfile()
   const [editName, setEditName] = useState(quest?.quest_name || '')
   const [editDetails, setEditDetails] = useState(quest?.quest_details || '')
-  // const
+  const [imageFile, setImageFile] = useState<File | null>(null) // for uploading
+  const [previewImage, setPreviewImage] = useState<string>('')
+
   const [openStart, setOpenStart] = useState(false)
   const [openEnd, setOpenEnd] = useState(false)
   const [editStart, setEditStart] = useState<string>(
@@ -85,6 +87,28 @@ export default function QuestDetailPage() {
       setTasks(parsedTasks)
     }
   }, [quest])
+
+  // --- Helpers ---
+  const getPublicUrl = (path: string) =>
+    `https://amplify-amplifyvitereactt-amplifyquestseekerbucket-beyjfgpn1vr2.s3.ap-southeast-2.amazonaws.com/${path}`
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setImageFile(file)
+    setPreviewImage(URL.createObjectURL(file))
+    console.log('previewImage', previewImage)
+  }
+
+  useEffect(() => {
+    if (open) {
+      setPreviewImage(quest?.quest_image ?? '')
+    } else {
+      setPreviewImage('')
+      setImageFile(null)
+    }
+  }, [open, quest?.quest_image])
 
   const client = generateClient()
 
@@ -177,29 +201,56 @@ export default function QuestDetailPage() {
     }
   }
 
+  const uploadImage = async (file: File): Promise<string> => {
+    const path = `public/${crypto.randomUUID()}-${file.name}`
+
+    try {
+      await uploadData({
+        path,
+        data: file,
+        options: { contentType: file.type },
+      })
+      return path // store S3 key in DB
+    } catch (err) {
+      console.error('Error uploading file:', err)
+      return ''
+    }
+  }
+
   const handleEditSubmit = async () => {
     try {
+      let imagePath = quest.quest_image ?? '' // default to current image
+
+      // ✅ Only upload if a new file was selected
+      if (imageFile) {
+        const uploadedPath = await uploadImage(imageFile)
+        if (uploadedPath) {
+          imagePath = uploadedPath
+        }
+      }
+
       const input = {
         id: quest.id,
-        // quest_image:
         quest_name: editName,
         quest_details: editDetails,
         quest_start: editStart,
         quest_end: editEnd,
         quest_tasks: serializeQuestTasks(tasks),
         region: selectedRegion,
+        quest_image: imagePath,
       }
 
-      const result = await client.graphql({
+      await client.graphql({
         query: mutations.updateQuest,
         variables: { input },
         authMode: 'userPool',
       })
 
-      console.log('✅ Quest updated:', result.data.updateQuest)
       await refetch()
       alert('Quest updated successfully!')
       setOpen(false)
+      setImageFile(null)
+      setPreviewImage('')
     } catch (err) {
       console.error('❌ Failed to update quest:', err)
       alert('Failed to update quest.')
@@ -258,45 +309,61 @@ export default function QuestDetailPage() {
     >
       <Card className="bg-white/90 backdrop-blur-md shadow-xl rounded-2xl max-w-2xl w-full flex overflow-hidden">
         <CardContent className="p-6 flex-1 text-left">
-          {/* Top row: Quest image + optional sponsor */}
+          {/* Top row: Quest image + optional sponsor + edit button */}
           <div className="flex items-start justify-between mb-4 w-full">
-            {/* Quest image */}
-            <RemoteImage
-              path={quest.quest_image || placeHold}
-              fallback={placeHold}
-              className="w-1/3 h-auto object-cover rounded-lg"
-            />
-            {/* Sponsors (if any) */}
-            {sponsors.length > 0 && (
-              <div className="flex flex-col items-center gap-2 mb-4">
-                <span className="text-xs text-gray-500 mb-1">
-                  This quest is brought to you by:
-                </span>
-
-                <div className="flex gap-4">
-                  {sponsors.map((sponsor) => (
-                    <div
-                      key={sponsor.id}
-                      className="flex flex-col items-center w-20 text-center"
-                    >
-                      <RemoteImage
-                        path={sponsor.image || placeHold}
-                        fallback={placeHold}
-                        className="w-16 h-16 object-cover rounded-full"
-                      />
-                      <span className="text-xs mt-1 font-semibold text-gray-700">
-                        {sponsor.name}
-                      </span>
-                    </div>
-                  ))}
+            {/* Left side: Quest image + sponsors */}
+            <div className="flex flex-col gap-2">
+              <RemoteImage
+                path={quest.quest_image || placeHold}
+                fallback={placeHold}
+                className="w-1/3 h-auto object-cover rounded-lg"
+              />
+              {sponsors.length > 0 && (
+                <div className="flex flex-col items-center gap-2 mb-4">
+                  <span className="text-xs text-gray-500 mb-1">
+                    This quest is brought to you by:
+                  </span>
+                  <div className="flex gap-4">
+                    {sponsors.map((sponsor) => (
+                      <div
+                        key={sponsor.id}
+                        className="flex flex-col items-center w-20 text-center"
+                      >
+                        <RemoteImage
+                          path={sponsor.image || placeHold}
+                          fallback={placeHold}
+                          className="w-16 h-16 object-cover rounded-full"
+                        />
+                        <span className="text-xs mt-1 font-semibold text-gray-700">
+                          {sponsor.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
+            </div>
+
+            {/* Right side: Edit button */}
+            {isOwner && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => setOpen(true)}
+                      className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 shadow z-10"
+                    >
+                      <Pencil className="w-5 h-5 text-gray-700" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">Edit this quest</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
           </div>
 
           {/* Quest details + Task list side by side */}
           <div className="flex flex-col md:flex-row gap-6 mt-2">
-            {/* Left: Quest details */}
             <div className="flex-1">
               <h1 className="text-2xl font-bold mb-2">{quest.quest_name}</h1>
               <p className="text-gray-700 mb-2">{quest.quest_details}</p>
@@ -316,7 +383,6 @@ export default function QuestDetailPage() {
               </p>
             </div>
 
-            {/* Right: Scrollable task list */}
             {currentUserProfile?.role === 'seeker' && hasJoined && (
               <TaskInformationWindow questId={quest.id} tasks={questTasks} />
             )}
@@ -324,7 +390,7 @@ export default function QuestDetailPage() {
 
           {/* Action Buttons Row */}
           <div className="mt-4 flex items-center justify-between w-full">
-            {/* Delete Button Left */}
+            {/* Left: Delete / Join */}
             <div>
               {isOwner && (
                 <button
@@ -360,7 +426,8 @@ export default function QuestDetailPage() {
             <div className="flex justify-center flex-1">
               <HomeButton />
             </div>
-            {/* Prize Information button inline */}
+
+            {/* Right: Prize Information */}
             <div>
               {prizes.length > 0 && (
                 <Dialog>
@@ -369,14 +436,11 @@ export default function QuestDetailPage() {
                       Prize Information
                     </button>
                   </DialogTrigger>
-
                   <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
-
                   <DialogContent className="fixed top-1/2 left-1/2 z-50 max-w-md w-full bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2">
                     <DialogTitle className="text-lg font-bold mb-4">
                       Prize Information
                     </DialogTitle>
-
                     <div className="flex flex-wrap justify-center gap-4">
                       {prizes.map((prize) => (
                         <div
@@ -394,7 +458,6 @@ export default function QuestDetailPage() {
                         </div>
                       ))}
                     </div>
-
                     <DialogClose asChild>
                       <button className="mt-4 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
                         Close
@@ -406,40 +469,10 @@ export default function QuestDetailPage() {
             </div>
           </div>
         </CardContent>
-        {/* Edit button positioned relative to card */}
-        {isOwner && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={() => setOpen(true)}
-                  className="absolute top-3 right-3 p-2 rounded-full bg-gray-200 hover:bg-gray-300 shadow z-20"
-                >
-                  <Pencil className="w-5 h-5 text-gray-700" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">Edit this quest</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
       </Card>
 
       {isOwner && (
         <Dialog open={open} onOpenChange={setOpen}>
-          {/* <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={() => setOpen(true)}
-                  className="absolute top-3 right-3 p-2 rounded-full bg-gray-200 hover:bg-gray-300 shadow"
-                >
-                  <Pencil className="w-5 h-5 text-gray-700" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">Edit this quest</TooltipContent>
-            </Tooltip>
-          </TooltipProvider> */}
-
           {/* ✏️ Modal content */}
           <DialogOverlay className="fixed inset-0 bg-black/40 z-40" />
           <DialogContent className="fixed top-1/2 left-1/2 z-50 max-w-lg w-full bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2">
@@ -454,6 +487,33 @@ export default function QuestDetailPage() {
               }}
               className="flex flex-col gap-4"
             >
+              <label className="flex flex-col text-sm font-medium text-gray-700">
+                Quest Image
+                {previewImage ? (
+                  // User just selected a new file — show local preview
+                  <img
+                    src={
+                      imageFile
+                        ? URL.createObjectURL(imageFile)
+                        : getPublicUrl(previewImage)
+                    }
+                    className="w-1/2 mx-auto rounded-lg"
+                  />
+                ) : (
+                  // Fallback placeholder
+                  <RemoteImage
+                    path={placeHold}
+                    fallback={placeHold}
+                    className="w-1/2 mx-auto rounded-lg"
+                  />
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
+              </label>
+
               <label className="flex flex-col text-sm font-medium text-gray-700">
                 Quest Name
                 <input

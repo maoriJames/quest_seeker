@@ -22,7 +22,7 @@ export default function QuestListItem({ quest }: QuestListItemProps) {
   }
 
   return (
-    <Link to={`/quest/${quest.id}`} className="block">
+    <Link to={`/user/quest/${quest.id}`} className="block">
       <div className="bg-white rounded-2xl p-4 shadow flex flex-col items-center gap-2">
         {/* Centered circular image */}
         <RemoteImage
