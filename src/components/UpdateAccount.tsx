@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Card } from '@aws-amplify/ui-react'
 import { CardContent } from './ui/card'
 import InlineEditField from './InlineEditField'
@@ -184,11 +184,16 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
           {safeProfile.my_quests.length === 0 ? (
             <p className="text-gray-500">You haven’t joined any quests yet.</p>
           ) : (
-            <ul className="list-disc pl-5">
+            <ul className="list-disc pl-5 space-y-1">
               {safeProfile.my_quests.map((myQuest) => (
-                <li key={`${myQuest.quest_id}`}>
-                  {myQuest.title} (
-                  {myQuest.completed ? 'Completed' : 'In Progress'})
+                <li key={myQuest.quest_id}>
+                  <Link
+                    to={`/user/quest/${myQuest.quest_id}`}
+                    className="text-blue-600 hover:underline"
+                  >
+                    {myQuest.title}
+                  </Link>{' '}
+                  ({myQuest.completed ? 'Completed' : 'In Progress'})
                 </li>
               ))}
             </ul>
