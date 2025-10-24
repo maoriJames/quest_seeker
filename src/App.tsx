@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { Authenticator } from '@aws-amplify/ui-react'
 // import { AuthUser } from 'aws-amplify/auth'
 
@@ -14,16 +14,22 @@ import QuestDetailPage from './components/QuestDetailPage'
 const queryClient = new QueryClient()
 
 function UserRoutes() {
+  console.log('UserRoutes component rendering')
+  const location = useLocation()
+  console.log('Current path:', location.pathname)
+
   return (
     <QueryClientProvider client={queryClient}>
       <Routes>
-        {/* all of these are relative to /user */}
         <Route path="" element={<UserPage />} />
+        <Route path="home" element={<QuestPage />} />
         <Route path="region" element={<RegionPage />} />
         <Route path="account" element={<AccountPage />} />
-        <Route path="home" element={<QuestPage />} />
         <Route path="quest/create" element={<CreateQuestPage />} />
         <Route path="quest/:id" element={<QuestDetailPage />} />
+
+        {/* catch any /auth path and redirect */}
+        <Route path="auth/*" element={<Navigate to="/user/region" replace />} />
       </Routes>
     </QueryClientProvider>
   )
@@ -40,7 +46,10 @@ export default function App() {
         path="/user/*"
         element={
           <Authenticator>
-            {({ user }) => (user ? <UserRoutes /> : <div>Loading...</div>)}
+            {({ user }) => {
+              console.log('Authenticator render-prop called. user:', user)
+              return user ? <UserRoutes /> : <div>Loading...</div>
+            }}
           </Authenticator>
         }
       />

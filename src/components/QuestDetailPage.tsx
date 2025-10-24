@@ -33,7 +33,7 @@ import {
 import PickRegion from './PickRegion'
 import { Calendar } from './ui/calendar'
 import TaskCreatorButton from './TaskCreatorButton'
-import { serializeQuestTasks } from '@/tools/questTasks'
+import { parseQuestTasks, serializeQuestTasks } from '@/tools/questTasks'
 
 export default function QuestDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -47,8 +47,8 @@ export default function QuestDetailPage() {
   const { data: currentUserProfile } = useCurrentUserProfile()
   const [editName, setEditName] = useState(quest?.quest_name || '')
   const [editDetails, setEditDetails] = useState(quest?.quest_details || '')
-  const [imageFile, setImageFile] = useState<File | null>(null) // for uploading
-  const [previewImage, setPreviewImage] = useState<string>('')
+  const [imageFile, setImageFile] = useState<File | null>(null) // new selected file
+  const [previewImage, setPreviewImage] = useState<string>('') // URL for preview, could be S3 URL or blob
 
   const [openStart, setOpenStart] = useState(false)
   const [openEnd, setOpenEnd] = useState(false)
@@ -64,47 +64,41 @@ export default function QuestDetailPage() {
 
   const deleteQuestMutation = useDeleteQuest()
 
-  // Keep them in sync when quest loads
-  useEffect(() => {
-    if (quest) {
-      setEditName(quest.quest_name || '')
-      setEditDetails(quest.quest_details || '')
-      setEditStart(quest.quest_start || '')
-      setEditEnd(quest.quest_end || '')
-      setSelectedRegion(quest.region ?? '')
+  // Parse quest tasks when quest changes
 
-      // Initialize tasks
-      const parsedTasks: Task[] = (() => {
-        try {
-          if (!quest.quest_tasks) return []
-          return Array.isArray(quest.quest_tasks)
-            ? quest.quest_tasks
-            : JSON.parse(quest.quest_tasks)
-        } catch {
-          return []
-        }
-      })()
-      setTasks(parsedTasks)
-    }
+  // Update edit fields when quest data is fetched
+  useEffect(() => {
+    if (!quest) return
+    setEditName(quest.quest_name || '')
+    setEditDetails(quest.quest_details || '')
+    setEditStart(quest.quest_start || new Date().toISOString().split('T')[0])
+    setEditEnd(quest.quest_end || new Date().toISOString().split('T')[0])
+    setSelectedRegion(quest.region || '')
+
+    const parsedTasks: Task[] = Array.isArray(quest.quest_tasks)
+      ? quest.quest_tasks
+      : JSON.parse(quest.quest_tasks || '[]')
+
+    setTasks(parsedTasks)
   }, [quest])
 
   // --- Helpers ---
-  const getPublicUrl = (path: string) =>
-    `https://amplify-amplifyvitereactt-amplifyquestseekerbucket-beyjfgpn1vr2.s3.ap-southeast-2.amazonaws.com/${path}`
+  // const getPublicUrl = (path: string) =>
+  //   `https://amplify-amplifyvitereactt-amplifyquestseekerbucket-beyjfgpn1vr2.s3.ap-southeast-2.amazonaws.com/${path}`
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    setImageFile(file)
-    setPreviewImage(URL.createObjectURL(file))
-    console.log('previewImage', previewImage)
+    if (!e.target.files || e.target.files.length === 0) return
+    const file = e.target.files[0]
+    setImageFile(file) // store the File
+    setPreviewImage(URL.createObjectURL(file)) // update preview for <img>
   }
 
   useEffect(() => {
     if (open) {
+      // when opening the modal, show the current quest image
       setPreviewImage(quest?.quest_image ?? '')
     } else {
+      // when closing the modal, reset
       setPreviewImage('')
       setImageFile(null)
     }
@@ -269,8 +263,22 @@ export default function QuestDetailPage() {
     typeof currentUserProfile?.my_quests === 'string'
       ? JSON.parse(currentUserProfile.my_quests)
       : (currentUserProfile?.my_quests ?? [])
-
+  console.log('myQuestArray: ', myQuestsArray)
   const hasJoined = myQuestsArray.some((q) => q.quest_id === quest.id)
+  const joinedQuestEntry = myQuestsArray.find((q) => q.quest_id === quest.id)
+
+  const seekerTasks: Task[] = parseQuestTasks(quest?.quest_tasks).map(
+    (task) => {
+      const existingAnswer = joinedQuestEntry?.tasks?.find(
+        (t) => t.id === task.id
+      )
+      return {
+        ...task,
+        caption: existingAnswer?.caption || '',
+        answer: existingAnswer?.answer || '', // <-- use empty string instead of null
+      }
+    }
+  )
 
   // Parse sponsors (safe check in case it's undefined or malformed)
   const sponsors: Sponsor[] = (() => {
@@ -289,19 +297,7 @@ export default function QuestDetailPage() {
       return []
     }
   })()
-
-  // Parse quest tasks (safe check in case it's undefined or malformed)
-  const questTasks: Task[] = (() => {
-    try {
-      if (!quest.quest_tasks) return []
-      return Array.isArray(quest.quest_tasks)
-        ? quest.quest_tasks
-        : JSON.parse(quest.quest_tasks)
-    } catch {
-      console.warn('⚠️ Could not parse quest_tasks:', quest.quest_tasks)
-      return []
-    }
-  })()
+  console.log('sponsors: ', sponsors)
   return (
     <div
       className="relative min-h-screen flex items-center justify-center bg-cover bg-center"
@@ -384,7 +380,15 @@ export default function QuestDetailPage() {
             </div>
 
             {currentUserProfile?.role === 'seeker' && hasJoined && (
-              <TaskInformationWindow questId={quest.id} tasks={questTasks} />
+              <TaskInformationWindow
+                questId={quest.id}
+                tasks={seekerTasks}
+                userTasks={myQuestsArray}
+                onTasksUpdated={async () => {
+                  await refetch()
+                  console.log('Parent refetch completed')
+                }}
+              />
             )}
           </div>
 
@@ -490,19 +494,16 @@ export default function QuestDetailPage() {
               <label className="flex flex-col text-sm font-medium text-gray-700">
                 Quest Image
                 {previewImage ? (
-                  // User just selected a new file — show local preview
+                  // User selected a new file — show local preview
                   <img
-                    src={
-                      imageFile
-                        ? URL.createObjectURL(imageFile)
-                        : getPublicUrl(previewImage)
-                    }
-                    className="w-1/2 mx-auto rounded-lg"
+                    src={previewImage || placeHold}
+                    alt="Quest Preview"
+                    className="w-1/3 h-auto object-cover rounded-lg"
                   />
                 ) : (
-                  // Fallback placeholder
+                  // No new file — show RemoteImage (existing S3 image)
                   <RemoteImage
-                    path={placeHold}
+                    path={quest.quest_image || placeHold}
                     fallback={placeHold}
                     className="w-1/2 mx-auto rounded-lg"
                   />
