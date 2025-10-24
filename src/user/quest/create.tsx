@@ -101,6 +101,7 @@ export default function CreateQuestPage() {
 
     setImageFile(file)
     setPreviewImage(URL.createObjectURL(file))
+    console.log('imageFile', imageFile)
   }
 
   const validateInput = () => {

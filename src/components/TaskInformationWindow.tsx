@@ -14,50 +14,42 @@ import { addQuestToProfile } from '@/hooks/addQuestToProfile'
 interface TaskInformationWindowProps {
   questId: string
   tasks: Task[]
+  userTasks?: MyQuest[] // new prop
+  onTasksUpdated?: () => void
 }
 
 export default function TaskInformationWindow({
   questId,
   tasks,
+  userTasks,
+  onTasksUpdated,
 }: TaskInformationWindowProps) {
   const { data: currentUserProfile } = useCurrentUserProfile()
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [caption, setCaption] = useState('')
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
 
-  // Prefill caption/image if already answered
-  useEffect(() => {
-    console.log('caption ', caption)
-    if (!selectedTask || !currentUserProfile) return
-
-    const myQuestsArray: MyQuest[] =
-      typeof currentUserProfile.my_quests === 'string'
-        ? JSON.parse(currentUserProfile.my_quests)
-        : (currentUserProfile.my_quests ?? [])
-
-    const questEntry = myQuestsArray.find((q) => q.quest_id === questId)
-    if (!questEntry) return
-
-    // find the specific task within the quest
-    const taskAnswer = questEntry.tasks.find((t) => t.id === selectedTask.id)
-    console.log('myQuestsArray ', myQuestsArray)
-    console.log('questEntry ', questEntry)
-    if (taskAnswer) {
-      console.log('taskAnswer = yes')
-      setCaption(taskAnswer.caption || '')
-      if (taskAnswer.answer && selectedTask.isImage) {
-        setPreviewUrl(taskAnswer.answer)
-      } else {
-        setPreviewUrl(null)
-      }
-    } else {
-      // reset if not found (to avoid showing previous answers)
-      console.log('taskAnswer = no')
-      setCaption('')
-      setPreviewUrl(null)
+  console.log('usertasks: ', userTasks)
+  // Merge task definitions with user answers
+  const mergedTasks: Task[] = tasks.map((task) => {
+    const userEntry = userTasks?.find((q) => q.quest_id === questId)
+    const existingAnswer = userEntry?.tasks?.find((t) => t.id === task.id)
+    return {
+      ...task,
+      caption: existingAnswer?.caption || '',
+      answer: existingAnswer?.answer || '',
     }
-  }, [selectedTask, currentUserProfile, questId])
+  })
+  // console.log('mergedTasks', mergedTasks)
+  // Prefill when a task is selected
+  useEffect(() => {
+    if (!selectedTask) return
+    const taskWithAnswer = mergedTasks.find((t) => t.id === selectedTask.id)
+    setCaption(taskWithAnswer?.caption || '')
+    setPreviewUrl(taskWithAnswer?.answer || '')
+  }, [selectedTask, mergedTasks])
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null
@@ -90,6 +82,9 @@ export default function TaskInformationWindow({
     }
 
     try {
+      setSaving(true) // start spinner
+
+      // Save to server
       await addQuestToProfile(questId, [
         {
           quest_id: questId,
@@ -98,9 +93,9 @@ export default function TaskInformationWindow({
               id: selectedTask.id,
               caption,
               answer: uploadedPath,
-              description: '',
-              isImage: false,
-              requiresCaption: false,
+              description: selectedTask.description || '',
+              isImage: selectedTask.isImage,
+              requiresCaption: selectedTask.requiresCaption,
               completed: false,
             },
           ],
@@ -110,17 +105,25 @@ export default function TaskInformationWindow({
       ])
 
       alert('✅ Answer saved successfully!')
+
+      // Optimistic update
+      setPreviewUrl(uploadedPath || previewUrl)
+      setCaption(caption)
+
+      // Trigger parent refetch
+      if (onTasksUpdated) {
+        await onTasksUpdated()
+      }
     } catch (err) {
       console.error('❌ Failed to save answer:', err)
       alert('❌ Failed to save answer.')
     } finally {
-      setCaption('')
+      setSaving(false) // stop spinner
       setImageFile(null)
-      setPreviewUrl(null)
-      setSelectedTask(null)
     }
   }
 
+  console.log('caption: ', caption)
   return (
     <div className="border rounded-lg p-4 bg-gray-50 shadow-inner max-h-64 overflow-y-auto">
       <h2 className="text-lg font-semibold mb-2 text-gray-800">
@@ -149,9 +152,22 @@ export default function TaskInformationWindow({
         >
           <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
           <DialogContent className="fixed top-1/2 left-1/2 z-50 max-w-md w-full bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2">
-            <DialogTitle className="text-lg font-bold mb-2">
-              {selectedTask.description || 'Quest Task'}
-            </DialogTitle>
+            {/* Top row: Title + Close button */}
+            <div className="flex justify-between items-center mb-4">
+              <DialogTitle className="text-lg font-bold">
+                {selectedTask.description || 'Quest Task'}
+              </DialogTitle>
+              <DialogClose asChild>
+                <button
+                  onClick={() => setSelectedTask(null)}
+                  aria-label="Close"
+                  className="text-gray-500 hover:text-gray-700 text-xl font-bold"
+                >
+                  ×
+                </button>
+              </DialogClose>
+            </div>
+
             {selectedTask.requiresCaption && (
               <label className="block mb-4 text-sm font-medium">
                 Caption:
@@ -164,6 +180,7 @@ export default function TaskInformationWindow({
                 />
               </label>
             )}
+
             {selectedTask.isImage && (
               <div className="mb-4">
                 <label className="block text-sm font-medium mb-1">
@@ -197,9 +214,14 @@ export default function TaskInformationWindow({
               </DialogClose>
               <button
                 onClick={handleSave}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                disabled={saving}
+                className={`px-4 py-2 rounded text-white ${
+                  saving
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-blue-500 hover:bg-blue-600'
+                }`}
               >
-                Save
+                {saving ? 'Saving...' : 'Save'}
               </button>
             </div>
           </DialogContent>
