@@ -298,7 +298,7 @@ export default function QuestDetailPage() {
       return []
     }
   })()
-  console.log('Sponsors: ', sponsors)
+  // console.log('Sponsors: ', sponsors)
   return (
     <div
       className="relative min-h-screen flex items-center justify-center bg-cover bg-center"
@@ -306,21 +306,25 @@ export default function QuestDetailPage() {
     >
       <Card className="bg-white/90 backdrop-blur-md shadow-xl rounded-2xl max-w-2xl w-full flex overflow-hidden">
         <CardContent className="p-6 flex-1 text-left">
-          {/* Top row: Quest image + optional sponsor + edit button */}
+          {/* Top row: Quest image (left) + Sponsors (right) + Edit button */}
           <div className="flex items-start justify-between mb-4 w-full">
-            {/* Left side: Quest image + sponsors */}
-            <div className="flex flex-col gap-2">
+            {/* Left: Quest image */}
+            <div className="flex flex-col items-start gap-2">
               <RemoteImage
                 path={quest.quest_image || placeHold}
                 fallback={placeHold}
-                className="w-1/3 h-auto object-cover rounded-lg"
+                className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-sm"
               />
+            </div>
+
+            {/* Right: Sponsor section + Edit button */}
+            <div className="flex flex-col items-end gap-2">
               {sponsors.length > 0 && (
-                <div className="flex flex-col items-center gap-2 mb-4">
+                <div className="flex flex-col items-end gap-2">
                   <span className="text-xs text-gray-500 mb-1">
                     This quest is brought to you by:
                   </span>
-                  <div className="flex gap-4">
+                  <div className="flex gap-4 flex-wrap justify-end">
                     {sponsors.map((sponsor) => (
                       <div
                         key={sponsor.id}
@@ -329,7 +333,7 @@ export default function QuestDetailPage() {
                         <RemoteImage
                           path={sponsor.image || placeHold}
                           fallback={placeHold}
-                          className="w-16 h-16 object-cover rounded-full"
+                          className="max-w-[80px] max-h-[80px] w-auto h-auto object-contain rounded-full"
                         />
                         <span className="text-xs mt-1 font-semibold text-gray-700">
                           {sponsor.name}
@@ -339,24 +343,26 @@ export default function QuestDetailPage() {
                   </div>
                 </div>
               )}
-            </div>
 
-            {/* Right side: Edit button */}
-            {isOwner && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => setOpen(true)}
-                      className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 shadow z-10"
-                    >
-                      <Pencil className="w-5 h-5 text-gray-700" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">Edit this quest</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
+              {/* Edit button below or aligned with sponsors */}
+              {isOwner && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => setOpen(true)}
+                        className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 shadow z-10"
+                      >
+                        <Pencil className="w-5 h-5 text-gray-700" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">
+                      Edit this quest
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
           </div>
 
           {/* Quest details + Task list side by side */}
@@ -376,7 +382,7 @@ export default function QuestDetailPage() {
               </p>
               <p className="text-sm text-gray-500">End: {quest.quest_end}</p>
               <p className="text-sm text-gray-500">
-                Entry: {quest.quest_entry}
+                Entry: ${quest.quest_entry}
               </p>
             </div>
 
@@ -455,7 +461,7 @@ export default function QuestDetailPage() {
                           <RemoteImage
                             path={prize.image || placeHold}
                             fallback={placeHold}
-                            className="w-16 h-16 object-cover rounded-full"
+                            className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-full"
                           />
                           <span className="text-xs mt-1 font-semibold text-gray-700">
                             {prize.name}
@@ -499,14 +505,14 @@ export default function QuestDetailPage() {
                   <RemoteImage
                     path={previewImage || quest.quest_image}
                     fallback={placeHold}
-                    className="w-1/2 mx-auto rounded-lg"
+                    className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-full"
                   />
                 ) : (
                   // No new file — show RemoteImage (existing S3 image)
                   <RemoteImage
                     path={quest.quest_image || placeHold}
                     fallback={placeHold}
-                    className="w-1/2 mx-auto rounded-lg"
+                    className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-full"
                   />
                 )}
                 <input
