@@ -34,7 +34,6 @@ export default function TaskInformationWindow({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
-  console.log('usertasks: ', userTasks)
   // Merge task definitions with user answers
   // const mergedTasks: Task[] = tasks.map((task) => {
   //   const userEntry = userTasks?.find((q) => q.quest_id === questId)
@@ -46,6 +45,7 @@ export default function TaskInformationWindow({
   //   }
   // })
   // console.log('mergedTasks', mergedTasks)
+
   // Prefill when a task is selected
   useEffect(() => {
     // Initialize editableTasks from tasks + userTasks
@@ -66,7 +66,7 @@ export default function TaskInformationWindow({
     if (!selectedTask) return
     const task = editableTasks.find((t) => t.id === selectedTask.id)
     setCaption(task?.caption || '')
-    setPreviewUrl(task?.answer || '')
+    setPreviewUrl(task?.answer || '') // this will now show the latest image path
   }, [selectedTask, editableTasks])
 
   const handleCaptionChange = (taskId: string, value: string) => {
@@ -75,10 +75,22 @@ export default function TaskInformationWindow({
     )
   }
 
+  const handleAnswerChange = (taskId: string, answer: string) => {
+    setEditableTasks((prev) =>
+      prev.map((t) => (t.id === taskId ? { ...t, answer } : t))
+    )
+  }
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null
     setImageFile(file)
-    setPreviewUrl(file ? URL.createObjectURL(file) : null)
+    const tempUrl = file ? URL.createObjectURL(file) : null
+    setPreviewUrl(tempUrl) // show temporary preview immediately
+
+    // Optional: store temp path in editableTasks for optimistic UI
+    if (selectedTask && tempUrl) {
+      handleAnswerChange(selectedTask.id, tempUrl)
+    }
   }
 
   const uploadImage = async (file: File, isPublic = true): Promise<string> => {
