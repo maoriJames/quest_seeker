@@ -283,6 +283,7 @@ export default function QuestDetailPage() {
   // Parse sponsors (safe check in case it's undefined or malformed)
   const sponsors: Sponsor[] = (() => {
     try {
+      console.log('Quest Sponsors: ', quest?.quest_sponsor)
       return quest.quest_sponsor ? JSON.parse(quest.quest_sponsor) : []
     } catch {
       return []
@@ -297,7 +298,7 @@ export default function QuestDetailPage() {
       return []
     }
   })()
-  console.log('sponsors: ', sponsors)
+  console.log('Sponsors: ', sponsors)
   return (
     <div
       className="relative min-h-screen flex items-center justify-center bg-cover bg-center"
@@ -495,10 +496,10 @@ export default function QuestDetailPage() {
                 Quest Image
                 {previewImage ? (
                   // User selected a new file — show local preview
-                  <img
-                    src={previewImage || placeHold}
-                    alt="Quest Preview"
-                    className="w-1/3 h-auto object-cover rounded-lg"
+                  <RemoteImage
+                    path={previewImage || quest.quest_image}
+                    fallback={placeHold}
+                    className="w-1/2 mx-auto rounded-lg"
                   />
                 ) : (
                   // No new file — show RemoteImage (existing S3 image)

@@ -37,6 +37,7 @@ export default function CreateQuestPage() {
   const params = useParams()
   const questId = params.id
   const isUpdating = !!questId
+  const currencyExp = /^\d*\.?\d{0,2}$/
 
   const [name, setName] = useState('')
   const [details, setDetails] = useState('')
@@ -221,11 +222,22 @@ export default function CreateQuestPage() {
         <label className="block text-sm font-medium">
           Seeker Entry Fee
           <Input
-            type="number"
+            inputMode="decimal"
+            type="text"
             value={currencyValue}
-            onChange={(e) => setCurrencyValue(e.target.value)}
-            min="0"
-            step="0.01" // optional, allows decimals like 1.50
+            onChange={(e) => {
+              const val = e.target.value
+              // allow empty, or numbers matching regex
+              if (val === '' || currencyExp.test(val)) {
+                setCurrencyValue(val)
+              }
+            }}
+            onBlur={() => {
+              if (currencyValue !== '') {
+                // format to 2 decimal places
+                setCurrencyValue(parseFloat(currencyValue).toFixed(2))
+              }
+            }}
           />
         </label>
 
