@@ -10,6 +10,8 @@ import {
 import { uploadData } from 'aws-amplify/storage'
 import { useCurrentUserProfile } from '@/hooks/userProfiles'
 import { addQuestToProfile } from '@/hooks/addQuestToProfile'
+import RemoteImage from './RemoteImage'
+import placeHold from '@/assets/images/placeholder_view_vector.svg'
 
 interface TaskInformationWindowProps {
   questId: string
@@ -26,6 +28,7 @@ export default function TaskInformationWindow({
 }: TaskInformationWindowProps) {
   const { data: currentUserProfile } = useCurrentUserProfile()
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+  const [editableTasks, setEditableTasks] = useState<Task[]>([])
   const [caption, setCaption] = useState('')
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -33,23 +36,44 @@ export default function TaskInformationWindow({
 
   console.log('usertasks: ', userTasks)
   // Merge task definitions with user answers
-  const mergedTasks: Task[] = tasks.map((task) => {
-    const userEntry = userTasks?.find((q) => q.quest_id === questId)
-    const existingAnswer = userEntry?.tasks?.find((t) => t.id === task.id)
-    return {
-      ...task,
-      caption: existingAnswer?.caption || '',
-      answer: existingAnswer?.answer || '',
-    }
-  })
+  // const mergedTasks: Task[] = tasks.map((task) => {
+  //   const userEntry = userTasks?.find((q) => q.quest_id === questId)
+  //   const existingAnswer = userEntry?.tasks?.find((t) => t.id === task.id)
+  //   return {
+  //     ...task,
+  //     caption: existingAnswer?.caption || '',
+  //     answer: existingAnswer?.answer || '',
+  //   }
+  // })
   // console.log('mergedTasks', mergedTasks)
   // Prefill when a task is selected
   useEffect(() => {
+    // Initialize editableTasks from tasks + userTasks
+    setEditableTasks(
+      tasks.map((task) => {
+        const userEntry = userTasks?.find((q) => q.quest_id === questId)
+        const existingAnswer = userEntry?.tasks?.find((t) => t.id === task.id)
+        return {
+          ...task,
+          caption: existingAnswer?.caption || '',
+          answer: existingAnswer?.answer || '',
+        }
+      })
+    )
+  }, [tasks, userTasks, questId])
+
+  useEffect(() => {
     if (!selectedTask) return
-    const taskWithAnswer = mergedTasks.find((t) => t.id === selectedTask.id)
-    setCaption(taskWithAnswer?.caption || '')
-    setPreviewUrl(taskWithAnswer?.answer || '')
-  }, [selectedTask, mergedTasks])
+    const task = editableTasks.find((t) => t.id === selectedTask.id)
+    setCaption(task?.caption || '')
+    setPreviewUrl(task?.answer || '')
+  }, [selectedTask, editableTasks])
+
+  const handleCaptionChange = (taskId: string, value: string) => {
+    setEditableTasks((prev) =>
+      prev.map((t) => (t.id === taskId ? { ...t, caption: value } : t))
+    )
+  }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null
@@ -123,7 +147,7 @@ export default function TaskInformationWindow({
     }
   }
 
-  console.log('caption: ', caption)
+  console.log('PreviewUrl: ', previewUrl)
   return (
     <div className="border rounded-lg p-4 bg-gray-50 shadow-inner max-h-64 overflow-y-auto">
       <h2 className="text-lg font-semibold mb-2 text-gray-800">
@@ -174,7 +198,11 @@ export default function TaskInformationWindow({
                 <input
                   type="text"
                   value={caption}
-                  onChange={(e) => setCaption(e.target.value)}
+                  onChange={(e) => {
+                    setCaption(e.target.value)
+                    if (selectedTask)
+                      handleCaptionChange(selectedTask.id, e.target.value)
+                  }}
                   className="mt-1 w-full border rounded px-3 py-2 text-sm"
                   placeholder="Enter your caption..."
                 />
@@ -192,15 +220,20 @@ export default function TaskInformationWindow({
                   onChange={handleImageChange}
                   className="block w-full text-sm text-gray-600"
                 />
+                {previewUrl ? (
+                  <RemoteImage
+                    path={previewUrl}
+                    fallback={placeHold}
+                    className="h-20 w-20 rounded object-cover mb-2"
+                  />
+                ) : (
+                  <RemoteImage
+                    path={previewUrl || placeHold}
+                    fallback={placeHold}
+                    className="h-20 w-20 rounded object-cover mb-2"
+                  />
+                )}
               </div>
-            )}
-
-            {previewUrl && (
-              <img
-                src={previewUrl}
-                alt="Preview"
-                className="h-20 w-20 rounded object-cover mb-2"
-              />
             )}
 
             <div className="flex justify-end gap-2 mt-4">
