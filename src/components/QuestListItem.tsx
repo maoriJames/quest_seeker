@@ -28,7 +28,7 @@ export default function QuestListItem({ quest }: QuestListItemProps) {
         <RemoteImage
           path={quest.quest_image || placeHold}
           fallback={placeHold}
-          className="w-32 h-32 rounded-full object-cover mx-auto"
+          className="w-32 h-32 rounded-sm object-cover mx-auto"
         />
 
         {/* Quest name with single-line ellipsis */}
