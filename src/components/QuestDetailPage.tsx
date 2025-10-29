@@ -386,15 +386,15 @@ export default function QuestDetailPage() {
               </p>
             </div>
 
-            {currentUserProfile?.role === 'seeker' && hasJoined && (
+            {(isOwner || hasJoined) && (
               <TaskInformationWindow
                 questId={quest.id}
                 tasks={seekerTasks}
                 userTasks={myQuestsArray}
                 onTasksUpdated={async () => {
                   await refetch()
-                  // console.log('Parent refetch completed')
                 }}
+                readOnly={isOwner} // <-- owner cannot answer tasks
               />
             )}
           </div>
@@ -413,7 +413,7 @@ export default function QuestDetailPage() {
               )}
 
               {!isOwner &&
-                currentUserProfile?.role === 'seeker' &&
+                // currentUserProfile?.role === 'seeker' &&
                 (hasJoined ? (
                   <p className="text-green-600 font-semibold">
                     ✅ You have joined this quest!

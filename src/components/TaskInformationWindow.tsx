@@ -12,18 +12,26 @@ import { useCurrentUserProfile } from '@/hooks/userProfiles'
 import { addQuestToProfile } from '@/hooks/addQuestToProfile'
 import RemoteImage from './RemoteImage'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@radix-ui/react-tooltip'
 
 interface TaskInformationWindowProps {
   questId: string
   tasks: Task[]
   userTasks?: MyQuest[] // new prop
   onTasksUpdated?: () => void
+  readOnly?: boolean
 }
 
 export default function TaskInformationWindow({
   questId,
   tasks,
   userTasks,
+  readOnly = false,
   onTasksUpdated,
 }: TaskInformationWindowProps) {
   const { data: currentUserProfile } = useCurrentUserProfile()
@@ -33,18 +41,6 @@ export default function TaskInformationWindow({
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
-
-  // Merge task definitions with user answers
-  // const mergedTasks: Task[] = tasks.map((task) => {
-  //   const userEntry = userTasks?.find((q) => q.quest_id === questId)
-  //   const existingAnswer = userEntry?.tasks?.find((t) => t.id === task.id)
-  //   return {
-  //     ...task,
-  //     caption: existingAnswer?.caption || '',
-  //     answer: existingAnswer?.answer || '',
-  //   }
-  // })
-  // console.log('mergedTasks', mergedTasks)
 
   // Prefill when a task is selected
   useEffect(() => {
@@ -207,17 +203,33 @@ export default function TaskInformationWindow({
             {selectedTask.requiresCaption && (
               <label className="block mb-4 text-sm font-medium">
                 Caption:
-                <input
-                  type="text"
-                  value={caption}
-                  onChange={(e) => {
-                    setCaption(e.target.value)
-                    if (selectedTask)
-                      handleCaptionChange(selectedTask.id, e.target.value)
-                  }}
-                  className="mt-1 w-full border rounded px-3 py-2 text-sm"
-                  placeholder="Enter your caption..."
-                />
+                <TooltipProvider>
+                  <Tooltip>
+                    {/* Only show tooltip if the button is disabled because of readOnly */}
+                    <TooltipTrigger asChild>
+                      <input
+                        type="text"
+                        value={caption}
+                        onChange={(e) => {
+                          setCaption(e.target.value)
+                          if (selectedTask)
+                            handleCaptionChange(selectedTask.id, e.target.value)
+                        }}
+                        className={`border p-1 rounded w-full ${readOnly ? 'bg-gray-100' : ''}`}
+                        placeholder="Enter your caption..."
+                        disabled={readOnly} // disables input for owner
+                      />
+                    </TooltipTrigger>
+                    {readOnly && (
+                      <TooltipContent
+                        side="top"
+                        className="bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg"
+                      >
+                        Owners cannot answer tasks on quests they have created
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
               </label>
             )}
 
@@ -226,12 +238,28 @@ export default function TaskInformationWindow({
                 <label className="block text-sm font-medium mb-1">
                   Upload Image:
                 </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="block w-full text-sm text-gray-600"
-                />
+                <TooltipProvider>
+                  <Tooltip>
+                    {/* Only show tooltip if the button is disabled because of readOnly */}
+                    <TooltipTrigger asChild>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className={`border p-1 rounded w-full ${readOnly ? 'bg-gray-100' : ''}`}
+                        disabled={readOnly} // disables input for owner
+                      />
+                    </TooltipTrigger>
+                    {readOnly && (
+                      <TooltipContent
+                        side="top"
+                        className="bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg"
+                      >
+                        Owners cannot answer tasks on quests they have created
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
                 {previewUrl ? (
                   <RemoteImage
                     path={previewUrl}
@@ -257,17 +285,32 @@ export default function TaskInformationWindow({
                   Cancel
                 </button>
               </DialogClose>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className={`px-4 py-2 rounded text-white ${
-                  saving
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-blue-500 hover:bg-blue-600'
-                }`}
-              >
-                {saving ? 'Saving...' : 'Save'}
-              </button>
+              <TooltipProvider>
+                <Tooltip>
+                  {/* Only show tooltip if the button is disabled because of readOnly */}
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={handleSave}
+                      disabled={saving || readOnly}
+                      className={`px-4 py-2 rounded text-white ${
+                        saving || readOnly
+                          ? 'bg-gray-400 cursor-not-allowed'
+                          : 'bg-blue-500 hover:bg-blue-600'
+                      }`}
+                    >
+                      {saving ? 'Saving...' : 'Save'}
+                    </button>
+                  </TooltipTrigger>
+                  {readOnly && (
+                    <TooltipContent
+                      side="top"
+                      className="bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg"
+                    >
+                      Owners cannot save tasks on quests they have created
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </DialogContent>
         </Dialog>
