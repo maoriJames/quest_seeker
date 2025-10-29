@@ -13,7 +13,7 @@ import { Prize, MyQuest, Sponsor, Task } from '@/types'
 import { addQuestToProfile } from '@/hooks/addQuestToProfile'
 import RemoteImage from './RemoteImage'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
-import HomeButton from './HomeButton'
+// import HomeButton from './HomeButton'
 import {
   Dialog,
   DialogClose,
@@ -356,7 +356,10 @@ export default function QuestDetailPage() {
                         <Pencil className="w-5 h-5 text-gray-700" />
                       </button>
                     </TooltipTrigger>
-                    <TooltipContent side="bottom">
+                    <TooltipContent
+                      side="top"
+                      className="bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg"
+                    >
                       Edit this quest
                     </TooltipContent>
                   </Tooltip>
@@ -435,7 +438,10 @@ export default function QuestDetailPage() {
 
             {/* Center: Home button */}
             <div className="flex justify-center flex-1">
-              <HomeButton />
+              {/* <HomeButton /> */}
+              <Button onClick={() => navigate(-1)} className="px-4 py-2">
+                Back to Quests
+              </Button>
             </div>
 
             {/* Right: Prize Information */}
