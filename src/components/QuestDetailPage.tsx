@@ -318,7 +318,7 @@ export default function QuestDetailPage() {
             </div>
 
             {/* Right: Sponsor section + Edit button */}
-            <div className="flex flex-col items-end gap-2">
+            <div className="relative flex flex-col items-center gap-2 mb-4">
               {sponsors.length > 0 && (
                 <div className="flex flex-col items-end gap-2">
                   <span className="text-xs text-gray-500 mb-1">
@@ -351,7 +351,7 @@ export default function QuestDetailPage() {
                     <TooltipTrigger asChild>
                       <button
                         onClick={() => setOpen(true)}
-                        className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 shadow z-10"
+                        className="absolute -top-2 -right-2 p-2 rounded-full bg-gray-200 hover:bg-gray-300 shadow z-10"
                       >
                         <Pencil className="w-5 h-5 text-gray-700" />
                       </button>
@@ -386,15 +386,15 @@ export default function QuestDetailPage() {
               </p>
             </div>
 
-            {currentUserProfile?.role === 'seeker' && hasJoined && (
+            {(isOwner || hasJoined) && (
               <TaskInformationWindow
                 questId={quest.id}
                 tasks={seekerTasks}
                 userTasks={myQuestsArray}
                 onTasksUpdated={async () => {
                   await refetch()
-                  console.log('Parent refetch completed')
                 }}
+                readOnly={isOwner} // <-- owner cannot answer tasks
               />
             )}
           </div>
@@ -413,7 +413,7 @@ export default function QuestDetailPage() {
               )}
 
               {!isOwner &&
-                currentUserProfile?.role === 'seeker' &&
+                // currentUserProfile?.role === 'seeker' &&
                 (hasJoined ? (
                   <p className="text-green-600 font-semibold">
                     ✅ You have joined this quest!
