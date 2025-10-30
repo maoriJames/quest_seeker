@@ -35,7 +35,7 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
       // Upload the new image
       const newPath = await uploadImage(file)
       if (!newPath) return
-      console.log('oldImagePath: ', oldImagePath)
+      // console.log('oldImagePath: ', oldImagePath)
       // Delete the old image from the bucket (if applicable)
       if (oldImagePath && !oldImagePath.startsWith('http')) {
         try {
@@ -43,7 +43,7 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
             ? oldImagePath.slice(1)
             : oldImagePath
           await remove({ path: cleanPath })
-          console.log('✅ Old image removed:', cleanPath)
+          // console.log('✅ Old image removed:', cleanPath)
         } catch (err) {
           console.error('Error deleting old image:', err)
         }
@@ -68,7 +68,7 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
         options: { contentType: file.type },
       })
 
-      console.log('✅ Uploaded new image to:', path)
+      // console.log('✅ Uploaded new image to:', path)
       return path // store path in DB, not signed URL
     } catch (err) {
       console.error('Error uploading file:', err)
@@ -129,11 +129,13 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
               label="Registration Number"
               value={profile.registration_number || ''}
               onSave={(newValue) => onUpdate({ registration_number: newValue })}
+              required
             />
             <InlineEditField
               label="Business Type"
               value={profile.business_type || ''}
               onSave={(newValue) => onUpdate({ business_type: newValue })}
+              required
             />
             <InlineEditField
               label="Organisation Description"

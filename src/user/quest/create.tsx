@@ -332,6 +332,10 @@ export default function CreateQuestPage() {
         />
         <TaskCreatorButton questUpdates={tasks} onNewTask={setTasks} />
 
+        <Button onClick={() => navigate(-1)} className="px-4 py-2">
+          Cancel
+        </Button>
+
         <Button onClick={onSubmit}>{isUpdating ? 'Update' : 'Create'}</Button>
 
         {isUpdating && (

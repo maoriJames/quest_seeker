@@ -149,7 +149,7 @@ export default function AccountPage() {
 
     updateProfile({ input })
   }
-  console.log('Profile Data: ', profileData)
+  // console.log('Profile Data: ', profileData)
   return (
     <div
       className="min-h-screen flex items-center justify-center bg-cover bg-center"

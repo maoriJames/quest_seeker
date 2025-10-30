@@ -51,9 +51,15 @@ export default function InlineEditField({
             </Button>
           </>
         ) : (
-          <p className="cursor-pointer" onClick={() => setEditing(true)}>
-            {value || 'Click to update'}
-          </p>
+          <input
+            type="text"
+            value={inputValue}
+            placeholder="Click to update"
+            onChange={(e) => setInputValue(e.target.value)}
+            onBlur={handleSave} // optional: auto-save on blur
+            autoFocus
+            className={`border p-1 rounded flex-1 ${error ? 'border-red-500' : ''}`}
+          />
         )}
       </div>
       {error && <span className="text-red-500 text-sm">{error}</span>}

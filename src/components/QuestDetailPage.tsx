@@ -80,6 +80,16 @@ export default function QuestDetailPage() {
       : JSON.parse(quest.quest_tasks || '[]')
 
     setTasks(parsedTasks)
+
+    // --- derive some quest stats ---
+    const numberOfTasks = parsedTasks.length
+
+    const hasImageTasks = parsedTasks.some((t) => t.isImage)
+    const hasCaptionTasks = parsedTasks.some((t) => t.requiresCaption)
+
+    console.log('Number of tasks:', numberOfTasks)
+    console.log('Has image tasks:', hasImageTasks)
+    console.log('Has caption tasks:', hasCaptionTasks)
   }, [quest])
 
   // --- Helpers ---
@@ -283,7 +293,7 @@ export default function QuestDetailPage() {
   // Parse sponsors (safe check in case it's undefined or malformed)
   const sponsors: Sponsor[] = (() => {
     try {
-      console.log('Quest Sponsors: ', quest?.quest_sponsor)
+      // console.log('Quest Sponsors: ', quest?.quest_sponsor)
       return quest.quest_sponsor ? JSON.parse(quest.quest_sponsor) : []
     } catch {
       return []
@@ -399,6 +409,22 @@ export default function QuestDetailPage() {
                 }}
                 readOnly={isOwner} // <-- owner cannot answer tasks
               />
+            )}
+            {!isOwner && !hasJoined && (
+              <div className="border rounded-lg p-4 bg-gray-50 shadow-inner max-h-64 overflow-y-auto">
+                <h2 className="text-lg font-semibold mb-2 text-gray-800">
+                  Number of tasks in this quest: {tasks.length}
+                </h2>
+                <h2 className="text-lg font-semibold mb-2 text-gray-800">
+                  Types of tasks in this Quest:{' '}
+                  {[
+                    tasks.some((t) => t.isImage) ? 'Image' : null,
+                    tasks.some((t) => t.requiresCaption) ? 'Text' : null,
+                  ]
+                    .filter(Boolean)
+                    .join(', ') || 'None'}
+                </h2>
+              </div>
             )}
           </div>
 
