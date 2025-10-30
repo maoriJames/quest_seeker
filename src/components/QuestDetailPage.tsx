@@ -6,7 +6,8 @@ import { useProfile, useCurrentUserProfile } from '@/hooks/userProfiles'
 import { remove, uploadData } from '@aws-amplify/storage'
 import { useDeleteQuest } from '@/hooks/userQuests'
 import bg from '@/assets/images/background_main.png'
-import { Button, Card, VisuallyHidden } from '@aws-amplify/ui-react'
+import { Card, VisuallyHidden } from '@aws-amplify/ui-react'
+import { Button } from './ui/button'
 import { CardContent } from './ui/card'
 import { useEffect, useState } from 'react'
 import { Prize, MyQuest, Sponsor, Task } from '@/types'
@@ -433,12 +434,12 @@ export default function QuestDetailPage() {
             {/* Left: Delete / Join */}
             <div>
               {isOwner && (
-                <button
+                <Button
                   onClick={handleDelete}
                   className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
                 >
                   Delete Quest
-                </button>
+                </Button>
               )}
 
               {!isOwner &&
@@ -465,7 +466,11 @@ export default function QuestDetailPage() {
             {/* Center: Home button */}
             <div className="flex justify-center flex-1">
               {/* <HomeButton /> */}
-              <Button onClick={() => navigate(-1)} className="px-4 py-2">
+              <Button
+                onClick={() => navigate(-1)}
+                size="default"
+                className="px-4 py-2"
+              >
                 Back to Quests
               </Button>
             </div>
@@ -475,9 +480,9 @@ export default function QuestDetailPage() {
               {prizes.length > 0 && (
                 <Dialog>
                   <DialogTrigger asChild>
-                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                    <Button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
                       Prize Information
-                    </button>
+                    </Button>
                   </DialogTrigger>
                   <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
                   <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
