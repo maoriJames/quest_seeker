@@ -5,7 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
+// import { Switch } from '@/components/ui/switch'
 import {
   Dialog,
   DialogContent,
@@ -30,7 +30,7 @@ import { useCurrentUserProfile } from '@/hooks/userProfiles'
 import { DialogTitle } from '@radix-ui/react-dialog'
 import { VisuallyHidden } from '@aws-amplify/ui-react'
 import { uploadData } from 'aws-amplify/storage'
-import PrizeCreatorButton from '@/components/PrizeCreatorButton'
+// import PrizeCreatorButton from '@/components/PrizeCreatorButton'
 
 export default function CreateQuestPage() {
   const navigate = useNavigate()
@@ -317,20 +317,28 @@ export default function CreateQuestPage() {
           </Dialog>
         </div>
 
-        <div className="flex items-center space-x-2">
+        {/* <div className="flex items-center space-x-2">
           <Switch checked={prizeEnabled} onCheckedChange={setPrizeEnabled} />
           <span>{prizeEnabled ? 'PRIZES' : 'NO PRIZES'}</span>
-        </div>
+        </div> */}
 
-        {prizeEnabled && (
-          <PrizeCreatorButton prizeUpdates={prizes} onNewPrize={setPrizes} />
-        )}
+        {/* {prizeEnabled && (
+          <PrizeCreatorButton
+            prizeUpdates={prizes}
+            onNewPrize={setPrizes}
+            prizeContributor={''}
+          />
+        )} */}
 
         <SponsorCreatorButton
           sponsorUpdates={sponsors}
           onNewSponsor={setSponsors}
         />
         <TaskCreatorButton questUpdates={tasks} onNewTask={setTasks} />
+
+        <Button onClick={() => navigate(-1)} className="px-4 py-2">
+          Cancel
+        </Button>
 
         <Button onClick={onSubmit}>{isUpdating ? 'Update' : 'Create'}</Button>
 

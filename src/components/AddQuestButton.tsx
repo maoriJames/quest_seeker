@@ -72,7 +72,12 @@ export default function AddQuestButton({ to }: AddQuestButtonProps) {
               <span className="sr-only">Create a quest</span>
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom">Create a quest</TooltipContent>
+          <TooltipContent
+            side="top"
+            className="bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg"
+          >
+            Create a quest
+          </TooltipContent>
         </Tooltip>
       </TooltipProvider>
 

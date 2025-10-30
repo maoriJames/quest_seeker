@@ -6,6 +6,7 @@ import { PrizeModal } from './PrizeModal'
 const PrizeCreatorButton: React.FC<PrizeCreatorButtonProps> = ({
   onNewPrize,
   prizeUpdates,
+  prizeContributor,
 }) => {
   const [prize, setPrize] = useState('')
   const [prizeImage, setPrizeImage] = useState(false)
@@ -84,12 +85,12 @@ const PrizeCreatorButton: React.FC<PrizeCreatorButtonProps> = ({
     setPrize(prizes[index].name)
     setPreviewUrl(prizes[index].image || null)
     setPrizeImage(!!prizes[index].image)
-    setContributor(prizes[index].contributor)
+    setContributor(prizeContributor)
     setModalVisible(false)
   }
 
   return (
-    <div className="p-4 mt-2 border rounded bg-white shadow-md">
+    <>
       <p className="mb-2 font-semibold">Enter Prizes:</p>
 
       <input
@@ -100,13 +101,13 @@ const PrizeCreatorButton: React.FC<PrizeCreatorButtonProps> = ({
         onChange={(e) => setPrize(e.target.value)}
       />
 
-      <input
+      {/* <input
         type="text"
         className="w-full p-2 mb-2 border rounded"
         placeholder="Enter Prize Contributor"
         value={contributor}
         onChange={(e) => setContributor(e.target.value)}
-      />
+      /> */}
 
       <div className="flex items-center gap-2 mb-2">
         <input
@@ -162,7 +163,7 @@ const PrizeCreatorButton: React.FC<PrizeCreatorButtonProps> = ({
           handleEdit={handleEdit} // pass edit handler
         />
       )}
-    </div>
+    </>
   )
 }
 

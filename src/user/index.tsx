@@ -13,6 +13,9 @@ export default function UserPage() {
   const requiredFields: (keyof typeof currentProfile)[] = [
     'full_name',
     'primary_contact_phone',
+    'organization_name',
+    'registration_number',
+    'business_type',
     // add more fields you want to require
   ]
 
@@ -21,6 +24,7 @@ export default function UserPage() {
     (field) =>
       !currentProfile[field] || currentProfile[field].toString().trim() === ''
   )
+  console.log('hasMissingFields: ', hasMissingFields)
 
   return hasMissingFields ? (
     <Navigate to="/user/account" replace />

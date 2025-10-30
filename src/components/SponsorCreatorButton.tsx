@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { SponsorCreatorButtonProps, Sponsor } from '@/types'
+import { SponsorCreatorButtonProps, Sponsor, Prize } from '@/types'
 import { SponsorModal } from './SponsorModal'
 import { uploadData } from 'aws-amplify/storage'
+import { Switch } from './ui/switch'
+import PrizeCreatorButton from './PrizeCreatorButton'
 
 const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
   onNewSponsor,
@@ -11,7 +13,8 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
   const [sponsorImage, setSponsorImage] = useState(false)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-
+  const [prizeEnabled, setPrizeEnabled] = useState(false)
+  const [prizes, setPrizes] = useState<Prize[]>([])
   const [sponsors, setSponsors] = useState<Sponsor[]>(sponsorUpdates || [])
   const [editIndex, setEditIndex] = useState(-1)
   const [modalVisible, setModalVisible] = useState(false)
@@ -88,7 +91,17 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
 
   return (
     <div className="p-4 mt-2 border rounded bg-white shadow-md">
-      <p className="mb-2 font-semibold">Enter Sponsors:</p>
+      <div className="flex items-center justify-between w-full">
+        <p className="mb-2 font-semibold">Enter Sponsors:</p>
+
+        <div className="flex items-center gap-2">
+          <p className="mb-2 font-semibold">
+            Prizes affiliated with this sponsor?
+          </p>
+          <Switch checked={prizeEnabled} onCheckedChange={setPrizeEnabled} />
+          <span>{prizeEnabled ? 'Yo' : 'No'}</span>
+        </div>
+      </div>
 
       <input
         type="text"
@@ -137,7 +150,13 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
       >
         Show Sponsors
       </button>
-
+      {prizeEnabled && (
+        <PrizeCreatorButton
+          prizeUpdates={prizes}
+          onNewPrize={setPrizes}
+          prizeContributor={sponsor}
+        />
+      )}
       {sponsors && (
         <SponsorModal
           sponsors={sponsors}

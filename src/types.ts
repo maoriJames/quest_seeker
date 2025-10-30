@@ -129,6 +129,7 @@ export type Prize = {
 export interface PrizeCreatorButtonProps {
   prizeUpdates: Prize[]
   onNewPrize: OnNewPrizeFunction
+  prizeContributor: string
 }
 
 export type OnNewPrizeFunction = (updatedPrizes: Prize[]) => void

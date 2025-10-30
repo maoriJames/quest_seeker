@@ -114,9 +114,8 @@ export default function TaskInformationWindow({
     }
 
     try {
-      setSaving(true) // start spinner
+      setSaving(true)
 
-      // Save to server
       await addQuestToProfile(questId, [
         {
           quest_id: questId,
@@ -138,24 +137,26 @@ export default function TaskInformationWindow({
 
       alert('✅ Answer saved successfully!')
 
-      // Optimistic update
+      // Optimistic UI update
       setPreviewUrl(uploadedPath || previewUrl)
       setCaption(caption)
 
-      // Trigger parent refetch
       if (onTasksUpdated) {
         await onTasksUpdated()
       }
+
+      // ✅ Close modal after successful save
+      setSelectedTask(null)
     } catch (err) {
       console.error('❌ Failed to save answer:', err)
       alert('❌ Failed to save answer.')
     } finally {
-      setSaving(false) // stop spinner
+      setSaving(false)
       setImageFile(null)
     }
   }
 
-  console.log('PreviewUrl: ', previewUrl)
+  // console.log('PreviewUrl: ', previewUrl)
   return (
     <div className="border rounded-lg p-4 bg-gray-50 shadow-inner max-h-64 overflow-y-auto">
       <h2 className="text-lg font-semibold mb-2 text-gray-800">
@@ -163,7 +164,7 @@ export default function TaskInformationWindow({
       </h2>
 
       <ul className="space-y-2">
-        {tasks.map((task, index) => (
+        {editableTasks.map((task, index) => (
           <li
             key={index}
             onClick={() => setSelectedTask(task)}
@@ -172,7 +173,13 @@ export default function TaskInformationWindow({
             <p className="text-sm font-medium text-gray-700">
               {task.description || `Task ${index + 1}`}
             </p>
-            <p className="text-xs text-gray-500 mt-1">Click to answer</p>
+            {task.answer || task.caption ? (
+              <p className="flex items-center text-sm text-green-600 mt-1">
+                <span className="mr-1">✅</span> Task Answered
+              </p>
+            ) : (
+              <p className="text-xs text-gray-500 mt-1">Click to answer</p>
+            )}
           </li>
         ))}
       </ul>
