@@ -1,20 +1,24 @@
 import React, { useEffect, useState } from 'react'
-import { SponsorCreatorButtonProps, Sponsor, Prize } from '@/types'
+import { SponsorCreatorButtonProps, Sponsor } from '@/types'
 import { SponsorModal } from './SponsorModal'
 import { uploadData } from 'aws-amplify/storage'
 import { Switch } from './ui/switch'
 import PrizeCreatorButton from './PrizeCreatorButton'
 
 const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
-  onNewSponsor,
   sponsorUpdates,
+  onNewSponsor,
+  prizeEnabled,
+  onPrizeToggle,
+  prizes,
+  onNewPrize,
 }) => {
   const [sponsor, setSponsor] = useState('')
   const [sponsorImage, setSponsorImage] = useState(false)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [prizeEnabled, setPrizeEnabled] = useState(false)
-  const [prizes, setPrizes] = useState<Prize[]>([])
+  // const [prizeEnabled, setPrizeEnabled] = useState(false)
+  // const [prizes, setPrizes] = useState<Prize[]>([])
   const [sponsors, setSponsors] = useState<Sponsor[]>(sponsorUpdates || [])
   const [editIndex, setEditIndex] = useState(-1)
   const [modalVisible, setModalVisible] = useState(false)
@@ -88,7 +92,7 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
     setSponsorImage(!!sponsors[index].image)
     setModalVisible(false)
   }
-
+  console.log('sponsor for contributor: ', sponsor)
   return (
     <div className="p-4 mt-2 border rounded bg-white shadow-md">
       <div className="flex items-center justify-between w-full">
@@ -98,7 +102,10 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
           <p className="mb-2 font-semibold">
             Prizes affiliated with this sponsor?
           </p>
-          <Switch checked={prizeEnabled} onCheckedChange={setPrizeEnabled} />
+          <Switch
+            checked={prizeEnabled}
+            onCheckedChange={(checked) => onPrizeToggle(checked)}
+          />
           <span>{prizeEnabled ? 'Yo' : 'No'}</span>
         </div>
       </div>
@@ -138,6 +145,7 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
       )}
 
       <button
+        type="button"
         className="w-full p-2 mb-2 text-white bg-blue-600 rounded hover:bg-blue-700"
         onClick={handleAddSponsor}
       >
@@ -145,6 +153,7 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
       </button>
 
       <button
+        type="button"
         className="w-full p-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
         onClick={() => setModalVisible(true)}
       >
@@ -153,7 +162,7 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
       {prizeEnabled && (
         <PrizeCreatorButton
           prizeUpdates={prizes}
-          onNewPrize={setPrizes}
+          onNewPrize={onNewPrize}
           prizeContributor={sponsor}
         />
       )}

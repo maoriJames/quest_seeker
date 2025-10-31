@@ -100,6 +100,10 @@ export type Sponsor = {
 export interface SponsorCreatorButtonProps {
   sponsorUpdates: Sponsor[]
   onNewSponsor: OnNewSponsorFunction
+  prizeEnabled: boolean
+  onPrizeToggle: (enabled: boolean) => void
+  prizes: Prize[]
+  onNewPrize: (prizes: Prize[]) => void
 }
 
 export type OnNewSponsorFunction = (updatedSponsors: Sponsor[]) => void
