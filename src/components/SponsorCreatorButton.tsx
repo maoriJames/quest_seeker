@@ -145,6 +145,7 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
       )}
 
       <button
+        type="button"
         className="w-full p-2 mb-2 text-white bg-blue-600 rounded hover:bg-blue-700"
         onClick={handleAddSponsor}
       >
@@ -152,6 +153,7 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
       </button>
 
       <button
+        type="button"
         className="w-full p-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
         onClick={() => setModalVisible(true)}
       >

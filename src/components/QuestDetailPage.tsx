@@ -35,6 +35,7 @@ import PickRegion from './PickRegion'
 import { Calendar } from './ui/calendar'
 import TaskCreatorButton from './TaskCreatorButton'
 import { parseQuestTasks, serializeQuestTasks } from '@/tools/questTasks'
+import SponsorCreatorButton from './SponsorCreatorButton'
 
 export default function QuestDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -62,6 +63,9 @@ export default function QuestDetailPage() {
   const [selectedRegion, setSelectedRegion] = useState('')
   const [open, setOpen] = useState(false)
   const [tasks, setTasks] = useState<Task[]>([])
+  const [sponsorsState, setSponsorsState] = useState<Sponsor[]>([])
+  const [prizesState, setPrizesState] = useState<Prize[]>([])
+  const [prizeEnabled, setPrizeEnabled] = useState(false)
 
   const deleteQuestMutation = useDeleteQuest()
 
@@ -91,6 +95,24 @@ export default function QuestDetailPage() {
     console.log('Number of tasks:', numberOfTasks)
     console.log('Has image tasks:', hasImageTasks)
     console.log('Has caption tasks:', hasCaptionTasks)
+  }, [quest])
+
+  useEffect(() => {
+    if (!quest) return
+    try {
+      setSponsorsState(
+        quest.quest_sponsor ? JSON.parse(quest.quest_sponsor) : []
+      )
+      const parsedPrizes = quest.quest_prize_info
+        ? JSON.parse(quest.quest_prize_info)
+        : []
+      setPrizesState(parsedPrizes)
+      setPrizeEnabled(parsedPrizes.length > 0)
+    } catch {
+      setSponsorsState([])
+      setPrizesState([])
+      setPrizeEnabled(false)
+    }
   }, [quest])
 
   // --- Helpers ---
@@ -243,6 +265,9 @@ export default function QuestDetailPage() {
         quest_tasks: serializeQuestTasks(tasks),
         region: selectedRegion,
         quest_image: imagePath,
+        quest_sponsor: JSON.stringify(sponsorsState),
+        quest_prize_info: JSON.stringify(prizesState),
+        quest_prize: prizeEnabled,
       }
 
       await client.graphql({
@@ -524,7 +549,6 @@ export default function QuestDetailPage() {
 
       {isOwner && (
         <Dialog open={open} onOpenChange={setOpen}>
-          {/* ✏️ Modal content */}
           <DialogOverlay className="fixed inset-0 bg-black/40 z-40" />
           <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
             <DialogTitle className="text-xl font-bold mb-4">
@@ -538,17 +562,16 @@ export default function QuestDetailPage() {
               }}
               className="flex flex-col gap-4"
             >
+              {/* Quest Image */}
               <label className="flex flex-col text-sm font-medium text-gray-700">
                 Quest Image
                 {previewImage ? (
-                  // User selected a new file — show local preview
                   <RemoteImage
                     path={previewImage || quest.quest_image}
                     fallback={placeHold}
                     className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-full"
                   />
                 ) : (
-                  // No new file — show RemoteImage (existing S3 image)
                   <RemoteImage
                     path={quest.quest_image || placeHold}
                     fallback={placeHold}
@@ -562,6 +585,7 @@ export default function QuestDetailPage() {
                 />
               </label>
 
+              {/* Quest Name */}
               <label className="flex flex-col text-sm font-medium text-gray-700">
                 Quest Name
                 <input
@@ -572,6 +596,7 @@ export default function QuestDetailPage() {
                 />
               </label>
 
+              {/* Quest Details */}
               <label className="flex flex-col text-sm font-medium text-gray-700">
                 Details
                 <textarea
@@ -581,6 +606,7 @@ export default function QuestDetailPage() {
                 />
               </label>
 
+              {/* Region */}
               <label className="block text-sm font-medium">
                 <PickRegion
                   value={selectedRegion}
@@ -588,6 +614,7 @@ export default function QuestDetailPage() {
                 />
               </label>
 
+              {/* Start Date */}
               <Dialog open={openStart} onOpenChange={setOpenStart}>
                 <DialogTrigger asChild>
                   <Button>
@@ -602,7 +629,7 @@ export default function QuestDetailPage() {
                     }`}
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
+                <DialogContent className="max-h-[70vh] overflow-y-auto">
                   <DialogTitle>
                     <VisuallyHidden>Choose Start Date</VisuallyHidden>
                   </DialogTitle>
@@ -611,11 +638,10 @@ export default function QuestDetailPage() {
                     selected={editStart ? new Date(editStart) : undefined}
                     onSelect={(date) => {
                       if (date) {
-                        // Adjust for timezone so we don’t get “day before”
                         const localDate = new Date(
                           date.getTime() - date.getTimezoneOffset() * 60000
                         )
-                        setEditStart(localDate.toISOString().split('T')[0]) // "YYYY-MM-DD"
+                        setEditStart(localDate.toISOString().split('T')[0])
                       }
                     }}
                   />
@@ -625,6 +651,7 @@ export default function QuestDetailPage() {
                 </DialogContent>
               </Dialog>
 
+              {/* End Date */}
               <Dialog open={openEnd} onOpenChange={setOpenEnd}>
                 <DialogTrigger asChild>
                   <Button>
@@ -639,7 +666,7 @@ export default function QuestDetailPage() {
                     }`}
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
+                <DialogContent className="max-h-[70vh] overflow-y-auto">
                   <DialogTitle>
                     <VisuallyHidden>Choose End Date</VisuallyHidden>
                   </DialogTitle>
@@ -648,11 +675,10 @@ export default function QuestDetailPage() {
                     selected={editEnd ? new Date(editEnd) : undefined}
                     onSelect={(date) => {
                       if (date) {
-                        // Adjust for timezone so we don’t get “day before”
                         const localDate = new Date(
                           date.getTime() - date.getTimezoneOffset() * 60000
                         )
-                        setEditEnd(localDate.toISOString().split('T')[0]) // "YYYY-MM-DD"
+                        setEditEnd(localDate.toISOString().split('T')[0])
                       }
                     }}
                   />
@@ -661,11 +687,24 @@ export default function QuestDetailPage() {
                   </DialogClose>
                 </DialogContent>
               </Dialog>
+
+              {/* Task Editor */}
               <TaskCreatorButton
                 questUpdates={tasks}
                 onNewTask={handleTasksUpdate}
               />
 
+              {/* Sponsor & Prize Editor */}
+              <SponsorCreatorButton
+                sponsorUpdates={sponsorsState}
+                onNewSponsor={setSponsorsState}
+                prizeEnabled={prizeEnabled}
+                onPrizeToggle={setPrizeEnabled}
+                prizes={prizesState}
+                onNewPrize={setPrizesState}
+              />
+
+              {/* Action Buttons */}
               <div className="flex justify-end gap-3 mt-4">
                 <DialogClose asChild>
                   <button

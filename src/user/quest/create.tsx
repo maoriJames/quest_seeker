@@ -317,19 +317,6 @@ export default function CreateQuestPage() {
           </Dialog>
         </div>
 
-        {/* <div className="flex items-center space-x-2">
-          <Switch checked={prizeEnabled} onCheckedChange={setPrizeEnabled} />
-          <span>{prizeEnabled ? 'PRIZES' : 'NO PRIZES'}</span>
-        </div> */}
-
-        {/* {prizeEnabled && (
-          <PrizeCreatorButton
-            prizeUpdates={prizes}
-            onNewPrize={setPrizes}
-            prizeContributor={''}
-          />
-        )} */}
-
         <SponsorCreatorButton
           sponsorUpdates={sponsors}
           onNewSponsor={setSponsors}
