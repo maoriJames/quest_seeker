@@ -503,6 +503,9 @@ export default function QuestDetailPage() {
                           <span className="text-xs mt-1 font-semibold text-gray-700">
                             {prize.name}
                           </span>
+                          <span className="truncate">
+                            With thanks to {prize.contributor}
+                          </span>
                         </div>
                       ))}
                     </div>

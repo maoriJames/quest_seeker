@@ -10,7 +10,7 @@ const PrizeCreatorButton: React.FC<PrizeCreatorButtonProps> = ({
 }) => {
   const [prize, setPrize] = useState('')
   const [prizeImage, setPrizeImage] = useState(false)
-  const [contributor, setContributor] = useState('')
+  const [contributor, setContributor] = useState(prizeContributor)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
@@ -88,7 +88,7 @@ const PrizeCreatorButton: React.FC<PrizeCreatorButtonProps> = ({
     setContributor(prizeContributor)
     setModalVisible(false)
   }
-
+  console.log('prizeContributor: ', contributor)
   return (
     <>
       <p className="mb-2 font-semibold">Enter Prizes:</p>
@@ -159,7 +159,7 @@ const PrizeCreatorButton: React.FC<PrizeCreatorButtonProps> = ({
           visible={modalVisible}
           onClose={() => setModalVisible(false)}
           onNewPrize={onNewPrize}
-          setContributor={setContributor}
+          contributor={contributor}
           handleEdit={handleEdit} // pass edit handler
         />
       )}

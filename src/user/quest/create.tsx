@@ -333,7 +333,12 @@ export default function CreateQuestPage() {
         <SponsorCreatorButton
           sponsorUpdates={sponsors}
           onNewSponsor={setSponsors}
+          prizeEnabled={prizeEnabled}
+          onPrizeToggle={setPrizeEnabled}
+          prizes={prizes}
+          onNewPrize={setPrizes}
         />
+
         <TaskCreatorButton questUpdates={tasks} onNewTask={setTasks} />
 
         <Button onClick={() => navigate(-1)} className="px-4 py-2">

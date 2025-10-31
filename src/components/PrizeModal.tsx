@@ -5,7 +5,7 @@ interface PrizeModalProps {
   prizes: Prize[]
   setPrizes: React.Dispatch<React.SetStateAction<Prize[]>>
   setPrize: React.Dispatch<React.SetStateAction<string>>
-  setContributor: React.Dispatch<React.SetStateAction<string>>
+  contributor: string
   setPreview: React.Dispatch<React.SetStateAction<string | null>> // renamed from setImage
   setEditIndex: React.Dispatch<React.SetStateAction<number>>
   visible: boolean
