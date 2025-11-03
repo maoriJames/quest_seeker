@@ -3,7 +3,7 @@ import * as mutations from '@/graphql/mutations'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuest } from '@/hooks/userQuests'
 import { useProfile, useCurrentUserProfile } from '@/hooks/userProfiles'
-import { remove, uploadData } from '@aws-amplify/storage'
+import { uploadData } from '@aws-amplify/storage'
 import { useDeleteQuest } from '@/hooks/userQuests'
 import bg from '@/assets/images/background_main.png'
 import { Card, VisuallyHidden } from '@aws-amplify/ui-react'
@@ -34,6 +34,7 @@ import {
 import PickRegion from './PickRegion'
 import { Calendar } from './ui/calendar'
 import TaskCreatorButton from './TaskCreatorButton'
+import { deleteS3Object } from '@/tools/deleteS3Object'
 import { parseQuestTasks, serializeQuestTasks } from '@/tools/questTasks'
 import SponsorCreatorButton from './SponsorCreatorButton'
 
@@ -49,6 +50,9 @@ export default function QuestDetailPage() {
   const { data: currentUserProfile } = useCurrentUserProfile()
   const [editName, setEditName] = useState(quest?.quest_name || '')
   const [editDetails, setEditDetails] = useState(quest?.quest_details || '')
+  const [currentImageFile, setCurrentImageFile] = useState(
+    quest?.quest_image || ''
+  ) // current image file
   const [imageFile, setImageFile] = useState<File | null>(null) // new selected file
   const [previewImage, setPreviewImage] = useState<string>('') // URL for preview, could be S3 URL or blob
 
@@ -85,16 +89,6 @@ export default function QuestDetailPage() {
       : JSON.parse(quest.quest_tasks || '[]')
 
     setTasks(parsedTasks)
-
-    // --- derive some quest stats ---
-    const numberOfTasks = parsedTasks.length
-
-    const hasImageTasks = parsedTasks.some((t) => t.isImage)
-    const hasCaptionTasks = parsedTasks.some((t) => t.requiresCaption)
-
-    console.log('Number of tasks:', numberOfTasks)
-    console.log('Has image tasks:', hasImageTasks)
-    console.log('Has caption tasks:', hasCaptionTasks)
   }, [quest])
 
   useEffect(() => {
@@ -114,6 +108,12 @@ export default function QuestDetailPage() {
       setPrizeEnabled(false)
     }
   }, [quest])
+
+  useEffect(() => {
+    if (quest?.quest_image) {
+      setCurrentImageFile(quest.quest_image)
+    }
+  }, [quest?.quest_image])
 
   // --- Helpers ---
   // const getPublicUrl = (path: string) =>
@@ -143,23 +143,6 @@ export default function QuestDetailPage() {
   if (error) return <p>Failed to fetch quest.</p>
   if (!quest) return <p>Quest not found.</p>
 
-  const deleteS3Object = async (path: string) => {
-    if (!path) return
-    try {
-      let key = path
-      try {
-        const url = new URL(path)
-        key = url.pathname.slice(1)
-      } catch {
-        // already a valid key
-      }
-      console.log('🗑️ Deleting S3 object:', key)
-      await remove({ path: key })
-    } catch (err) {
-      console.error('Failed to delete S3 object:', err)
-    }
-  }
-
   const handleDelete = async () => {
     if (!quest) return
     if (!window.confirm('Are you sure you want to delete this quest?')) return
@@ -168,6 +151,7 @@ export default function QuestDetailPage() {
       // Delete quest image
       console.log('quest image:', quest.quest_image)
       if (quest.quest_image) {
+        console.log('quest image deleting?:')
         await deleteS3Object(quest.quest_image)
       }
       // Delete all sponsor images
@@ -180,7 +164,7 @@ export default function QuestDetailPage() {
         }
       }
 
-      // Delete all sponsor images
+      // Delete all prize images
       const prizes = Array.isArray(quest.quest_prize_info)
         ? quest.quest_prize_info
         : JSON.parse(quest.quest_prize_info || '[]')
@@ -246,13 +230,18 @@ export default function QuestDetailPage() {
 
   const handleEditSubmit = async () => {
     try {
-      let imagePath = quest.quest_image ?? '' // default to current image
+      let imagePath = quest.quest_image ?? ''
 
-      // ✅ Only upload if a new file was selected
       if (imageFile) {
+        // Upload new image
         const uploadedPath = await uploadImage(imageFile)
         if (uploadedPath) {
           imagePath = uploadedPath
+
+          // Delete old image from S3
+          if (currentImageFile && currentImageFile !== uploadedPath) {
+            await deleteS3Object(currentImageFile)
+          }
         }
       }
 
@@ -278,9 +267,14 @@ export default function QuestDetailPage() {
 
       await refetch()
       alert('Quest updated successfully!')
+
+      // Reset preview and file
       setOpen(false)
       setImageFile(null)
       setPreviewImage('')
+
+      // Update oldQuestImage to the new one
+      setCurrentImageFile(imagePath)
     } catch (err) {
       console.error('❌ Failed to update quest:', err)
       alert('Failed to update quest.')
@@ -299,7 +293,7 @@ export default function QuestDetailPage() {
     typeof currentUserProfile?.my_quests === 'string'
       ? JSON.parse(currentUserProfile.my_quests)
       : (currentUserProfile?.my_quests ?? [])
-  console.log('myQuestArray: ', myQuestsArray)
+  // console.log('myQuestArray: ', myQuestsArray)
   const hasJoined = myQuestsArray.some((q) => q.quest_id === quest.id)
   const joinedQuestEntry = myQuestsArray.find((q) => q.quest_id === quest.id)
 
@@ -335,6 +329,7 @@ export default function QuestDetailPage() {
     }
   })()
   // console.log('Sponsors: ', sponsors)
+  // console.log('quest image Initital:', quest.quest_image)
   return (
     <div
       className="relative min-h-screen flex items-center justify-center bg-cover bg-center"

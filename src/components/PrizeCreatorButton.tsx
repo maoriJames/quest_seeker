@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react'
 import { PrizeCreatorButtonProps, Prize } from '@/types'
 import { uploadData } from 'aws-amplify/storage'
 import { PrizeModal } from './PrizeModal'
+import { deleteS3Object } from '@/tools/deleteS3Object'
+import RemoteImage from './RemoteImage'
+import placeHold from '@/assets/images/placeholder_view_vector.svg'
 
 const PrizeCreatorButton: React.FC<PrizeCreatorButtonProps> = ({
   onNewPrize,
@@ -11,6 +14,7 @@ const PrizeCreatorButton: React.FC<PrizeCreatorButtonProps> = ({
   const [prize, setPrize] = useState('')
   const [prizeImage, setPrizeImage] = useState(false)
   const [contributor, setContributor] = useState(prizeContributor)
+  const [currentImageFile, setCurrentImageFile] = useState<string | null>(null)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
@@ -37,7 +41,19 @@ const PrizeCreatorButton: React.FC<PrizeCreatorButtonProps> = ({
 
     // Upload file if checked
     if (prizeImage && imageFile) {
-      imagePath = await uploadImage(imageFile) // S3 path string
+      const uploadedPath = await uploadImage(imageFile) // S3 path string
+      if (uploadedPath) {
+        imagePath = uploadedPath
+
+        // Delete old image if editing
+        if (
+          editIndex !== -1 &&
+          currentImageFile &&
+          currentImageFile !== imagePath
+        ) {
+          await deleteS3Object(currentImageFile)
+        }
+      }
     }
 
     const newPrize: Prize = {
@@ -62,6 +78,7 @@ const PrizeCreatorButton: React.FC<PrizeCreatorButtonProps> = ({
     setImageFile(null)
     setPreviewUrl(null)
     setEditIndex(-1)
+    setCurrentImageFile(null)
   }
 
   const uploadImage = async (file: File, isPublic = true): Promise<string> => {
@@ -88,7 +105,7 @@ const PrizeCreatorButton: React.FC<PrizeCreatorButtonProps> = ({
     setContributor(prizeContributor)
     setModalVisible(false)
   }
-  console.log('prizeContributor: ', contributor)
+  console.log('current Prize: ', prizes)
   return (
     <>
       <p className="mb-2 font-semibold">Enter Prizes:</p>
@@ -128,10 +145,10 @@ const PrizeCreatorButton: React.FC<PrizeCreatorButtonProps> = ({
       </div>
 
       {prizeImage && previewUrl && (
-        <img
-          src={previewUrl}
-          alt="Preview"
-          className="h-20 w-20 rounded object-cover mb-2"
+        <RemoteImage
+          path={previewUrl || placeHold}
+          fallback={placeHold}
+          className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-sm"
         />
       )}
 

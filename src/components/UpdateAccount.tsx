@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Card } from '@aws-amplify/ui-react'
 import { CardContent } from './ui/card'
@@ -7,6 +7,13 @@ import RemoteImage from './RemoteImage'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
 import { uploadData, remove } from 'aws-amplify/storage'
 import type { Profile } from '@/types'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select'
 
 type ProfileProps = {
   profile: Profile
@@ -17,7 +24,15 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
   const navigate = useNavigate()
 
   const [previewImage, setPreviewImage] = useState(profile.image || '')
-  const [oldImagePath, setOldImagePath] = useState(profile.image || '') // track the existing stored path
+  const [oldImagePath, setOldImagePath] = useState(profile.image || '')
+
+  // ✅ Keep oldImagePath updated when profile changes
+  useEffect(() => {
+    if (profile.image) {
+      setOldImagePath(profile.image)
+    }
+  }, [profile.image])
+
   const safeProfile = {
     ...profile,
     my_quests: profile.my_quests ?? [], // ← guarantees it’s an array
@@ -35,15 +50,16 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
       // Upload the new image
       const newPath = await uploadImage(file)
       if (!newPath) return
-      // console.log('oldImagePath: ', oldImagePath)
       // Delete the old image from the bucket (if applicable)
       if (oldImagePath && !oldImagePath.startsWith('http')) {
         try {
           const cleanPath = oldImagePath.startsWith('/')
             ? oldImagePath.slice(1)
             : oldImagePath
+          console.log('Attempting to remove old image:', oldImagePath)
           await remove({ path: cleanPath })
-          // console.log('✅ Old image removed:', cleanPath)
+          console.log('oldImagePath: ', oldImagePath)
+          console.log('✅ Old image removed:', cleanPath)
         } catch (err) {
           console.error('Error deleting old image:', err)
         }
@@ -102,19 +118,22 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
           />
         </div>
 
-        {/* Editable fields */}
-        <InlineEditField
-          label="Name"
-          value={profile.full_name}
-          onSave={(newValue) => onUpdate({ full_name: newValue })}
-          required
-        />
-        <InlineEditField
-          label="Phone"
-          value={profile.primary_contact_phone}
-          onSave={(newValue) => onUpdate({ primary_contact_phone: newValue })}
-          required
-        />
+        {profile.full_name && (
+          <InlineEditField
+            label="Name"
+            value={profile.full_name}
+            onSave={(newValue) => onUpdate({ full_name: newValue })}
+            required
+          />
+        )}
+        {profile.primary_contact_phone && (
+          <InlineEditField
+            label="Phone"
+            value={profile.primary_contact_phone}
+            onSave={(newValue) => onUpdate({ primary_contact_phone: newValue })}
+            required
+          />
+        )}
 
         {/* Creator-only fields */}
         {profile.role === 'creator' && (
@@ -131,12 +150,28 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
               onSave={(newValue) => onUpdate({ registration_number: newValue })}
               required
             />
-            <InlineEditField
-              label="Business Type"
+            <label className="text-base font-bold">Business Type</label>
+            <Select
               value={profile.business_type || ''}
-              onSave={(newValue) => onUpdate({ business_type: newValue })}
-              required
-            />
+              onValueChange={(newValue) =>
+                onUpdate({ business_type: newValue })
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select Business Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Registered Company">
+                  Registered Company
+                </SelectItem>
+                <SelectItem value="Registered Charity">
+                  Registered Charity
+                </SelectItem>
+                <SelectItem value="Not for Profit">Not for Profit</SelectItem>
+                <SelectItem value="Private Company">Private Company</SelectItem>
+              </SelectContent>
+            </Select>
+
             <InlineEditField
               label="Organisation Description"
               value={profile.organization_description || ''}
