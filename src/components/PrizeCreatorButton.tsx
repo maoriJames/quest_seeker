@@ -45,11 +45,11 @@ const PrizeCreatorButton: React.FC<PrizeCreatorButtonProps> = ({
       if (uploadedPath) {
         imagePath = uploadedPath
 
-        // Delete old image if editing
+        // Delete old image if editing and image changed
         if (
           editIndex !== -1 &&
           currentImageFile &&
-          currentImageFile !== imagePath
+          currentImageFile !== uploadedPath
         ) {
           await deleteS3Object(currentImageFile)
         }
@@ -103,9 +103,11 @@ const PrizeCreatorButton: React.FC<PrizeCreatorButtonProps> = ({
     setPreviewUrl(prizes[index].image || null)
     setPrizeImage(!!prizes[index].image)
     setContributor(prizeContributor)
+    setCurrentImageFile(prizes[index].image || null) // save old image
     setModalVisible(false)
   }
-  console.log('current Prize: ', prizes)
+
+  // console.log('current Prize: ', prizes)
   return (
     <>
       <p className="mb-2 font-semibold">Enter Prizes:</p>
