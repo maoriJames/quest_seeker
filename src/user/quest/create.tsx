@@ -204,11 +204,11 @@ export default function CreateQuestPage() {
           Quest Title
           <Input value={name} onChange={(e) => setName(e.target.value)} />
         </label>
-
+        {/* 
         <label className="block text-sm font-medium">
-          Quest Region
-          <PickRegion value={selectedRegion} onChange={setSelectedRegion} />
-        </label>
+          Quest Region */}
+        <PickRegion value={selectedRegion} onChange={setSelectedRegion} />
+        {/* </label> */}
 
         <label className="block text-sm font-medium">
           Quest Details

@@ -15,7 +15,7 @@ export default function PickRegion({ value, onChange }: PickRegionProps) {
   return (
     <div className="flex flex-col gap-2">
       <label htmlFor="region" className="text-sm font-medium">
-        Select Region
+        Quest Region
       </label>
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger className="w-full">

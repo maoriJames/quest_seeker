@@ -4,6 +4,9 @@ import { SponsorModal } from './SponsorModal'
 import { uploadData } from 'aws-amplify/storage'
 import { Switch } from './ui/switch'
 import PrizeCreatorButton from './PrizeCreatorButton'
+import { deleteS3Object } from '@/tools/deleteS3Object'
+import RemoteImage from './RemoteImage'
+import placeHold from '@/assets/images/placeholder_view_vector.svg'
 
 const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
   sponsorUpdates,
@@ -15,10 +18,11 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
 }) => {
   const [sponsor, setSponsor] = useState('')
   const [sponsorImage, setSponsorImage] = useState(false)
+  const [currentSponsorImage, setCurrentSponsorImage] = useState<string | null>(
+    null
+  )
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  // const [prizeEnabled, setPrizeEnabled] = useState(false)
-  // const [prizes, setPrizes] = useState<Prize[]>([])
   const [sponsors, setSponsors] = useState<Sponsor[]>(sponsorUpdates || [])
   const [editIndex, setEditIndex] = useState(-1)
   const [modalVisible, setModalVisible] = useState(false)
@@ -40,9 +44,21 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
     const updatedSponsors = [...sponsors]
     let imagePath = editIndex !== -1 ? updatedSponsors[editIndex].image : ''
 
-    // Upload file if checked
     if (sponsorImage && imageFile) {
-      imagePath = await uploadImage(imageFile) // S3 path string
+      // Upload new image
+      const uploadedPath = await uploadImage(imageFile)
+      if (uploadedPath) {
+        imagePath = uploadedPath
+
+        // Delete old image if editing
+        if (
+          editIndex !== -1 &&
+          currentSponsorImage &&
+          currentSponsorImage !== uploadedPath
+        ) {
+          await deleteS3Object(currentSponsorImage)
+        }
+      }
     }
 
     const newSponsor: Sponsor = {
@@ -67,6 +83,7 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
     setImageFile(null)
     setPreviewUrl(null)
     setEditIndex(-1)
+    setCurrentSponsorImage(null)
   }
 
   const uploadImage = async (file: File, isPublic = true): Promise<string> => {
@@ -87,12 +104,15 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
 
   const handleEdit = (index: number) => {
     setEditIndex(index)
-    setSponsor(sponsors[index].name)
-    setPreviewUrl(sponsors[index].image || null)
-    setSponsorImage(!!sponsors[index].image)
+    const s = sponsors[index]
+    setSponsor(s.name)
+    setPreviewUrl(s.image || null)
+    setSponsorImage(!!s.image)
+    setCurrentSponsorImage(s.image || null) // save old image
     setModalVisible(false)
   }
-  console.log('sponsor for contributor: ', sponsor)
+
+  // console.log('sponsor for contributor: ', sponsor)
   return (
     <div className="p-4 mt-2 border rounded bg-white shadow-md">
       <div className="flex items-center justify-between w-full">
@@ -137,10 +157,10 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
       </div>
 
       {sponsorImage && previewUrl && (
-        <img
-          src={previewUrl}
-          alt="Preview"
-          className="h-20 w-20 rounded object-cover mb-2"
+        <RemoteImage
+          path={currentSponsorImage || placeHold}
+          fallback={placeHold}
+          className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-sm"
         />
       )}
 
