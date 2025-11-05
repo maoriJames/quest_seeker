@@ -11,7 +11,7 @@ interface PrizeModalProps {
   visible: boolean
   onClose: () => void
   onNewPrize: (updated: Prize[]) => void
-  handleEdit: (index: number) => void // optional if you pass edit handler
+  handlePrizeEdit: (index: number) => void // optional if you pass edit handler
 }
 
 export const PrizeModal: React.FC<PrizeModalProps> = ({
@@ -23,7 +23,7 @@ export const PrizeModal: React.FC<PrizeModalProps> = ({
   visible,
   onClose,
   onNewPrize,
-  handleEdit,
+  handlePrizeEdit,
 }) => {
   if (!visible) return null
 
@@ -57,7 +57,7 @@ export const PrizeModal: React.FC<PrizeModalProps> = ({
               <div className="flex gap-2">
                 <button
                   className="text-green-600 font-bold"
-                  onClick={() => handleEdit(i)}
+                  onClick={() => handlePrizeEdit(i)}
                 >
                   Edit
                 </button>

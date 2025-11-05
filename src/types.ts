@@ -85,25 +85,15 @@ export type Sponsor = {
   image: string // string path/URL
 }
 
-// export interface SponsorModalProps {
-//   sponsors: Sponsor[]
-//   setSponsors: Dispatch<SetStateAction<Sponsor[]>>
-//   setSponsor: Dispatch<SetStateAction<string>>
-//   setPreview: Dispatch<SetStateAction<string | null>> // renamed from setImage
-//   setEditIndex: Dispatch<SetStateAction<number>>
-//   visible: boolean
-//   onClose: () => void
-//   onNewSponsor: OnNewSponsorFunction
-//   handleEdit?: (index: number) => void // optional if you pass edit handler
-// }
-
 export interface SponsorCreatorButtonProps {
   sponsorUpdates: Sponsor[]
   onNewSponsor: OnNewSponsorFunction
   prizeEnabled: boolean
   onPrizeToggle: (enabled: boolean) => void
-  prizes: Prize[]
-  onNewPrize: (prizes: Prize[]) => void
+  // prizes: Prize[]
+  onNewPrize: OnNewPrizeFunction
+  prizeUpdates: Prize[]
+  // prizeContributor: string
 }
 
 export type OnNewSponsorFunction = (updatedSponsors: Sponsor[]) => void
@@ -116,19 +106,6 @@ export type Prize = {
   image: string
   contributor: string
 }
-
-// export interface PrizeModalProps {
-//   prizes: Prize[]
-//   setPrizes: Dispatch<SetStateAction<Prize[]>>
-//   setPrize: Dispatch<SetStateAction<string>>
-//   setContributor: Dispatch<SetStateAction<string>>
-//   setPreview: Dispatch<SetStateAction<string | null>> // renamed from setImage
-//   setEditIndex: Dispatch<SetStateAction<number>>
-//   visible: boolean
-//   onClose: () => void
-//   OnNewPrize: OnNewPrizeFunction
-//   handleEdit?: (index: number) => void // optional if you pass edit handler
-// }
 
 export interface PrizeCreatorButtonProps {
   prizeUpdates: Prize[]
