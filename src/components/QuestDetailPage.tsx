@@ -401,7 +401,7 @@ export default function QuestDetailPage() {
 
           {/* Quest details + Task list side by side */}
           <div className="flex flex-col md:flex-row gap-6 mt-2">
-            <div className="flex-1 w-96">
+            <div className="flex-1">
               <h1 className="text-2xl font-bold mb-2">{quest.quest_name}</h1>
               <p className="text-gray-700 mb-2">{quest.quest_details}</p>
               <p className="text-sm text-gray-500 mb-1">
