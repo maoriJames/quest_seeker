@@ -134,7 +134,7 @@ const PrizeCreatorButton: React.FC<PrizeCreatorButtonProps> = ({
           checked={prizeImage}
           onChange={(e) => setPrizeImage(e.target.checked)}
         />
-        <span>Include Sponsor Image</span>
+        <span>Include Prize Image</span>
 
         {prizeImage && (
           <input

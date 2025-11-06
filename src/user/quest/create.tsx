@@ -322,8 +322,10 @@ export default function CreateQuestPage() {
           onNewSponsor={setSponsors}
           prizeEnabled={prizeEnabled}
           onPrizeToggle={setPrizeEnabled}
-          prizes={prizes}
+          // prizes={prizes}
           onNewPrize={setPrizes}
+          prizeUpdates={prizes}
+          // prizeContributor={}
         />
 
         <TaskCreatorButton questUpdates={tasks} onNewTask={setTasks} />

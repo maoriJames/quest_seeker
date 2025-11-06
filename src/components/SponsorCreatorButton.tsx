@@ -1,35 +1,48 @@
 import React, { useEffect, useState } from 'react'
-import { SponsorCreatorButtonProps, Sponsor } from '@/types'
+import { SponsorCreatorButtonProps, Sponsor, Prize } from '@/types'
 import { SponsorModal } from './SponsorModal'
 import { uploadData } from 'aws-amplify/storage'
 import { Switch } from './ui/switch'
-import PrizeCreatorButton from './PrizeCreatorButton'
+// import PrizeCreatorButton from './PrizeCreatorButton'
 import { deleteS3Object } from '@/tools/deleteS3Object'
 import RemoteImage from './RemoteImage'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
+import { PrizeModal } from './PrizeModal'
 
 const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
   sponsorUpdates,
   onNewSponsor,
   prizeEnabled,
   onPrizeToggle,
-  prizes,
+  prizeUpdates,
   onNewPrize,
 }) => {
+  const [prize, setPrize] = useState('')
+  const [prizeImage, setPrizeImage] = useState(false)
   const [sponsor, setSponsor] = useState('')
   const [sponsorImage, setSponsorImage] = useState(false)
   const [currentSponsorImage, setCurrentSponsorImage] = useState<string | null>(
     null
   )
+  const [currentImageFile, setCurrentImageFile] = useState<string | null>(null)
+  const [contributor, setContributor] = useState(sponsor)
   const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePrizeFile, setImagePrizeFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewPrizeUrl, setPreviewPrizeUrl] = useState<string | null>(null)
+  const [prizes, setPrizes] = useState<Prize[]>(prizeUpdates || [])
   const [sponsors, setSponsors] = useState<Sponsor[]>(sponsorUpdates || [])
   const [editIndex, setEditIndex] = useState(-1)
   const [modalVisible, setModalVisible] = useState(false)
+  const [prizeModalVisible, setPrizeModalVisible] = useState(false)
 
   useEffect(() => {
     if (sponsorUpdates) setSponsors(sponsorUpdates)
   }, [sponsorUpdates])
+
+  useEffect(() => {
+    if (prizeUpdates) setPrizes(prizeUpdates)
+  }, [prizeUpdates])
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null
@@ -38,17 +51,121 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
     else setPreviewUrl(null)
   }
 
-  const handleAddSponsor = async () => {
+  const handlePrizeImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null
+    setImagePrizeFile(file)
+    if (file) setPreviewPrizeUrl(URL.createObjectURL(file))
+    else setPreviewPrizeUrl(null)
+  }
+
+  // const handleAddSponsor = async () => {
+  //   if (!sponsor) return
+
+  //   const updatedSponsors = [...sponsors]
+  //   let imagePath = editIndex !== -1 ? updatedSponsors[editIndex].image : ''
+
+  //   if (sponsorImage && imageFile) {
+  //     // Upload new image
+  //     const uploadedPath = await uploadImage(imageFile)
+  //     if (uploadedPath) {
+  //       imagePath = uploadedPath
+
+  //       // Delete old image if editing
+  //       if (
+  //         editIndex !== -1 &&
+  //         currentSponsorImage &&
+  //         currentSponsorImage !== uploadedPath
+  //       ) {
+  //         await deleteS3Object(currentSponsorImage)
+  //       }
+  //     }
+  //   }
+
+  //   const newSponsor: Sponsor = {
+  //     id:
+  //       editIndex !== -1 ? updatedSponsors[editIndex].id : crypto.randomUUID(),
+  //     name: sponsor,
+  //     sponsorImage,
+  //     image: imagePath,
+  //   }
+
+  //   if (editIndex !== -1) {
+  //     updatedSponsors[editIndex] = newSponsor
+  //   } else {
+  //     updatedSponsors.push(newSponsor)
+  //   }
+
+  //   setSponsors(updatedSponsors)
+  //   onNewSponsor(updatedSponsors)
+
+  //   // reset form
+  //   setSponsor('')
+  //   setImageFile(null)
+  //   setPreviewUrl(null)
+  //   setEditIndex(-1)
+  //   setCurrentSponsorImage(null)
+  // }
+
+  // const handleAddPrize = async () => {
+  //   if (!prize) return
+
+  //   const updatedPrizes = [...prizes]
+  //   let imagePath = editIndex !== -1 ? updatedPrizes[editIndex].image : ''
+
+  //   // Upload file if checked
+  //   if (prizeImage && imagePrizeFile) {
+  //     const uploadedPath = await uploadImage(imagePrizeFile) // S3 path string
+  //     if (uploadedPath) {
+  //       imagePath = uploadedPath
+
+  //       // Delete old image if editing and image changed
+  //       if (
+  //         editIndex !== -1 &&
+  //         currentImageFile &&
+  //         currentImageFile !== uploadedPath
+  //       ) {
+  //         await deleteS3Object(currentImageFile)
+  //       }
+  //     }
+  //   }
+
+  //   const newPrize: Prize = {
+  //     id: editIndex !== -1 ? updatedPrizes[editIndex].id : crypto.randomUUID(),
+  //     name: prize,
+  //     prizeImage,
+  //     image: imagePath,
+  //     contributor: sponsor,
+  //   }
+
+  //   if (editIndex !== -1) {
+  //     updatedPrizes[editIndex] = newPrize
+  //   } else {
+  //     updatedPrizes.push(newPrize)
+  //   }
+
+  //   setPrizes(updatedPrizes)
+  //   onNewPrize(updatedPrizes)
+
+  //   // reset form
+  //   setPrize('')
+  //   setImagePrizeFile(null)
+  //   setPreviewPrizeUrl(null)
+  //   setEditIndex(-1)
+  //   setCurrentImageFile(null)
+  // }
+
+  const handleAddSponsorAndPrizes = async () => {
     if (!sponsor) return
 
+    // ---------------- Add/Update Sponsor ----------------
     const updatedSponsors = [...sponsors]
-    let imagePath = editIndex !== -1 ? updatedSponsors[editIndex].image : ''
+    let sponsorImagePath =
+      editIndex !== -1 ? updatedSponsors[editIndex].image : ''
 
     if (sponsorImage && imageFile) {
-      // Upload new image
       const uploadedPath = await uploadImage(imageFile)
       if (uploadedPath) {
-        imagePath = uploadedPath
+        sponsorImagePath = uploadedPath
 
         // Delete old image if editing
         if (
@@ -66,7 +183,7 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
         editIndex !== -1 ? updatedSponsors[editIndex].id : crypto.randomUUID(),
       name: sponsor,
       sponsorImage,
-      image: imagePath,
+      image: sponsorImagePath,
     }
 
     if (editIndex !== -1) {
@@ -78,12 +195,59 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
     setSponsors(updatedSponsors)
     onNewSponsor(updatedSponsors)
 
-    // reset form
+    // ---------------- Add/Update Prize ----------------
+    if (prize) {
+      const updatedPrizes = [...prizes]
+      let prizeImagePath =
+        editIndex !== -1 ? updatedPrizes[editIndex].image : ''
+      console.log('Image Prize File', imagePrizeFile)
+      if (prizeImage && imagePrizeFile) {
+        const uploadedPath = await uploadImage(imagePrizeFile)
+        if (uploadedPath) {
+          prizeImagePath = uploadedPath
+          console.log('prize image path', prizeImagePath)
+          if (
+            editIndex !== -1 &&
+            currentImageFile &&
+            currentImageFile !== uploadedPath
+          ) {
+            await deleteS3Object(currentImageFile)
+          }
+        }
+      }
+
+      const newPrize: Prize = {
+        id:
+          editIndex !== -1 ? updatedPrizes[editIndex].id : crypto.randomUUID(),
+        name: prize,
+        prizeImage,
+        image: prizeImagePath,
+        contributor: sponsor,
+      }
+      console.log('newPrize', newPrize)
+      if (editIndex !== -1) {
+        updatedPrizes[editIndex] = newPrize
+      } else {
+        updatedPrizes.push(newPrize)
+      }
+
+      setPrizes(updatedPrizes)
+      onNewPrize(updatedPrizes)
+    }
+
+    // ---------------- Reset Form ----------------
     setSponsor('')
     setImageFile(null)
     setPreviewUrl(null)
+    setPrize('')
+    setImagePrizeFile(null)
+    setPreviewPrizeUrl(null)
     setEditIndex(-1)
     setCurrentSponsorImage(null)
+    setCurrentImageFile(null)
+    setSponsorImage(false)
+    setPrizeImage(false)
+    onPrizeToggle(false)
   }
 
   const uploadImage = async (file: File, isPublic = true): Promise<string> => {
@@ -112,22 +276,21 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
     setModalVisible(false)
   }
 
+  const handlePrizeEdit = (index: number) => {
+    setEditIndex(index)
+    setPrize(prizes[index].name)
+    setPreviewUrl(prizes[index].image || null)
+    setPrizeImage(!!prizes[index].image)
+    setContributor(contributor)
+    setCurrentImageFile(prizes[index].image || null) // save old image
+    setPrizeModalVisible(false)
+  }
+
   // console.log('sponsor for contributor: ', sponsor)
   return (
     <div className="p-4 mt-2 border rounded bg-white shadow-md">
       <div className="flex items-center justify-between w-full">
         <p className="mb-2 font-semibold">Enter Sponsors:</p>
-
-        <div className="flex items-center gap-2">
-          <p className="mb-2 font-semibold">
-            Prizes affiliated with this sponsor?
-          </p>
-          <Switch
-            checked={prizeEnabled}
-            onCheckedChange={(checked) => onPrizeToggle(checked)}
-          />
-          <span>{prizeEnabled ? 'Yo' : 'No'}</span>
-        </div>
       </div>
 
       <input
@@ -138,54 +301,144 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
         onChange={(e) => setSponsor(e.target.value)}
       />
 
-      <div className="flex items-center gap-2 mb-2">
-        <input
-          type="checkbox"
-          checked={sponsorImage}
-          onChange={(e) => setSponsorImage(e.target.checked)}
-        />
-        <span>Include Sponsor Image</span>
-
-        {sponsorImage && (
+      <div className="flex items-center justify-between w-full">
+        <div className="flex items-center gap-2 mb-2 ">
           <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="ml-4"
+            type="checkbox"
+            checked={sponsorImage}
+            onChange={(e) => setSponsorImage(e.target.checked)}
+          />
+          <span>Include Sponsor Image</span>
+          {sponsorImage && (
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="ml-4"
+            />
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <p className="mb-2 font-semibold">
+            Prizes affiliated with this sponsor?
+          </p>
+          <Switch
+            checked={prizeEnabled}
+            onCheckedChange={(checked) => onPrizeToggle(checked)}
+          />
+          <span>{prizeEnabled ? 'Yes' : 'No'}</span>
+        </div>
+
+        {sponsorImage && previewUrl && (
+          <RemoteImage
+            path={previewUrl || placeHold}
+            fallback={placeHold}
+            className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-sm"
           />
         )}
       </div>
+      {prizeEnabled && (
+        <>
+          <p className="mb-2 font-semibold">Enter Prizes:</p>
 
-      {sponsorImage && previewUrl && (
-        <RemoteImage
-          path={currentSponsorImage || placeHold}
-          fallback={placeHold}
-          className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-sm"
-        />
+          <input
+            type="text"
+            className="w-full p-2 mb-2 border rounded"
+            placeholder="Enter Prize Name"
+            value={prize}
+            onChange={(e) => setPrize(e.target.value)}
+          />
+
+          {/* <input
+        type="text"
+        className="w-full p-2 mb-2 border rounded"
+        placeholder="Enter Prize Contributor"
+        value={contributor}
+        onChange={(e) => setContributor(e.target.value)}
+      /> */}
+
+          <div className="flex items-center gap-2 mb-2">
+            <input
+              type="checkbox"
+              checked={prizeImage}
+              onChange={(e) => setPrizeImage(e.target.checked)}
+            />
+            <span>Include Prize Image</span>
+
+            {prizeImage && (
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePrizeImageChange}
+                className="ml-4"
+              />
+            )}
+          </div>
+
+          {prizeImage && previewPrizeUrl && (
+            <RemoteImage
+              path={previewPrizeUrl || placeHold}
+              fallback={placeHold}
+              className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-sm"
+            />
+          )}
+
+          {/* <button
+            type="button"
+            className="w-full p-2 mb-2 text-white bg-blue-600 rounded hover:bg-blue-700"
+            onClick={handleAddPrize}
+          >
+            {editIndex !== -1 ? 'Update Prize' : 'Add Prize'}
+          </button>
+
+          <button
+            type="button"
+            className="w-full p-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
+            onClick={() => setPrizeModalVisible(true)}
+          >
+            Show Prizes
+          </button> */}
+
+          {prizes && (
+            <PrizeModal
+              prizes={prizes}
+              setPrizes={setPrizes}
+              setPrize={setPrize}
+              setPreview={setPreviewUrl} // renamed for clarity
+              setEditIndex={setEditIndex}
+              visible={prizeModalVisible}
+              onClose={() => setPrizeModalVisible(false)}
+              onNewPrize={onNewPrize}
+              contributor={sponsor}
+              handlePrizeEdit={handlePrizeEdit} // pass edit handler
+            />
+          )}
+        </>
       )}
-
+      {/* Add Sponsor button */}
       <button
         type="button"
         className="w-full p-2 mb-2 text-white bg-blue-600 rounded hover:bg-blue-700"
-        onClick={handleAddSponsor}
+        onClick={handleAddSponsorAndPrizes}
       >
-        {editIndex !== -1 ? 'Update Sponsor' : 'Add Sponsor'}
+        {prizeEnabled
+          ? editIndex !== -1
+            ? 'Update Sponsor & Prize'
+            : 'Add Sponsor & Prize'
+          : editIndex !== -1
+            ? 'Update Sponsor'
+            : 'Add Sponsor'}
       </button>
 
+      {/* Show Sponsors button */}
       <button
         type="button"
         className="w-full p-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
         onClick={() => setModalVisible(true)}
       >
-        Show Sponsors
+        {prizeEnabled ? 'Show Sponsors & Prizes' : 'Show Sponsors'}
       </button>
-      {prizeEnabled && (
-        <PrizeCreatorButton
-          prizeUpdates={prizes}
-          onNewPrize={onNewPrize}
-          prizeContributor={sponsor}
-        />
-      )}
+
       {sponsors && (
         <SponsorModal
           sponsors={sponsors}
