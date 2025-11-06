@@ -329,7 +329,7 @@ export default function QuestDetailPage() {
     }
   })()
   // console.log('Sponsors: ', sponsors)
-  // console.log('quest image Initital:', quest.quest_image)
+  console.log('Full Quest Details:', quest)
   return (
     <div
       className="relative min-h-screen flex items-center justify-center bg-cover bg-center"

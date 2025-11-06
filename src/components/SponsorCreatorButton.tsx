@@ -53,7 +53,7 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
 
   const handlePrizeImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null
-    setImageFile(file)
+    setImagePrizeFile(file)
     if (file) setPreviewPrizeUrl(URL.createObjectURL(file))
     else setPreviewPrizeUrl(null)
   }
@@ -200,12 +200,12 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
       const updatedPrizes = [...prizes]
       let prizeImagePath =
         editIndex !== -1 ? updatedPrizes[editIndex].image : ''
-
+      console.log('Image Prize File', imagePrizeFile)
       if (prizeImage && imagePrizeFile) {
         const uploadedPath = await uploadImage(imagePrizeFile)
         if (uploadedPath) {
           prizeImagePath = uploadedPath
-
+          console.log('prize image path', prizeImagePath)
           if (
             editIndex !== -1 &&
             currentImageFile &&
@@ -224,7 +224,7 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
         image: prizeImagePath,
         contributor: sponsor,
       }
-
+      console.log('newPrize', newPrize)
       if (editIndex !== -1) {
         updatedPrizes[editIndex] = newPrize
       } else {
@@ -245,6 +245,9 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
     setEditIndex(-1)
     setCurrentSponsorImage(null)
     setCurrentImageFile(null)
+    setSponsorImage(false)
+    setPrizeImage(false)
+    onPrizeToggle(false)
   }
 
   const uploadImage = async (file: File, isPublic = true): Promise<string> => {
