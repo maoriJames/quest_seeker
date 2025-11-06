@@ -14,7 +14,7 @@ import { Prize, MyQuest, Sponsor, Task } from '@/types'
 import { addQuestToProfile } from '@/hooks/addQuestToProfile'
 import RemoteImage from './RemoteImage'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
-// import HomeButton from './HomeButton'
+import useEmblaCarousel from 'embla-carousel-react'
 import {
   Dialog,
   DialogClose,
@@ -41,7 +41,10 @@ import SponsorCreatorButton from './SponsorCreatorButton'
 export default function QuestDetailPage() {
   const { id } = useParams<{ id: string }>()
   const [joining, setJoining] = useState(false)
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true })
 
+  const scrollPrev = () => emblaApi && emblaApi.scrollPrev()
+  const scrollNext = () => emblaApi && emblaApi.scrollNext()
   const navigate = useNavigate()
 
   // 🧩 Fetch quest data
@@ -328,8 +331,10 @@ export default function QuestDetailPage() {
       return []
     }
   })()
+  const displayedSponsors = sponsors.slice(0, 2)
+
   // console.log('Sponsors: ', sponsors)
-  console.log('Full Quest Details:', quest)
+  // console.log('Full Quest Details:', quest)
   return (
     <div
       className="relative min-h-screen flex items-center justify-center bg-cover bg-center"
@@ -350,13 +355,13 @@ export default function QuestDetailPage() {
 
             {/* Right: Sponsor section + Edit button */}
             <div className="relative flex flex-col items-center gap-2 mb-4">
-              {sponsors.length > 0 && (
+              {displayedSponsors.length > 0 && (
                 <div className="flex flex-col items-end gap-2">
                   <span className="text-xs text-gray-500 mb-1">
-                    This quest is brought to you by:
+                    Major sponsors of this quest:
                   </span>
                   <div className="flex gap-4 flex-wrap justify-end">
-                    {sponsors.map((sponsor) => (
+                    {displayedSponsors.map((sponsor) => (
                       <div
                         key={sponsor.id}
                         className="flex flex-col items-center w-20 text-center"
@@ -372,10 +377,93 @@ export default function QuestDetailPage() {
                       </div>
                     ))}
                   </div>
+
+                  {/* 🏆 Prize Info Link below sponsors */}
+                  {prizes.length > 0 && (
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <p className="text-xs text-blue-600 underline cursor-pointer hover:text-blue-800 mt-2">
+                          All Sponsors
+                        </p>
+                      </DialogTrigger>
+                      <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
+                      <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
+                        <DialogTitle className="text-lg font-bold mb-4">
+                          Sponsor Information
+                        </DialogTitle>
+
+                        <div className="overflow-hidden" ref={emblaRef}>
+                          <div className="flex">
+                            {sponsors.map((sponsor) => (
+                              <div
+                                key={sponsor.id}
+                                className="flex-[0_0_100%] flex flex-col items-center justify-center p-4"
+                              >
+                                {/* Sponsor info */}
+                                <div className="flex flex-col items-center gap-2 mb-6">
+                                  <RemoteImage
+                                    path={sponsor.image || placeHold}
+                                    fallback={placeHold}
+                                    className="w-24 h-24 object-contain rounded-full"
+                                  />
+                                  <p className="font-semibold text-sm text-gray-700">
+                                    {sponsor.name}
+                                  </p>
+                                </div>
+
+                                {/* Prizes by this sponsor */}
+                                <div className="flex flex-wrap justify-center gap-4">
+                                  {prizes
+                                    .filter(
+                                      (p) => p.contributor === sponsor.name
+                                    )
+                                    .map((prize) => (
+                                      <div
+                                        key={prize.id}
+                                        className="flex flex-col items-center w-24 text-center"
+                                      >
+                                        <RemoteImage
+                                          path={prize.image || placeHold}
+                                          fallback={placeHold}
+                                          className="w-20 h-20 object-contain rounded"
+                                        />
+                                        <span className="text-xs mt-1 font-semibold text-gray-700">
+                                          {prize.name}
+                                        </span>
+                                      </div>
+                                    ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center mt-4">
+                          <button
+                            onClick={scrollPrev}
+                            className="text-sm text-blue-600 hover:underline"
+                          >
+                            Previous
+                          </button>
+                          <button
+                            onClick={scrollNext}
+                            className="text-sm text-blue-600 hover:underline"
+                          >
+                            Next
+                          </button>
+                        </div>
+
+                        <DialogClose asChild>
+                          <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
+                            Close
+                          </button>
+                        </DialogClose>
+                      </DialogContent>
+                    </Dialog>
+                  )}
                 </div>
               )}
 
-              {/* Edit button below or aligned with sponsors */}
+              {/* Edit button */}
               {isOwner && (
                 <TooltipProvider>
                   <Tooltip>
@@ -449,10 +537,9 @@ export default function QuestDetailPage() {
             )}
           </div>
 
-          {/* Action Buttons Row */}
           <div className="mt-4 flex items-center justify-between w-full">
             {/* Left: Delete / Join */}
-            <div>
+            <div className="flex items-center gap-2">
               {isOwner && (
                 <Button
                   onClick={handleDelete}
@@ -463,7 +550,6 @@ export default function QuestDetailPage() {
               )}
 
               {!isOwner &&
-                // currentUserProfile?.role === 'seeker' &&
                 (hasJoined ? (
                   <p className="text-green-600 font-semibold">
                     ✅ You have joined this quest!
@@ -483,60 +569,15 @@ export default function QuestDetailPage() {
                 ))}
             </div>
 
-            {/* Center: Home button */}
-            <div className="flex justify-center flex-1">
-              {/* <HomeButton /> */}
+            {/* Right: Back button */}
+            <div>
               <Button
                 onClick={() => navigate(-1)}
-                size="default"
-                className="px-4 py-2"
+                // size="default"
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-white text-gray-800"
               >
                 Back to Quests
               </Button>
-            </div>
-
-            {/* Right: Prize Information */}
-            <div>
-              {prizes.length > 0 && (
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
-                      Prize Information
-                    </Button>
-                  </DialogTrigger>
-                  <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
-                  <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
-                    <DialogTitle className="text-lg font-bold mb-4">
-                      Prize Information
-                    </DialogTitle>
-                    <div className="flex flex-wrap justify-center gap-4">
-                      {prizes.map((prize) => (
-                        <div
-                          key={prize.id}
-                          className="flex flex-col items-center w-20 text-center"
-                        >
-                          <RemoteImage
-                            path={prize.image || placeHold}
-                            fallback={placeHold}
-                            className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-full"
-                          />
-                          <span className="text-xs mt-1 font-semibold text-gray-700">
-                            {prize.name}
-                          </span>
-                          <span className="truncate">
-                            With thanks to {prize.contributor}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                    <DialogClose asChild>
-                      <button className="mt-4 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
-                        Close
-                      </button>
-                    </DialogClose>
-                  </DialogContent>
-                </Dialog>
-              )}
             </div>
           </div>
         </CardContent>
