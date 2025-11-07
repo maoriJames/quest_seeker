@@ -104,12 +104,12 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
       const updatedPrizes = [...prizes]
       let prizeImagePath =
         editIndex !== -1 ? updatedPrizes[editIndex].image : ''
-      console.log('Image Prize File', imagePrizeFile)
+      // console.log('Image Prize File', imagePrizeFile)
       if (prizeImage && imagePrizeFile) {
         const uploadedPath = await uploadImage(imagePrizeFile)
         if (uploadedPath) {
           prizeImagePath = uploadedPath
-          console.log('prize image path', prizeImagePath)
+          // console.log('prize image path', prizeImagePath)
           if (
             editIndex !== -1 &&
             currentImageFile &&
@@ -253,14 +253,6 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
             onChange={(e) => setPrize(e.target.value)}
           />
 
-          {/* <input
-        type="text"
-        className="w-full p-2 mb-2 border rounded"
-        placeholder="Enter Prize Contributor"
-        value={contributor}
-        onChange={(e) => setContributor(e.target.value)}
-      /> */}
-
           <div className="flex items-center gap-2 mb-2">
             <input
               type="checkbox"
@@ -286,22 +278,6 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
               className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-sm"
             />
           )}
-
-          {/* <button
-            type="button"
-            className="w-full p-2 mb-2 text-white bg-blue-600 rounded hover:bg-blue-700"
-            onClick={handleAddPrize}
-          >
-            {editIndex !== -1 ? 'Update Prize' : 'Add Prize'}
-          </button>
-
-          <button
-            type="button"
-            className="w-full p-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
-            onClick={() => setPrizeModalVisible(true)}
-          >
-            Show Prizes
-          </button> */}
 
           {prizes && (
             <PrizeModal

@@ -340,118 +340,161 @@ export default function QuestDetailPage() {
       className="relative min-h-screen flex items-center justify-center bg-cover bg-center"
       style={{ backgroundImage: `url(${bg})` }}
     >
-      <Card className="bg-white/90 backdrop-blur-md shadow-xl rounded-2xl max-w-2xl w-full flex overflow-hidden">
-        <CardContent className="p-6 flex-1 text-left">
-          {/* Top row: Quest image (left) + Sponsors (right) + Edit button */}
-          <div className="flex items-start justify-between mb-4 w-full">
-            {/* Left: Quest image */}
-            <div className="flex flex-col items-start gap-2">
-              <RemoteImage
-                path={quest.quest_image || placeHold}
-                fallback={placeHold}
-                className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-sm"
-              />
-            </div>
+      <div className="w-[90vw] max-w-[1200px] mx-auto">
+        <Card className="bg-white/90 backdrop-blur-md shadow-xl rounded-2xl flex flex-col overflow-hidden">
+          <CardContent className="p-6 flex-1 text-left">
+            {/* Top row: Quest image (left) + Sponsors (right) + Edit button */}
+            <div className="flex items-start justify-between mb-4 w-full">
+              {/* Left: Quest image */}
+              <div className="flex flex-col items-start gap-2">
+                <RemoteImage
+                  path={quest.quest_image || placeHold}
+                  fallback={placeHold}
+                  className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-sm"
+                />
+              </div>
 
-            {/* Right: Sponsor section + Edit button */}
-            <div className="relative flex flex-col items-center gap-2 mb-4">
-              {displayedSponsors.length > 0 && (
-                <div className="flex flex-col items-end gap-2">
-                  <span className="text-xs text-gray-500 mb-1">
-                    Major sponsors of this quest:
-                  </span>
-                  <div className="flex gap-4 flex-wrap justify-end">
-                    {displayedSponsors.map((sponsor) => (
-                      <div
-                        key={sponsor.id}
-                        className="flex flex-col items-center w-20 text-center"
-                      >
-                        <RemoteImage
-                          path={sponsor.image || placeHold}
-                          fallback={placeHold}
-                          className="max-w-[80px] max-h-[80px] w-auto h-auto object-contain rounded-full"
-                        />
-                        <span className="text-xs mt-1 font-semibold text-gray-700">
-                          {sponsor.name}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* 🏆 Prize Info Link below sponsors */}
-                  {prizes.length > 0 && (
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <p className="text-xs text-blue-600 underline cursor-pointer hover:text-blue-800 mt-2">
-                          All Sponsors
-                        </p>
-                      </DialogTrigger>
-                      <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
-                      <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
-                        <DialogTitle className="text-lg font-bold mb-4">
-                          Sponsor Information
-                        </DialogTitle>
-
-                        <div className="overflow-hidden" ref={emblaRef}>
-                          <div className="flex">
-                            {sponsors.map((sponsor) => (
-                              <div
-                                key={sponsor.id}
-                                className="flex-[0_0_100%] flex flex-col items-center justify-center p-4"
-                              >
-                                {/* Sponsor info */}
-                                <div className="flex flex-col items-center gap-2 mb-6">
+              {/* Right: Sponsor section + Edit button */}
+              <div className="relative flex flex-col items-center gap-2 mb-4">
+                {displayedSponsors.length > 0 && (
+                  <div className="flex flex-col items-end gap-2">
+                    {/* Featured Sponsors: show link only if 3 or more sponsors */}
+                    {sponsors.length >= 3 && (
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <span className="text-xs text-blue-600 underline cursor-pointer hover:text-blue-800 mb-1">
+                            Featured Sponsors
+                          </span>
+                        </DialogTrigger>
+                        <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
+                        <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
+                          <DialogTitle className="text-lg font-bold mb-4">
+                            Featured Sponsors
+                          </DialogTitle>
+                          <div className="overflow-hidden" ref={emblaRef}>
+                            <div className="flex">
+                              {sponsors.map((sponsor) => (
+                                <div
+                                  key={sponsor.id}
+                                  className="flex-[0_0_100%] flex flex-col items-center justify-center p-4"
+                                >
                                   <RemoteImage
                                     path={sponsor.image || placeHold}
                                     fallback={placeHold}
-                                    className="w-24 h-24 object-contain rounded-full"
+                                    className="w-24 h-24 object-contain rounded-full mb-2"
                                   />
                                   <p className="font-semibold text-sm text-gray-700">
                                     {sponsor.name}
                                   </p>
                                 </div>
-
-                                {/* Prizes by this sponsor */}
-                                <div className="flex flex-wrap justify-center gap-4">
-                                  {prizes
-                                    .filter(
-                                      (p) => p.contributor === sponsor.name
-                                    )
-                                    .map((prize) => (
-                                      <div
-                                        key={prize.id}
-                                        className="flex flex-col items-center w-24 text-center"
-                                      >
-                                        <RemoteImage
-                                          path={prize.image || placeHold}
-                                          fallback={placeHold}
-                                          className="w-20 h-20 object-contain rounded"
-                                        />
-                                        <span className="text-xs mt-1 font-semibold text-gray-700">
-                                          {prize.name}
-                                        </span>
-                                      </div>
-                                    ))}
-                                </div>
-                              </div>
-                            ))}
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex justify-between items-center mt-4">
-                          <button
-                            onClick={scrollPrev}
-                            className="text-sm text-blue-600 hover:underline"
-                          >
-                            Previous
-                          </button>
-                          <button
-                            onClick={scrollNext}
-                            className="text-sm text-blue-600 hover:underline"
-                          >
-                            Next
-                          </button>
-                        </div>
 
+                          <div className="flex justify-between items-center mt-4">
+                            <button
+                              onClick={scrollPrev}
+                              className="text-sm text-blue-600 hover:underline"
+                            >
+                              Previous
+                            </button>
+                            <button
+                              onClick={scrollNext}
+                              className="text-sm text-blue-600 hover:underline"
+                            >
+                              Next
+                            </button>
+                          </div>
+
+                          <DialogClose asChild>
+                            <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
+                              Close
+                            </button>
+                          </DialogClose>
+                        </DialogContent>
+                      </Dialog>
+                    )}
+
+                    {/* Always show the displayed sponsor images */}
+                    <div className="flex gap-4 flex-wrap justify-end">
+                      {displayedSponsors.map((sponsor) => (
+                        <div
+                          key={sponsor.id}
+                          className="flex flex-col items-center w-20 text-center"
+                        >
+                          <RemoteImage
+                            path={sponsor.image || placeHold}
+                            fallback={placeHold}
+                            className="max-w-[80px] max-h-[80px] w-auto h-auto object-contain rounded-full"
+                          />
+                          <span className="text-xs mt-1 font-semibold text-gray-700">
+                            {sponsor.name}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Edit button */}
+                {isOwner && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => setOpen(true)}
+                          className="absolute -top-2 -right-2 p-2 rounded-full bg-gray-200 hover:bg-gray-300 shadow z-10"
+                        >
+                          <Pencil className="w-5 h-5 text-gray-700" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="top"
+                        className="bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg"
+                      >
+                        Edit this quest
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+              </div>
+            </div>
+
+            {/* Quest details + Task list side by side */}
+            <div className="flex flex-col lg:flex-row gap-6 mt-2 w-full">
+              <div className="flex-1">
+                <h1 className="text-2xl font-bold mb-2">{quest.quest_name}</h1>
+                <p className="text-gray-700 mb-2">{quest.quest_details}</p>
+                <p className="text-sm text-gray-500 mb-1">
+                  Region: {quest.region}
+                </p>
+                <div className="text-sm mb-1">
+                  Organisation:{' '}
+                  {questCreatorProfile?.data?.organization_name ? (
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <span className="text-blue-600 underline cursor-pointer">
+                          {questCreatorProfile.data.organization_name}
+                        </span>
+                      </DialogTrigger>
+
+                      <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
+                      <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[70vh] w-full max-w-md bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
+                        <RemoteImage
+                          path={questCreatorProfile.data.image || placeHold}
+                          fallback={placeHold}
+                          className="w-32 h-32 rounded-full object-cover"
+                        />
+                        <DialogTitle className="text-lg font-bold mb-4">
+                          {questCreatorProfile.data.organization_name}
+                        </DialogTitle>
+
+                        <div className="text-gray-700">
+                          <p>
+                            {questCreatorProfile.data
+                              .organization_description || 'N/A'}
+                          </p>
+                        </div>
                         <DialogClose asChild>
                           <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
                             Close
@@ -459,308 +502,328 @@ export default function QuestDetailPage() {
                         </DialogClose>
                       </DialogContent>
                     </Dialog>
+                  ) : (
+                    <span className="text-gray-500">N/A</span>
                   )}
                 </div>
-              )}
 
-              {/* Edit button */}
-              {isOwner && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={() => setOpen(true)}
-                        className="absolute -top-2 -right-2 p-2 rounded-full bg-gray-200 hover:bg-gray-300 shadow z-10"
-                      >
-                        <Pencil className="w-5 h-5 text-gray-700" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent
-                      side="top"
-                      className="bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg"
-                    >
-                      Edit this quest
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
-            </div>
-          </div>
-
-          {/* Quest details + Task list side by side */}
-          <div className="flex flex-col md:flex-row gap-6 mt-2 w-96">
-            <div className="flex-1">
-              <h1 className="text-2xl font-bold mb-2">{quest.quest_name}</h1>
-              <p className="text-gray-700 mb-2">{quest.quest_details}</p>
-              <p className="text-sm text-gray-500 mb-1">
-                Region: {quest.region}
-              </p>
-              <p className="text-sm text-gray-500 mb-1">
-                Organisation:{' '}
-                {questCreatorProfile?.data?.organization_name || 'N/A'}
-              </p>
-              <p className="text-sm text-gray-500 mb-1">
-                Start: {quest.quest_start}
-              </p>
-              <p className="text-sm text-gray-500">End: {quest.quest_end}</p>
-              <p className="text-sm text-gray-500">
-                Entry: ${quest.quest_entry}
-              </p>
-            </div>
-
-            {(isOwner || hasJoined) && (
-              <TaskInformationWindow
-                questId={quest.id}
-                tasks={seekerTasks}
-                userTasks={myQuestsArray}
-                onTasksUpdated={async () => {
-                  await refetch()
-                }}
-                readOnly={isOwner} // <-- owner cannot answer tasks
-              />
-            )}
-            {!isOwner && !hasJoined && (
-              <div className="border rounded-lg p-4 bg-gray-50 shadow-inner max-h-64 overflow-y-auto">
-                <h2 className="text-lg font-semibold mb-2 text-gray-800">
-                  Number of tasks in this quest: {tasks.length}
-                </h2>
-                <h2 className="text-lg font-semibold mb-2 text-gray-800">
-                  Types of tasks in this Quest:{' '}
-                  {[
-                    tasks.some((t) => t.isImage) ? 'Image' : null,
-                    tasks.some((t) => t.requiresCaption) ? 'Text' : null,
-                  ]
-                    .filter(Boolean)
-                    .join(', ') || 'None'}
-                </h2>
+                <p className="text-sm text-gray-500 mb-1">
+                  Start: {quest.quest_start}
+                </p>
+                <p className="text-sm text-gray-500">End: {quest.quest_end}</p>
+                <p className="text-sm text-gray-500">
+                  Entry: ${quest.quest_entry}
+                </p>
               </div>
-            )}
-          </div>
 
-          <div className="mt-4 flex items-center justify-between w-full">
-            {/* Left: Delete / Join */}
-            <div className="flex items-center gap-2">
-              {isOwner && (
-                <Button
-                  onClick={handleDelete}
-                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
-                >
-                  Delete Quest
-                </Button>
+              {(isOwner || hasJoined) && (
+                <div className="lg:w-[450px] w-full">
+                  <TaskInformationWindow
+                    questId={quest.id}
+                    tasks={seekerTasks}
+                    userTasks={myQuestsArray}
+                    onTasksUpdated={async () => {
+                      await refetch()
+                    }}
+                    readOnly={isOwner} // <-- owner cannot answer tasks
+                  />
+                </div>
               )}
-
-              {!isOwner &&
-                (hasJoined ? (
-                  <p className="text-green-600 font-semibold">
-                    ✅ You have joined this quest!
-                  </p>
-                ) : (
-                  <button
-                    onClick={handleJoinQuest}
-                    disabled={joining}
-                    className={`px-4 py-2 rounded text-white ${
-                      joining
-                        ? 'bg-yellow-300'
-                        : 'bg-[#facc15] hover:bg-[#ca8a04]'
-                    }`}
+              {!isOwner && !hasJoined && (
+                <div className="border rounded-lg p-4 bg-gray-50 shadow-inner max-h-64 lg:w-[450px] w-full overflow-y-auto">
+                  <h2 className="text-lg font-semibold mb-2 text-gray-800">
+                    Number of tasks in this quest: {tasks.length}
+                  </h2>
+                </div>
+              )}
+            </div>
+            {/* Bottom action row: Delete/Join (left) + Back + Prize Info (right) */}
+            <div className="mt-4 flex items-center justify-between w-full gap-4">
+              {/* Left: Delete / Join */}
+              <div className="flex items-center gap-2">
+                {isOwner && (
+                  <Button
+                    onClick={handleDelete}
+                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
                   >
-                    {joining ? 'Joining...' : 'Join the quest!'}
-                  </button>
-                ))}
-            </div>
-
-            {/* Right: Back button */}
-            <div>
-              <Button
-                onClick={() => navigate(-1)}
-                // size="default"
-                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-white text-gray-800"
-              >
-                Back to Quests
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {isOwner && (
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogOverlay className="fixed inset-0 bg-black/40 z-40" />
-          <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
-            <DialogTitle className="text-xl font-bold mb-4">
-              Edit Quest
-            </DialogTitle>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                handleEditSubmit()
-              }}
-              className="flex flex-col gap-4"
-            >
-              {/* Quest Image */}
-              <label className="flex flex-col text-sm font-medium text-gray-700">
-                Quest Image
-                {previewImage ? (
-                  <RemoteImage
-                    path={previewImage || quest.quest_image}
-                    fallback={placeHold}
-                    className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-full"
-                  />
-                ) : (
-                  <RemoteImage
-                    path={quest.quest_image || placeHold}
-                    fallback={placeHold}
-                    className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-full"
-                  />
+                    Delete Quest
+                  </Button>
                 )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                />
-              </label>
 
-              {/* Quest Name */}
-              <label className="flex flex-col text-sm font-medium text-gray-700">
-                Quest Name
-                <input
-                  type="text"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  className="mt-1 border border-gray-300 rounded p-2"
-                />
-              </label>
-
-              {/* Quest Details */}
-              <label className="flex flex-col text-sm font-medium text-gray-700">
-                Details
-                <textarea
-                  value={editDetails}
-                  onChange={(e) => setEditDetails(e.target.value)}
-                  className="mt-1 border border-gray-300 rounded p-2"
-                />
-              </label>
-
-              {/* Region */}
-              <label className="block text-sm font-medium">
-                <PickRegion
-                  value={selectedRegion}
-                  onChange={setSelectedRegion}
-                />
-              </label>
-
-              {/* Start Date */}
-              <Dialog open={openStart} onOpenChange={setOpenStart}>
-                <DialogTrigger asChild>
-                  <Button>
-                    {`Start Date: ${
-                      editStart
-                        ? new Date(editStart).toLocaleDateString('en-NZ', {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric',
-                          })
-                        : 'Not set'
-                    }`}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-h-[70vh] overflow-y-auto">
-                  <DialogTitle>
-                    <VisuallyHidden>Choose Start Date</VisuallyHidden>
-                  </DialogTitle>
-                  <Calendar
-                    mode="single"
-                    selected={editStart ? new Date(editStart) : undefined}
-                    onSelect={(date) => {
-                      if (date) {
-                        const localDate = new Date(
-                          date.getTime() - date.getTimezoneOffset() * 60000
-                        )
-                        setEditStart(localDate.toISOString().split('T')[0])
-                      }
-                    }}
-                  />
-                  <DialogClose asChild>
-                    <Button>Confirm</Button>
-                  </DialogClose>
-                </DialogContent>
-              </Dialog>
-
-              {/* End Date */}
-              <Dialog open={openEnd} onOpenChange={setOpenEnd}>
-                <DialogTrigger asChild>
-                  <Button>
-                    {`End Date: ${
-                      editEnd
-                        ? new Date(editEnd).toLocaleDateString('en-NZ', {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric',
-                          })
-                        : 'Not set'
-                    }`}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-h-[70vh] overflow-y-auto">
-                  <DialogTitle>
-                    <VisuallyHidden>Choose End Date</VisuallyHidden>
-                  </DialogTitle>
-                  <Calendar
-                    mode="single"
-                    selected={editEnd ? new Date(editEnd) : undefined}
-                    onSelect={(date) => {
-                      if (date) {
-                        const localDate = new Date(
-                          date.getTime() - date.getTimezoneOffset() * 60000
-                        )
-                        setEditEnd(localDate.toISOString().split('T')[0])
-                      }
-                    }}
-                  />
-                  <DialogClose asChild>
-                    <Button>Confirm</Button>
-                  </DialogClose>
-                </DialogContent>
-              </Dialog>
-
-              {/* Task Editor */}
-              <TaskCreatorButton
-                questUpdates={tasks}
-                onNewTask={handleTasksUpdate}
-              />
-
-              {/* Sponsor & Prize Editor */}
-              <SponsorCreatorButton
-                sponsorUpdates={sponsorsState}
-                onNewSponsor={setSponsorsState}
-                prizeEnabled={prizeEnabled}
-                onPrizeToggle={setPrizeEnabled}
-                prizeUpdates={prizesState}
-                onNewPrize={setPrizesState}
-              />
-
-              {/* Action Buttons */}
-              <div className="flex justify-end gap-3 mt-4">
-                <DialogClose asChild>
-                  <button
-                    type="button"
-                    className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
-                  >
-                    Cancel
-                  </button>
-                </DialogClose>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded bg-blue-500 hover:bg-blue-600 text-white"
-                >
-                  Save Changes
-                </button>
+                {!isOwner &&
+                  (hasJoined ? (
+                    <p className="text-green-600 font-semibold">✅ Joined!</p>
+                  ) : (
+                    <button
+                      onClick={handleJoinQuest}
+                      disabled={joining}
+                      className={`px-4 py-2 rounded text-white ${
+                        joining
+                          ? 'bg-yellow-300'
+                          : 'bg-[#facc15] hover:bg-[#ca8a04]'
+                      }`}
+                    >
+                      {joining ? 'Joining...' : 'Join the quest!'}
+                    </button>
+                  ))}
               </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      )}
+
+              {/* Right: Back + Prize Info */}
+              <div className="flex items-center gap-3 ml-auto">
+                {/* ⬅️ Back to Quests */}
+                <Button
+                  onClick={() => navigate(-1)}
+                  className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded"
+                >
+                  Back to Quests
+                </Button>
+
+                {/* 🏆 Prize Information Modal */}
+                {prizes.length > 0 && (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded">
+                        Prize Information
+                      </Button>
+                    </DialogTrigger>
+
+                    <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
+                    <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
+                      <DialogTitle className="text-lg font-bold mb-4">
+                        Prize Information
+                      </DialogTitle>
+
+                      {/* Carousel for prizes */}
+                      <div className="overflow-hidden" ref={emblaRef}>
+                        <div className="flex gap-4">
+                          {prizes.map((prize) => (
+                            <div
+                              key={prize.id}
+                              className="flex-[0_0_33.3333%] flex flex-col items-center justify-center p-2"
+                            >
+                              <RemoteImage
+                                path={prize.image || placeHold}
+                                fallback={placeHold}
+                                className="w-20 h-20 object-contain rounded"
+                              />
+                              <span className="text-xs mt-1 font-semibold text-gray-700">
+                                {prize.name}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Navigation only if more than 4 prizes */}
+                      {prizes.length > 4 && (
+                        <div className="flex justify-between items-center mt-4">
+                          <button
+                            onClick={() => emblaApi?.scrollPrev()}
+                            className="text-sm text-blue-600 hover:underline"
+                          >
+                            Previous
+                          </button>
+                          <button
+                            onClick={() => emblaApi?.scrollNext()}
+                            className="text-sm text-blue-600 hover:underline"
+                          >
+                            Next
+                          </button>
+                        </div>
+                      )}
+
+                      <DialogClose asChild>
+                        <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
+                          Close
+                        </button>
+                      </DialogClose>
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {isOwner && (
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogOverlay className="fixed inset-0 bg-black/40 z-40" />
+            <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
+              <DialogTitle className="text-xl font-bold mb-4">
+                Edit Quest
+              </DialogTitle>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  handleEditSubmit()
+                }}
+                className="flex flex-col gap-4"
+              >
+                {/* Quest Image */}
+                <label className="flex flex-col text-sm font-medium text-gray-700">
+                  Quest Image
+                  {previewImage ? (
+                    <RemoteImage
+                      path={previewImage || quest.quest_image}
+                      fallback={placeHold}
+                      className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-full"
+                    />
+                  ) : (
+                    <RemoteImage
+                      path={quest.quest_image || placeHold}
+                      fallback={placeHold}
+                      className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-full"
+                    />
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
+                </label>
+
+                {/* Quest Name */}
+                <label className="flex flex-col text-sm font-medium text-gray-700">
+                  Quest Name
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="mt-1 border border-gray-300 rounded p-2"
+                  />
+                </label>
+
+                {/* Quest Details */}
+                <label className="flex flex-col text-sm font-medium text-gray-700">
+                  Details
+                  <textarea
+                    value={editDetails}
+                    onChange={(e) => setEditDetails(e.target.value)}
+                    className="mt-1 border border-gray-300 rounded p-2"
+                  />
+                </label>
+
+                {/* Region */}
+                <label className="block text-sm font-medium">
+                  <PickRegion
+                    value={selectedRegion}
+                    onChange={setSelectedRegion}
+                  />
+                </label>
+
+                {/* Start Date */}
+                <Dialog open={openStart} onOpenChange={setOpenStart}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      {`Start Date: ${
+                        editStart
+                          ? new Date(editStart).toLocaleDateString('en-NZ', {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric',
+                            })
+                          : 'Not set'
+                      }`}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-h-[70vh] overflow-y-auto">
+                    <DialogTitle>
+                      <VisuallyHidden>Choose Start Date</VisuallyHidden>
+                    </DialogTitle>
+                    <Calendar
+                      mode="single"
+                      selected={editStart ? new Date(editStart) : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          const localDate = new Date(
+                            date.getTime() - date.getTimezoneOffset() * 60000
+                          )
+                          setEditStart(localDate.toISOString().split('T')[0])
+                        }
+                      }}
+                    />
+                    <DialogClose asChild>
+                      <Button>Confirm</Button>
+                    </DialogClose>
+                  </DialogContent>
+                </Dialog>
+
+                {/* End Date */}
+                <Dialog open={openEnd} onOpenChange={setOpenEnd}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      {`End Date: ${
+                        editEnd
+                          ? new Date(editEnd).toLocaleDateString('en-NZ', {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric',
+                            })
+                          : 'Not set'
+                      }`}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-h-[70vh] overflow-y-auto">
+                    <DialogTitle>
+                      <VisuallyHidden>Choose End Date</VisuallyHidden>
+                    </DialogTitle>
+                    <Calendar
+                      mode="single"
+                      selected={editEnd ? new Date(editEnd) : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          const localDate = new Date(
+                            date.getTime() - date.getTimezoneOffset() * 60000
+                          )
+                          setEditEnd(localDate.toISOString().split('T')[0])
+                        }
+                      }}
+                    />
+                    <DialogClose asChild>
+                      <Button>Confirm</Button>
+                    </DialogClose>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Task Editor */}
+                <TaskCreatorButton
+                  questUpdates={tasks}
+                  onNewTask={handleTasksUpdate}
+                />
+
+                {/* Sponsor & Prize Editor */}
+                <SponsorCreatorButton
+                  sponsorUpdates={sponsorsState}
+                  onNewSponsor={setSponsorsState}
+                  prizeEnabled={prizeEnabled}
+                  onPrizeToggle={setPrizeEnabled}
+                  prizeUpdates={prizesState}
+                  onNewPrize={setPrizesState}
+                />
+
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-3 mt-4">
+                  <DialogClose asChild>
+                    <button
+                      type="button"
+                      className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
+                    >
+                      Cancel
+                    </button>
+                  </DialogClose>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 rounded bg-blue-500 hover:bg-blue-600 text-white"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
     </div>
   )
 }
