@@ -37,6 +37,8 @@ import TaskCreatorButton from './TaskCreatorButton'
 import { deleteS3Object } from '@/tools/deleteS3Object'
 import { parseQuestTasks, serializeQuestTasks } from '@/tools/questTasks'
 import SponsorCreatorButton from './SponsorCreatorButton'
+// import { Edit, Trash, Plus } from 'lucide-react'
+import { Toolbar } from './Toolbar'
 
 export default function QuestDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -343,6 +345,14 @@ export default function QuestDetailPage() {
       <div className="w-[90vw] max-w-[1200px] mx-auto">
         <Card className="bg-white/90 backdrop-blur-md shadow-xl rounded-2xl flex flex-col overflow-hidden">
           <CardContent className="p-6 flex-1 text-left">
+            <Toolbar
+              buttons={[
+                { label: 'Home', onClick: () => alert('works') },
+                { label: 'About Us', onClick: () => alert('works') },
+                { label: 'FAQ', onClick: () => alert('works') },
+              ]}
+            />
+
             {/* Top row: Quest image (left) + Sponsors (right) + Edit button */}
             <div className="flex items-start justify-between mb-4 w-full">
               {/* Left: Quest image */}
@@ -352,6 +362,7 @@ export default function QuestDetailPage() {
                   fallback={placeHold}
                   className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-sm"
                 />
+                <h1 className="text-2xl font-bold mb-2">{quest.quest_name}</h1>
               </div>
 
               {/* Right: Sponsor section + Edit button */}
@@ -463,7 +474,6 @@ export default function QuestDetailPage() {
             {/* Quest details + Task list side by side */}
             <div className="flex flex-col lg:flex-row gap-6 mt-2 w-full">
               <div className="flex-1">
-                <h1 className="text-2xl font-bold mb-2">{quest.quest_name}</h1>
                 <p className="text-gray-700 mb-2">{quest.quest_details}</p>
                 <p className="text-sm text-gray-500 mb-1">
                   Region: {quest.region}

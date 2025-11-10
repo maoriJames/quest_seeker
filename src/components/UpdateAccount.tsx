@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Card } from '@aws-amplify/ui-react'
 import { CardContent } from './ui/card'
 import InlineEditField from './InlineEditField'
+import InlineEditTextarea from './InlineEditTextarea'
 import RemoteImage from './RemoteImage'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
 import { uploadData, remove } from 'aws-amplify/storage'
@@ -172,13 +173,14 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
               </SelectContent>
             </Select>
 
-            <InlineEditField
+            <InlineEditTextarea
               label="Organisation Description"
               value={profile.organization_description || ''}
               onSave={(newValue) =>
                 onUpdate({ organization_description: newValue })
               }
             />
+
             <InlineEditField
               label="Primary Contact Name"
               value={profile.primary_contact_name || ''}
