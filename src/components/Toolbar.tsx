@@ -18,7 +18,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ buttons, className }) => {
   return (
     <div
       className={cn(
-        'flex justify-evenly items-center w-full p-2 border rounded-md bg-white shadow-sm',
+        'flex justify-evenly items-center w-full p-2 border rounded-md bg-black shadow-sm',
         className
       )}
     >
@@ -27,7 +27,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ buttons, className }) => {
           key={i}
           onClick={btn.onClick || (() => console.log(`${btn.label} clicked`))}
           variant={btn.variant || 'default'}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 bg-yellow-500 text-black-600"
         >
           {btn.icon}
           {btn.label}
