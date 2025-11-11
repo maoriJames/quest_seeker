@@ -39,6 +39,7 @@ import { parseQuestTasks, serializeQuestTasks } from '@/tools/questTasks'
 import SponsorCreatorButton from './SponsorCreatorButton'
 // import { Edit, Trash, Plus } from 'lucide-react'
 import { Toolbar } from './Toolbar'
+import TaskPreview from './TaskPreview'
 
 export default function QuestDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -353,122 +354,128 @@ export default function QuestDetailPage() {
               ]}
             />
 
-            {/* Top row: Quest image (left) + Sponsors (right) + Edit button */}
-            <div className="flex items-start justify-between mb-4 w-full">
-              {/* Left: Quest image */}
-              <div className="flex flex-col items-start gap-2">
-                <RemoteImage
-                  path={quest.quest_image || placeHold}
-                  fallback={placeHold}
-                  className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-sm"
-                />
-                <h1 className="text-2xl font-bold mb-2">{quest.quest_name}</h1>
+            {/* Banner Image with overlayed quest title + floating sponsors card */}
+            <div className="relative w-full mb-20">
+              {' '}
+              {/* Increased bottom margin for the overlap */}
+              {/* Banner Image */}
+              <RemoteImage
+                path={quest.quest_image || placeHold}
+                fallback={placeHold}
+                className="w-full h-[250px] md:h-[350px] object-cover rounded-t-2xl"
+              />
+              {/* Gradient overlay at bottom for contrast */}
+              <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black/70 to-transparent rounded-b-2xl" />
+              {/* Overlayed quest name (left) */}
+              <div className="absolute bottom-8 left-6 z-10">
+                <h1 className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg">
+                  {quest.quest_name}
+                </h1>
               </div>
+              {/* Floating white sponsors card (right) */}
+              {displayedSponsors.length > 0 && (
+                <div className="absolute left-1/2 md:left-auto md:right-10 bottom-[-60px] transform -translate-x-1/2 md:translate-x-0 bg-white rounded-2xl shadow-xl border border-gray-200 p-4 md:p-5 flex flex-col items-center md:items-end gap-3 w-[90%] md:w-auto z-20">
+                  {/* Featured Sponsors link */}
+                  {sponsors.length >= 3 && (
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <span className="text-sm text-blue-600 font-medium underline cursor-pointer hover:text-blue-800">
+                          Featured Sponsors
+                        </span>
+                      </DialogTrigger>
+                      <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
+                      <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
+                        <DialogTitle className="text-lg font-bold mb-4">
+                          Featured Sponsors
+                        </DialogTitle>
 
-              {/* Right: Sponsor section + Edit button */}
-              <div className="relative flex flex-col items-center gap-2 mb-4">
-                {displayedSponsors.length > 0 && (
-                  <div className="flex flex-col items-end gap-2">
-                    {/* Featured Sponsors: show link only if 3 or more sponsors */}
-                    {sponsors.length >= 3 && (
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <span className="text-xs text-blue-600 underline cursor-pointer hover:text-blue-800 mb-1">
-                            Featured Sponsors
-                          </span>
-                        </DialogTrigger>
-                        <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
-                        <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
-                          <DialogTitle className="text-lg font-bold mb-4">
-                            Featured Sponsors
-                          </DialogTitle>
-                          <div className="overflow-hidden" ref={emblaRef}>
-                            <div className="flex">
-                              {sponsors.map((sponsor) => (
-                                <div
-                                  key={sponsor.id}
-                                  className="flex-[0_0_100%] flex flex-col items-center justify-center p-4"
-                                >
-                                  <RemoteImage
-                                    path={sponsor.image || placeHold}
-                                    fallback={placeHold}
-                                    className="w-24 h-24 object-contain rounded-full mb-2"
-                                  />
-                                  <p className="font-semibold text-sm text-gray-700">
-                                    {sponsor.name}
-                                  </p>
-                                </div>
-                              ))}
-                            </div>
+                        <div className="overflow-hidden" ref={emblaRef}>
+                          <div className="flex">
+                            {sponsors.map((sponsor) => (
+                              <div
+                                key={sponsor.id}
+                                className="flex-[0_0_100%] flex flex-col items-center justify-center p-4"
+                              >
+                                <RemoteImage
+                                  path={sponsor.image || placeHold}
+                                  fallback={placeHold}
+                                  className="w-24 h-24 object-contain rounded-full mb-2"
+                                />
+                                <p className="font-semibold text-sm text-gray-700">
+                                  {sponsor.name}
+                                </p>
+                              </div>
+                            ))}
                           </div>
+                        </div>
 
-                          <div className="flex justify-between items-center mt-4">
-                            <button
-                              onClick={scrollPrev}
-                              className="text-sm text-blue-600 hover:underline"
-                            >
-                              Previous
-                            </button>
-                            <button
-                              onClick={scrollNext}
-                              className="text-sm text-blue-600 hover:underline"
-                            >
-                              Next
-                            </button>
-                          </div>
+                        <div className="flex justify-between items-center mt-4">
+                          <button
+                            onClick={scrollPrev}
+                            className="text-sm text-blue-600 hover:underline"
+                          >
+                            Previous
+                          </button>
+                          <button
+                            onClick={scrollNext}
+                            className="text-sm text-blue-600 hover:underline"
+                          >
+                            Next
+                          </button>
+                        </div>
 
-                          <DialogClose asChild>
-                            <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
-                              Close
-                            </button>
-                          </DialogClose>
-                        </DialogContent>
-                      </Dialog>
-                    )}
+                        <DialogClose asChild>
+                          <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
+                            Close
+                          </button>
+                        </DialogClose>
+                      </DialogContent>
+                    </Dialog>
+                  )}
 
-                    {/* Always show the displayed sponsor images */}
-                    <div className="flex gap-4 flex-wrap justify-end">
-                      {displayedSponsors.map((sponsor) => (
-                        <div
-                          key={sponsor.id}
-                          className="flex flex-col items-center w-20 text-center"
-                        >
+                  {/* Sponsor Avatars */}
+                  <div className="flex gap-4 flex-wrap justify-center md:justify-end">
+                    {displayedSponsors.map((sponsor) => (
+                      <div
+                        key={sponsor.id}
+                        className="flex flex-col items-center w-20 text-center"
+                      >
+                        <div className="p-[3px] bg-gradient-to-b from-gray-100 to-gray-200 rounded-full shadow-inner">
                           <RemoteImage
                             path={sponsor.image || placeHold}
                             fallback={placeHold}
-                            className="max-w-[80px] max-h-[80px] w-auto h-auto object-contain rounded-full"
+                            className="w-14 h-14 object-contain rounded-full border border-gray-300 shadow-sm bg-white"
                           />
-                          <span className="text-xs mt-1 font-semibold text-gray-700">
-                            {sponsor.name}
-                          </span>
                         </div>
-                      ))}
-                    </div>
+                        <span className="text-xs mt-1 font-semibold text-gray-700">
+                          {sponsor.name}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                )}
-
-                {/* Edit button */}
-                {isOwner && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          onClick={() => setOpen(true)}
-                          className="absolute -top-2 -right-2 p-2 rounded-full bg-gray-200 hover:bg-gray-300 shadow z-10"
-                        >
-                          <Pencil className="w-5 h-5 text-gray-700" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent
-                        side="top"
-                        className="bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg"
+                </div>
+              )}
+              {/* Edit Button (top right of banner) */}
+              {isOwner && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => setOpen(true)}
+                        className="absolute top-4 right-4 p-2 rounded-full bg-white/80 hover:bg-white shadow z-20"
                       >
-                        Edit this quest
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
-              </div>
+                        <Pencil className="w-5 h-5 text-gray-700" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="top"
+                      className="bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg"
+                    >
+                      Edit quest image
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </div>
 
             {/* Quest details + Task list side by side */}
@@ -476,7 +483,7 @@ export default function QuestDetailPage() {
               <div className="flex-1">
                 <p className="text-gray-700 mb-2">{quest.quest_details}</p>
                 <p className="text-sm text-gray-500 mb-1">
-                  Region: {quest.region}
+                  Region: <strong>{quest.region}</strong>
                 </p>
                 <div className="text-sm mb-1">
                   Organisation:{' '}
@@ -518,11 +525,16 @@ export default function QuestDetailPage() {
                 </div>
 
                 <p className="text-sm text-gray-500 mb-1">
-                  Start: {quest.quest_start}
+                  Start: <strong>{quest.quest_start}</strong>
                 </p>
-                <p className="text-sm text-gray-500">End: {quest.quest_end}</p>
                 <p className="text-sm text-gray-500">
-                  Entry: ${quest.quest_entry}
+                  End: <strong>{quest.quest_end}</strong>
+                </p>
+                <p className="text-sm text-gray-500">
+                  Number of tasks in this quest: <strong>{tasks.length}</strong>
+                </p>
+                <p className="text-sm text-gray-500">
+                  Entry: <strong>${quest.quest_entry}</strong>
                 </p>
               </div>
 
@@ -539,13 +551,14 @@ export default function QuestDetailPage() {
                   />
                 </div>
               )}
-              {!isOwner && !hasJoined && (
+              {/* {!isOwner && !hasJoined && (
                 <div className="border rounded-lg p-4 bg-gray-50 shadow-inner max-h-64 lg:w-[450px] w-full overflow-y-auto">
                   <h2 className="text-lg font-semibold mb-2 text-gray-800">
                     Number of tasks in this quest: {tasks.length}
                   </h2>
                 </div>
-              )}
+              )} */}
+              {!isOwner && !hasJoined && <TaskPreview tasks={tasks} />}
             </div>
             {/* Bottom action row: Delete/Join (left) + Back + Prize Info (right) */}
             <div className="mt-4 flex items-center justify-between w-full gap-4">
