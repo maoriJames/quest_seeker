@@ -44,6 +44,7 @@ export const getQuest = /* GraphQL */ `query GetQuest($id: ID!) {
     quest_end
     quest_entry
     quest_image
+    quest_image_thumb
     quest_name
     quest_prize
     quest_prize_info
@@ -105,6 +106,7 @@ export const listQuests = /* GraphQL */ `query ListQuests(
       quest_end
       quest_entry
       quest_image
+      quest_image_thumb
       quest_name
       quest_prize
       quest_prize_info

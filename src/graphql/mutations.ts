@@ -50,6 +50,7 @@ export const createQuest = /* GraphQL */ `mutation CreateQuest(
     quest_end
     quest_entry
     quest_image
+    quest_image_thumb
     quest_name
     quest_prize
     quest_prize_info
@@ -107,6 +108,7 @@ export const deleteQuest = /* GraphQL */ `mutation DeleteQuest(
     quest_end
     quest_entry
     quest_image
+    quest_image_thumb
     quest_name
     quest_prize
     quest_prize_info
@@ -164,6 +166,7 @@ export const updateQuest = /* GraphQL */ `mutation UpdateQuest(
     quest_end
     quest_entry
     quest_image
+    quest_image_thumb
     quest_name
     quest_prize
     quest_prize_info

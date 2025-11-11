@@ -16,7 +16,7 @@ export default function QuestPage() {
   const { data: quests, error, isLoading } = useQuestList()
   const allQuests: Quest[] = quests ?? []
 
-  const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD
+  const today = new Date().toISOString().split('T')[0]
   const validQuests = useMemo(() => {
     return allQuests.filter((quest) => {
       const questEndDate = quest.quest_end?.split('T')[0] ?? ''
@@ -31,7 +31,7 @@ export default function QuestPage() {
       className="relative min-h-screen flex items-center justify-center bg-cover bg-center px-4"
       style={{ backgroundImage: `url(${bg})` }}
     >
-      <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl max-w-3xl w-full flex flex-col">
+      <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl max-w-5xl w-full flex flex-col">
         <CardContent className="flex flex-col gap-4">
           {/* Top: Page title + add quest button */}
           <div className="w-full flex justify-between items-center mb-2">

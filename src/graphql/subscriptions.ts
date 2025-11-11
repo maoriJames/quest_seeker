@@ -44,6 +44,7 @@ export const onCreateQuest = /* GraphQL */ `subscription OnCreateQuest($filter: 
     quest_end
     quest_entry
     quest_image
+    quest_image_thumb
     quest_name
     quest_prize
     quest_prize_info
@@ -95,6 +96,7 @@ export const onDeleteQuest = /* GraphQL */ `subscription OnDeleteQuest($filter: 
     quest_end
     quest_entry
     quest_image
+    quest_image_thumb
     quest_name
     quest_prize
     quest_prize_info
@@ -146,6 +148,7 @@ export const onUpdateQuest = /* GraphQL */ `subscription OnUpdateQuest($filter: 
     quest_end
     quest_entry
     quest_image
+    quest_image_thumb
     quest_name
     quest_prize
     quest_prize_info

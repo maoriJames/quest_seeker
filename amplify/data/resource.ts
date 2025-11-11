@@ -6,6 +6,7 @@ const schema = a.schema({
       quest_name: a.string(),
       quest_details: a.string(),
       quest_image: a.string(),
+      quest_image_thumb: a.string(),
       quest_start: a.date(),
       quest_end: a.date(),
       quest_prize: a.boolean(),
