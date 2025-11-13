@@ -20,7 +20,6 @@ const QuestListItem = React.memo(function QuestListItem({
 
   // Use a thumbnail or fallback to the full image
   const imageSrc = quest.quest_image_thumb || quest.quest_image || placeHold
-  console.log('Quest: ', quest)
   return (
     <div
       onClick={handleClick}

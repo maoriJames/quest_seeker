@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select'
+import imageCompression from 'browser-image-compression'
 
 type ProfileProps = {
   profile: Profile
@@ -26,6 +27,9 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
 
   const [previewImage, setPreviewImage] = useState(profile.image || '')
   const [oldImagePath, setOldImagePath] = useState(profile.image || '')
+  const [oldImageThumbPath, setOldImageThumbPath] = useState(
+    profile.image || ''
+  )
 
   // ✅ Keep oldImagePath updated when profile changes
   useEffect(() => {
@@ -39,7 +43,6 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
     my_quests: profile.my_quests ?? [], // ← guarantees it’s an array
   }
 
-  // 🔹 Handle image selection & upload
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file || !profile.id) return
@@ -48,48 +51,69 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
     setPreviewImage(URL.createObjectURL(file))
 
     try {
-      // Upload the new image
-      const newPath = await uploadImage(file)
-      if (!newPath) return
-      // Delete the old image from the bucket (if applicable)
+      // 1️⃣ Upload full image + thumbnail
+      const { fullPath, thumbPath } = await uploadImageWithThumbnail(file)
+      if (!fullPath || !thumbPath) return
+
+      // 2️⃣ Delete old images if needed
       if (oldImagePath && !oldImagePath.startsWith('http')) {
         try {
-          const cleanPath = oldImagePath.startsWith('/')
+          const cleanFull = oldImagePath.startsWith('/')
             ? oldImagePath.slice(1)
             : oldImagePath
-          console.log('Attempting to remove old image:', oldImagePath)
-          await remove({ path: cleanPath })
-          console.log('oldImagePath: ', oldImagePath)
-          console.log('✅ Old image removed:', cleanPath)
+          const cleanThumb = oldImageThumbPath?.startsWith('/')
+            ? oldImageThumbPath.slice(1)
+            : oldImageThumbPath
+          if (cleanFull) await remove({ path: cleanFull })
+          if (cleanThumb) await remove({ path: cleanThumb })
+          console.log('✅ Old images removed')
         } catch (err) {
-          console.error('Error deleting old image:', err)
+          console.error('Error deleting old images:', err)
         }
       }
 
-      // Save new image path to profile and state
-      setOldImagePath(newPath)
-      onUpdate({ image: newPath })
+      // 3️⃣ Update state & profile
+      setOldImagePath(fullPath)
+      setOldImageThumbPath(thumbPath)
+      onUpdate({ image: fullPath, image_thumbnail: thumbPath })
     } catch (err) {
       console.error('Error uploading image:', err)
     }
   }
 
-  // 🔹 Upload image to S3 and return its path (not signed URL)
-  const uploadImage = async (file: File): Promise<string> => {
-    const path = `public/${crypto.randomUUID()}-${file.name}`
+  // Helper function to upload full + thumbnail
+  const uploadImageWithThumbnail = async (
+    file: File
+  ): Promise<{ fullPath: string; thumbPath: string }> => {
+    const fullPath = `public/${crypto.randomUUID()}-${file.name}`
+    const thumbPath = `public/thumbnails/${crypto.randomUUID()}-${file.name}`
 
     try {
+      // Upload full image
       await uploadData({
-        path,
+        path: fullPath,
         data: file,
         options: { contentType: file.type },
       })
 
-      // console.log('✅ Uploaded new image to:', path)
-      return path // store path in DB, not signed URL
+      // Create thumbnail (~200-300px)
+      const compressedFile = await imageCompression(file, {
+        maxWidthOrHeight: 300,
+        maxSizeMB: 0.25,
+        useWebWorker: true,
+      })
+
+      // Upload thumbnail
+      await uploadData({
+        path: thumbPath,
+        data: compressedFile,
+        options: { contentType: file.type },
+      })
+
+      return { fullPath, thumbPath }
     } catch (err) {
-      console.error('Error uploading file:', err)
-      return ''
+      console.error('Error uploading image or thumbnail:', err)
+      return { fullPath: '', thumbPath: '' }
     }
   }
 

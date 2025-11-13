@@ -34,6 +34,7 @@ const schema = a.schema({
       secondary_contact_position: a.string(),
       secondary_contact_phone: a.string(),
       image: a.string(),
+      image_thumbnail: a.string(),
       my_quests: a.json(),
       role: a.enum(['seeker', 'creator']),
     })

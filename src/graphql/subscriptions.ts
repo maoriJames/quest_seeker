@@ -16,6 +16,7 @@ export const onCreateProfile = /* GraphQL */ `subscription OnCreateProfile($filt
     full_name
     id
     image
+    image_thumbnail
     my_quests
     organization_description
     organization_name
@@ -68,6 +69,7 @@ export const onDeleteProfile = /* GraphQL */ `subscription OnDeleteProfile($filt
     full_name
     id
     image
+    image_thumbnail
     my_quests
     organization_description
     organization_name
@@ -120,6 +122,7 @@ export const onUpdateProfile = /* GraphQL */ `subscription OnUpdateProfile($filt
     full_name
     id
     image
+    image_thumbnail
     my_quests
     organization_description
     organization_name

@@ -32,6 +32,7 @@ export type Profile = {
   secondary_contact_position: string
   secondary_contact_phone: string
   image: string
+  image_thumbnail: string
   role: Role
   my_quests?: MyQuest[]
 }
