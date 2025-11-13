@@ -8,6 +8,7 @@ export type Quest = {
   quest_start?: string
   quest_end?: string | null
   quest_image?: string | null
+  quest_image_thumb: string | null
   quest_entry?: number | null
   region?: string | null
   creator_id?: string | null
@@ -31,6 +32,7 @@ export type Profile = {
   secondary_contact_position: string
   secondary_contact_phone: string
   image: string
+  image_thumbnail: string
   role: Role
   my_quests?: MyQuest[]
 }

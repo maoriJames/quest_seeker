@@ -1,51 +1,54 @@
-import { Link } from 'react-router-dom'
-import { Quest } from '../types'
-// import { useS3Image } from '@/hooks/useS3Image'
-// import { useState } from 'react'
-import RemoteImage from './RemoteImage'
+import React, { useState } from 'react'
+import { Quest } from '@/types'
+import { useNavigate } from 'react-router-dom'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
+import RemoteImage from './RemoteImage'
 
-type QuestListItemProps = {
+interface QuestListItemProps {
   quest: Quest
 }
 
-export const defaultImage = '@/assets/images/placeholder_view_vector.svg'
+const QuestListItem = React.memo(function QuestListItem({
+  quest,
+}: QuestListItemProps) {
+  const navigate = useNavigate()
+  const [loaded, setLoaded] = useState(false)
 
-export default function QuestListItem({ quest }: QuestListItemProps) {
-  // const [questImage, setQuestImage] = useState(quest.quest_image || '')
-  // const questImageUrl = useS3Image(quest.quest_image)
-
-  const reformatDate = (dateStr?: string) => {
-    if (!dateStr) return ''
-    const [year, month, day] = dateStr.split('-') // assuming YYYY-MM-DD
-    return `${day}/${month}/${year}`
+  const handleClick = () => {
+    navigate(`/user/quest/${quest.id}`)
   }
 
+  // Use a thumbnail or fallback to the full image
+  const imageSrc = quest.quest_image_thumb || quest.quest_image || placeHold
   return (
-    <Link to={`/user/quest/${quest.id}`} className="block">
-      <div className="bg-white rounded-2xl p-4 shadow flex flex-col items-center gap-2">
-        {/* Centered circular image */}
+    <div
+      onClick={handleClick}
+      className="cursor-pointer bg-white rounded-xl shadow hover:shadow-lg transition overflow-hidden border border-gray-100"
+    >
+      <div className="relative w-full h-40 bg-gray-100">
+        {!loaded && (
+          <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-t-xl" />
+        )}
         <RemoteImage
-          path={quest.quest_image || placeHold}
+          path={imageSrc || quest.quest_image || ''}
           fallback={placeHold}
-          className="w-32 h-32 rounded-sm object-cover mx-auto"
+          className={`object-cover w-full h-40 transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+          onLoad={() => setLoaded(true)}
         />
-
-        {/* Quest name with single-line ellipsis */}
-        <h3 className="text-lg font-bold text-center truncate w-full">
+      </div>
+      <div className="p-3">
+        <h3 className="font-semibold text-gray-800 truncate">
           {quest.quest_name}
         </h3>
-
-        {/* Start date */}
-        <p className="text-blue-500 font-bold text-center">
-          {reformatDate(quest.quest_start)}
+        <p className="text-xs text-gray-500 mt-1">
+          {quest.region || 'Unknown region'}
         </p>
-
-        {/* Region with single-line ellipsis if too long */}
-        <p className="text-sm text-center truncate w-full">
-          Region: {quest.region}
+        <p className="text-xs text-gray-500">
+          Ends: {quest.quest_end ? quest.quest_end.split('T')[0] : 'N/A'}
         </p>
       </div>
-    </Link>
+    </div>
   )
-}
+})
+
+export default QuestListItem

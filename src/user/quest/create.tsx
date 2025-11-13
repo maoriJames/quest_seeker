@@ -30,7 +30,7 @@ import { useCurrentUserProfile } from '@/hooks/userProfiles'
 import { DialogTitle } from '@radix-ui/react-dialog'
 import { VisuallyHidden } from '@aws-amplify/ui-react'
 import { uploadData } from 'aws-amplify/storage'
-// import PrizeCreatorButton from '@/components/PrizeCreatorButton'
+import imageCompression from 'browser-image-compression'
 
 export default function CreateQuestPage() {
   const navigate = useNavigate()
@@ -114,32 +114,54 @@ export default function CreateQuestPage() {
     return true
   }
 
-  const uploadImage = async (file: File): Promise<string> => {
-    const path = `public/${crypto.randomUUID()}-${file.name}`
+  const uploadImage = async (
+    file: File
+  ): Promise<{ fullPath: string; thumbPath: string }> => {
+    const fullPath = `public/${crypto.randomUUID()}-${file.name}`
+    const thumbPath = `public/thumbnails/${crypto.randomUUID()}-${file.name}`
 
     try {
+      // 1️⃣ Upload full image
       await uploadData({
-        path,
+        path: fullPath,
         data: file,
         options: { contentType: file.type },
       })
 
-      return path // store path in DB, generate full URL when rendering
+      // 2️⃣ Create a lightweight thumbnail (~300px wide)
+      const compressedFile = await imageCompression(file, {
+        maxWidthOrHeight: 300,
+        maxSizeMB: 0.25,
+        useWebWorker: true,
+      })
+
+      // 3️⃣ Upload the thumbnail
+      await uploadData({
+        path: thumbPath,
+        data: compressedFile,
+        options: { contentType: file.type },
+      })
+
+      // 4️⃣ Return both paths for DB storage
+      return { fullPath, thumbPath }
     } catch (err) {
       console.error('Error uploading file:', err)
-      return ''
+      return { fullPath: '', thumbPath: '' }
     }
   }
 
   const onSubmit = async () => {
     if (!validateInput()) return
 
-    const imagePath = imageFile ? await uploadImage(imageFile) : previewImage
+    const imagePaths = imageFile
+      ? await uploadImage(imageFile)
+      : { fullPath: previewImage, thumbPath: '' }
 
     const payload = {
       quest_name: name,
       quest_details: details,
-      quest_image: imagePath,
+      quest_image: imagePaths.fullPath,
+      quest_image_thumb: imagePaths.thumbPath,
       quest_start: startDate,
       quest_end: endDate,
       quest_prize: prizeEnabled,

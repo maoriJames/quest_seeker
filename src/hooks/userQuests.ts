@@ -53,35 +53,6 @@ export const useQuest = (id?: string | number) => {
   })
 }
 
-// export const useSeekerQuests = (userId: string) => {
-//   return useQuery({
-//     queryKey: ['seeker-quests', userId],
-//     queryFn: async () => {
-//       // 1. Fetch the profile
-//       const { data } = await client.graphql({
-//         query: listProfiles,
-//         variables: { filter: { id: { eq: userId } } },
-//       })
-//       const profile = data.listProfiles.items?.[0]
-//       if (!profile) return []
-//       const questIds =
-//         (profile.my_quests as { questId: string }[] | undefined)?.map(
-//           (q) => q.questId
-//         ) ?? []
-//       // 2. Fetch quests in parallel
-//       const questResults = await Promise.all(
-//         questIds.map((id) =>
-//           client.graphql({
-//             query: getQuest,
-//             variables: { id },
-//           })
-//         )
-//       )
-//       return questResults.map((res) => res.data.getQuest).filter(Boolean)
-//     },
-//   })
-// }
-
 export const useInsertQuest = () => {
   const queryClient = useQueryClient()
   console.log('prize fire 1?')

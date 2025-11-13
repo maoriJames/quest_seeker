@@ -6,6 +6,7 @@ const schema = a.schema({
       quest_name: a.string(),
       quest_details: a.string(),
       quest_image: a.string(),
+      quest_image_thumb: a.string(),
       quest_start: a.date(),
       quest_end: a.date(),
       quest_prize: a.boolean(),
@@ -33,6 +34,7 @@ const schema = a.schema({
       secondary_contact_position: a.string(),
       secondary_contact_phone: a.string(),
       image: a.string(),
+      image_thumbnail: a.string(),
       my_quests: a.json(),
       role: a.enum(['seeker', 'creator']),
     })

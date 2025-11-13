@@ -16,6 +16,7 @@ export const getProfile = /* GraphQL */ `query GetProfile($id: ID!) {
     full_name
     id
     image
+    image_thumbnail
     my_quests
     organization_description
     organization_name
@@ -44,6 +45,7 @@ export const getQuest = /* GraphQL */ `query GetQuest($id: ID!) {
     quest_end
     quest_entry
     quest_image
+    quest_image_thumb
     quest_name
     quest_prize
     quest_prize_info
@@ -69,6 +71,7 @@ export const listProfiles = /* GraphQL */ `query ListProfiles(
       full_name
       id
       image
+      image_thumbnail
       my_quests
       organization_description
       organization_name
@@ -105,6 +108,7 @@ export const listQuests = /* GraphQL */ `query ListQuests(
       quest_end
       quest_entry
       quest_image
+      quest_image_thumb
       quest_name
       quest_prize
       quest_prize_info

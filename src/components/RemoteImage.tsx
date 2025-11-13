@@ -2,28 +2,36 @@ import { useEffect, useState } from 'react'
 import { getUrl } from 'aws-amplify/storage'
 import { RemoteImageProps } from '@/types'
 
-const RemoteImage = ({ path, fallback, ...imgProps }: RemoteImageProps) => {
+const RemoteImage = ({
+  path,
+  fallback,
+  className,
+  ...imgProps
+}: RemoteImageProps) => {
   const [image, setImage] = useState<string>(fallback || '')
+  const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
+    setLoaded(false)
+
     if (!path) {
       setImage(fallback || '')
       return
     }
 
-    // ✅ Case 1: Local asset or data URL — use directly
+    // Case 1: Local asset or already a valid URL
     if (
-      path.startsWith('data:') || // base64 or inline SVGs
-      path.startsWith('/') || // local /assets/
-      path.startsWith('blob:') || // browser object URLs
-      path.includes('.svg') || // imported SVGs
-      path.startsWith('http') // already a valid URL
+      path.startsWith('data:') ||
+      path.startsWith('/') ||
+      path.startsWith('blob:') ||
+      path.includes('.svg') ||
+      path.startsWith('http')
     ) {
       setImage(path)
       return
     }
 
-    // ✅ Case 2: S3 path — fetch signed URL
+    // Case 2: S3 path — fetch signed URL
     ;(async () => {
       try {
         const cleanPath = path.startsWith('/') ? path.slice(1) : path
@@ -36,7 +44,15 @@ const RemoteImage = ({ path, fallback, ...imgProps }: RemoteImageProps) => {
     })()
   }, [path, fallback])
 
-  return <img src={image || fallback} {...imgProps} />
+  return (
+    <img
+      src={image || fallback}
+      className={`transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'} ${className || ''}`}
+      onLoad={() => setLoaded(true)}
+      loading="lazy"
+      {...imgProps}
+    />
+  )
 }
 
 export default RemoteImage

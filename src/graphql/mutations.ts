@@ -19,6 +19,7 @@ export const createProfile = /* GraphQL */ `mutation CreateProfile(
     full_name
     id
     image
+    image_thumbnail
     my_quests
     organization_description
     organization_name
@@ -50,6 +51,7 @@ export const createQuest = /* GraphQL */ `mutation CreateQuest(
     quest_end
     quest_entry
     quest_image
+    quest_image_thumb
     quest_name
     quest_prize
     quest_prize_info
@@ -76,6 +78,7 @@ export const deleteProfile = /* GraphQL */ `mutation DeleteProfile(
     full_name
     id
     image
+    image_thumbnail
     my_quests
     organization_description
     organization_name
@@ -107,6 +110,7 @@ export const deleteQuest = /* GraphQL */ `mutation DeleteQuest(
     quest_end
     quest_entry
     quest_image
+    quest_image_thumb
     quest_name
     quest_prize
     quest_prize_info
@@ -133,6 +137,7 @@ export const updateProfile = /* GraphQL */ `mutation UpdateProfile(
     full_name
     id
     image
+    image_thumbnail
     my_quests
     organization_description
     organization_name
@@ -164,6 +169,7 @@ export const updateQuest = /* GraphQL */ `mutation UpdateQuest(
     quest_end
     quest_entry
     quest_image
+    quest_image_thumb
     quest_name
     quest_prize
     quest_prize_info
