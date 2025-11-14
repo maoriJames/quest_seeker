@@ -16,6 +16,7 @@ const schema = a.schema({
       quest_entry: a.integer(),
       quest_tasks: a.json(),
       creator_id: a.string(),
+      status: a.enum(['draft', 'published', 'expired', 'archived']),
     })
     .authorization((allow) => [allow.authenticated()]),
 

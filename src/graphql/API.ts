@@ -48,8 +48,17 @@ export type Quest = {
   quest_start?: string | null,
   quest_tasks?: string | null,
   region?: string | null,
+  status?: QuestStatus | null,
   updatedAt: string,
 };
+
+export enum QuestStatus {
+  archived = "archived",
+  draft = "draft",
+  expired = "expired",
+  published = "published",
+}
+
 
 export type ModelProfileFilterInput = {
   and?: Array< ModelProfileFilterInput | null > | null,
@@ -162,6 +171,7 @@ export type ModelQuestFilterInput = {
   quest_start?: ModelStringInput | null,
   quest_tasks?: ModelStringInput | null,
   region?: ModelStringInput | null,
+  status?: ModelQuestStatusInput | null,
   updatedAt?: ModelStringInput | null,
 };
 
@@ -182,6 +192,11 @@ export type ModelBooleanInput = {
   attributeType?: ModelAttributeTypes | null,
   eq?: boolean | null,
   ne?: boolean | null,
+};
+
+export type ModelQuestStatusInput = {
+  eq?: QuestStatus | null,
+  ne?: QuestStatus | null,
 };
 
 export type ModelQuestConnection = {
@@ -252,6 +267,7 @@ export type ModelQuestConditionInput = {
   quest_start?: ModelStringInput | null,
   quest_tasks?: ModelStringInput | null,
   region?: ModelStringInput | null,
+  status?: ModelQuestStatusInput | null,
   updatedAt?: ModelStringInput | null,
 };
 
@@ -270,6 +286,7 @@ export type CreateQuestInput = {
   quest_start?: string | null,
   quest_tasks?: string | null,
   region?: string | null,
+  status?: QuestStatus | null,
 };
 
 export type DeleteProfileInput = {
@@ -315,6 +332,7 @@ export type UpdateQuestInput = {
   quest_start?: string | null,
   quest_tasks?: string | null,
   region?: string | null,
+  status?: QuestStatus | null,
 };
 
 export type ModelSubscriptionProfileFilterInput = {
@@ -389,6 +407,7 @@ export type ModelSubscriptionQuestFilterInput = {
   quest_start?: ModelSubscriptionStringInput | null,
   quest_tasks?: ModelSubscriptionStringInput | null,
   region?: ModelSubscriptionStringInput | null,
+  status?: ModelSubscriptionStringInput | null,
   updatedAt?: ModelSubscriptionStringInput | null,
 };
 
@@ -460,6 +479,7 @@ export type GetQuestQuery = {
     quest_start?: string | null,
     quest_tasks?: string | null,
     region?: string | null,
+    status?: QuestStatus | null,
     updatedAt: string,
   } | null,
 };
@@ -525,6 +545,7 @@ export type ListQuestsQuery = {
       quest_start?: string | null,
       quest_tasks?: string | null,
       region?: string | null,
+      status?: QuestStatus | null,
       updatedAt: string,
     } | null >,
     nextToken?: string | null,
@@ -584,6 +605,7 @@ export type CreateQuestMutation = {
     quest_start?: string | null,
     quest_tasks?: string | null,
     region?: string | null,
+    status?: QuestStatus | null,
     updatedAt: string,
   } | null,
 };
@@ -641,6 +663,7 @@ export type DeleteQuestMutation = {
     quest_start?: string | null,
     quest_tasks?: string | null,
     region?: string | null,
+    status?: QuestStatus | null,
     updatedAt: string,
   } | null,
 };
@@ -698,6 +721,7 @@ export type UpdateQuestMutation = {
     quest_start?: string | null,
     quest_tasks?: string | null,
     region?: string | null,
+    status?: QuestStatus | null,
     updatedAt: string,
   } | null,
 };
@@ -753,6 +777,7 @@ export type OnCreateQuestSubscription = {
     quest_start?: string | null,
     quest_tasks?: string | null,
     region?: string | null,
+    status?: QuestStatus | null,
     updatedAt: string,
   } | null,
 };
@@ -808,6 +833,7 @@ export type OnDeleteQuestSubscription = {
     quest_start?: string | null,
     quest_tasks?: string | null,
     region?: string | null,
+    status?: QuestStatus | null,
     updatedAt: string,
   } | null,
 };
@@ -863,6 +889,7 @@ export type OnUpdateQuestSubscription = {
     quest_start?: string | null,
     quest_tasks?: string | null,
     region?: string | null,
+    status?: QuestStatus | null,
     updatedAt: string,
   } | null,
 };

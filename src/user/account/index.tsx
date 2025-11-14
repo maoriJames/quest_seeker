@@ -29,6 +29,7 @@ export default function AccountPage() {
     secondary_contact_position: '',
     secondary_contact_phone: '',
     image: '',
+    image_thumbnail: '',
     role: 'seeker',
     my_quests: [],
   })
@@ -60,6 +61,7 @@ export default function AccountPage() {
         currentProfile.secondary_contact_position ?? '',
       secondary_contact_phone: currentProfile.secondary_contact_phone ?? '',
       image: currentProfile.image ?? '',
+      image_thumbnail: currentProfile.image_thumbnail ?? '',
       role: currentProfile.role ?? 'seeker',
       my_quests: quests,
     })
