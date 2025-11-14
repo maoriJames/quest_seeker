@@ -53,6 +53,7 @@ export const onCreateQuest = /* GraphQL */ `subscription OnCreateQuest($filter: 
     quest_start
     quest_tasks
     region
+    status
     updatedAt
     __typename
   }
@@ -106,6 +107,7 @@ export const onDeleteQuest = /* GraphQL */ `subscription OnDeleteQuest($filter: 
     quest_start
     quest_tasks
     region
+    status
     updatedAt
     __typename
   }
@@ -159,6 +161,7 @@ export const onUpdateQuest = /* GraphQL */ `subscription OnUpdateQuest($filter: 
     quest_start
     quest_tasks
     region
+    status
     updatedAt
     __typename
   }

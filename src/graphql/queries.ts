@@ -53,6 +53,7 @@ export const getQuest = /* GraphQL */ `query GetQuest($id: ID!) {
     quest_start
     quest_tasks
     region
+    status
     updatedAt
     __typename
   }
@@ -116,6 +117,7 @@ export const listQuests = /* GraphQL */ `query ListQuests(
       quest_start
       quest_tasks
       region
+      status
       updatedAt
       __typename
     }

@@ -1,6 +1,8 @@
 import { Dispatch, SetStateAction, ImgHTMLAttributes } from 'react'
 
 // ---------------- Quests ----------------
+export type Status = 'draft' | 'published' | 'expired' | 'archived'
+
 export type Quest = {
   id: string
   quest_name: string
@@ -12,6 +14,7 @@ export type Quest = {
   quest_entry?: number | null
   region?: string | null
   creator_id?: string | null
+  status: Status | null
 }
 
 // ---------------- Profiles ----------------
@@ -90,11 +93,11 @@ export type Sponsor = {
 export interface SponsorCreatorButtonProps {
   sponsorUpdates: Sponsor[]
   onNewSponsor: OnNewSponsorFunction
-  prizeEnabled: boolean
-  onPrizeToggle: (enabled: boolean) => void
+  // prizeEnabled: boolean
+  // onPrizeToggle: (enabled: boolean) => void
   // prizes: Prize[]
-  onNewPrize: OnNewPrizeFunction
-  prizeUpdates: Prize[]
+  // onNewPrize: OnNewPrizeFunction
+  // prizeUpdates: Prize[]
   // prizeContributor: string
 }
 

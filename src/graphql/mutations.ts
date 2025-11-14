@@ -59,6 +59,7 @@ export const createQuest = /* GraphQL */ `mutation CreateQuest(
     quest_start
     quest_tasks
     region
+    status
     updatedAt
     __typename
   }
@@ -118,6 +119,7 @@ export const deleteQuest = /* GraphQL */ `mutation DeleteQuest(
     quest_start
     quest_tasks
     region
+    status
     updatedAt
     __typename
   }
@@ -177,6 +179,7 @@ export const updateQuest = /* GraphQL */ `mutation UpdateQuest(
     quest_start
     quest_tasks
     region
+    status
     updatedAt
     __typename
   }
