@@ -819,10 +819,6 @@ export default function QuestDetailPage() {
                 <SponsorCreatorButton
                   sponsorUpdates={sponsorsState}
                   onNewSponsor={setSponsorsState}
-                  prizeEnabled={prizeEnabled}
-                  onPrizeToggle={setPrizeEnabled}
-                  prizeUpdates={prizesState}
-                  onNewPrize={setPrizesState}
                 />
 
                 {/* Action Buttons */}
