@@ -63,7 +63,7 @@ export default function AddQuestButton({ to }: AddQuestButtonProps) {
   }
 
   return (
-    <div className="absolute top-4 right-4">
+    <div className="ml-auto">
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>

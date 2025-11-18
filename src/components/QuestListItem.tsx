@@ -13,7 +13,9 @@ const QuestListItem = React.memo(function QuestListItem({
 }: QuestListItemProps) {
   const navigate = useNavigate()
   const [loaded, setLoaded] = useState(false)
-
+  const questExpiry = new Date(quest.quest_end ?? '')
+  const currentQuest = questExpiry < new Date()
+  if (currentQuest) return null
   const handleClick = () => {
     navigate(`/user/quest/${quest.id}`)
   }

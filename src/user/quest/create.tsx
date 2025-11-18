@@ -235,7 +235,7 @@ export default function CreateQuestPage() {
       <div className="w-full max-w-3xl p-6 bg-white/80 rounded-lg shadow-md">
         {step === 0 && (
           <>
-            <h2 className="text-xl font-bold mb-4">Quest Title</h2>
+            <h2 className="text-xl font-bold mb-4">Name of the quest</h2>
             <Input value={name} onChange={(e) => setName(e.target.value)} />
             <Button className="mt-4" onClick={next}>
               Next

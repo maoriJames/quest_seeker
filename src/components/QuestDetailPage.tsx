@@ -336,8 +336,6 @@ export default function QuestDetailPage() {
   })()
   const displayedSponsors = sponsors.slice(0, 2)
 
-  // console.log('Sponsors: ', sponsors)
-  // console.log('Full Quest Details:', quest)
   return (
     <div
       className="relative min-h-screen flex items-center justify-center bg-cover bg-center"
@@ -819,10 +817,6 @@ export default function QuestDetailPage() {
                 <SponsorCreatorButton
                   sponsorUpdates={sponsorsState}
                   onNewSponsor={setSponsorsState}
-                  prizeEnabled={prizeEnabled}
-                  onPrizeToggle={setPrizeEnabled}
-                  prizeUpdates={prizesState}
-                  onNewPrize={setPrizesState}
                 />
 
                 {/* Action Buttons */}

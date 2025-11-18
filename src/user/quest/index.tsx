@@ -8,6 +8,8 @@ import type { MyQuest, Profile, Quest } from '@/types'
 import AddQuestButton from '@/components/AddQuestButton'
 import HomeButton from '@/components/HomeButton'
 import { useProfileList } from '@/hooks/userProfiles'
+import InfiniteScroll from 'react-infinite-scroll-component'
+import { Toolbar } from '@/components/Toolbar'
 
 export default function QuestPage() {
   const location = useLocation()
@@ -135,6 +137,17 @@ export default function QuestPage() {
     return sorted
   }, [filteredQuests, sortOption])
 
+  const pageSize = 12
+  const [visibleCount, setVisibleCount] = useState(pageSize)
+
+  const visibleQuests = sortedQuests.slice(0, visibleCount)
+
+  const fetchMoreQuests = () => {
+    setTimeout(() => {
+      setVisibleCount((prev) => prev + pageSize)
+    }, 500) // simulates load time
+  }
+
   return (
     <div
       className="relative min-h-screen flex items-center justify-center bg-cover bg-center px-4"
@@ -142,9 +155,15 @@ export default function QuestPage() {
     >
       <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl max-w-5xl w-full flex flex-col">
         <CardContent className="flex flex-col gap-4">
+          <Toolbar
+            buttons={[
+              { label: 'Home', onClick: () => alert('works') },
+              { label: 'About Us', onClick: () => alert('works') },
+              { label: 'FAQ', onClick: () => alert('works') },
+            ]}
+          />
           {/* Top: Page title + add quest button */}
           <div className="w-full flex justify-between items-center mb-2">
-            <h1 className="text-2xl font-bold">Quests</h1>
             <AddQuestButton to="/user/quest/create" />
           </div>
 
@@ -181,12 +200,15 @@ export default function QuestPage() {
             <p>No quests match your search or filters.</p>
           )}
 
-          {/* Quest list */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {!isLoading &&
-              !error &&
-              sortedQuests.length > 0 &&
-              sortedQuests.map((quest: Quest) => (
+          <InfiniteScroll
+            dataLength={visibleQuests.length}
+            next={fetchMoreQuests}
+            hasMore={visibleCount < sortedQuests.length}
+            loader={<p className="text-center py-3">Loading more quests...</p>}
+            scrollThreshold={0.9} // triggers at 90% scroll
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {visibleQuests.map((quest: Quest) => (
                 <QuestListItem
                   key={quest.id}
                   quest={{
@@ -199,7 +221,8 @@ export default function QuestPage() {
                   }}
                 />
               ))}
-          </div>
+            </div>
+          </InfiniteScroll>
 
           {/* Bottom: Home button centered */}
           <div className="flex justify-center mt-4">

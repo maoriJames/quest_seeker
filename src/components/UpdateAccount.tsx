@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Card } from '@aws-amplify/ui-react'
 import { CardContent } from './ui/card'
 import InlineEditField from './InlineEditField'
@@ -37,11 +37,6 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
       setOldImagePath(profile.image)
     }
   }, [profile.image])
-
-  const safeProfile = {
-    ...profile,
-    my_quests: profile.my_quests ?? [], // ← guarantees it’s an array
-  }
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -242,7 +237,7 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
             />
           </>
         )}
-        <div className="mt-4">
+        {/* <div className="mt-4">
           <h2 className="font-semibold text-lg mb-2">My Quests</h2>
           {safeProfile.my_quests.length === 0 ? (
             <p className="text-gray-500">You haven’t joined any quests yet.</p>
@@ -261,7 +256,7 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
               ))}
             </ul>
           )}
-        </div>
+        </div> */}
 
         {/* Return button */}
         <button

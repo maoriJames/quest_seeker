@@ -1,7 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Authenticator } from '@aws-amplify/ui-react'
-// import { AuthUser } from 'aws-amplify/auth'
 
 import IndexPage from './app/main'
 import UserPage from './user/index'
