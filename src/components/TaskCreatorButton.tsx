@@ -9,13 +9,17 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
   const [task, setTask] = useState('')
   const [isImageTask, setIsImageTask] = useState(false)
   const [requiresCaption, setRequiresCaption] = useState(false)
-  // const [isChecked, setIsChecked] = useState(false)
   const [answer, setAnswer] = useState('')
   const [caption, setCaption] = useState('')
   const [tasks, setTasks] = useState<Task[]>(questUpdates)
 
   const [editIndex, setEditIndex] = useState(-1)
   const [modalVisible, setModalVisible] = useState(false)
+
+  const title =
+    tasks.length === 0 && editIndex === -1
+      ? 'What is the first task for your seeker?'
+      : 'Next task?'
 
   useEffect(() => {
     setTasks(questUpdates)
@@ -29,7 +33,6 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
         updatedTasks[editIndex] = {
           ...updatedTasks[editIndex],
           description: task,
-          // shortDescription: taskDescription,
           isImage: isImageTask,
           requiresCaption,
           caption,
@@ -40,9 +43,9 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
           id: Date.now().toString(),
           description: task,
           isImage: isImageTask,
-          requiresCaption, // <-- new property
-          caption: '', // reset initially
-          answer: '', // reset initially
+          requiresCaption,
+          caption: '',
+          answer: '',
           completed: false,
         }
 
@@ -52,7 +55,6 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
       onNewTask(updatedTasks)
 
       setTask('')
-      // setTaskDescription('')
       setEditIndex(-1)
       setRequiresCaption(false)
       setAnswer('')
@@ -63,9 +65,7 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
   return (
     <div className="p-4 space-y-4">
       <div>
-        <label className="block font-semibold mb-1">
-          Full Task Description
-        </label>
+        <label className="block font-semibold mb-1">{title}</label>
         <textarea
           value={task}
           onChange={(e) => setTask(e.target.value)}
@@ -80,7 +80,7 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
           checked={isImageTask}
           onChange={(e) => setIsImageTask(e.target.checked)}
         />
-        <span>Enable Image</span>
+        <span>Require Image</span>
       </div>
 
       <div className="flex items-center space-x-2">
@@ -89,7 +89,7 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
           checked={requiresCaption}
           onChange={(e) => setRequiresCaption(e.target.checked)}
         />
-        <span>Enable Caption / String Answer</span>
+        <span>Require Caption</span>
       </div>
 
       <button

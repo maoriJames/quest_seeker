@@ -336,8 +336,6 @@ export default function QuestDetailPage() {
   })()
   const displayedSponsors = sponsors.slice(0, 2)
 
-  // console.log('Sponsors: ', sponsors)
-  // console.log('Full Quest Details:', quest)
   return (
     <div
       className="relative min-h-screen flex items-center justify-center bg-cover bg-center"
