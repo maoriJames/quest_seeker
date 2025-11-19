@@ -237,26 +237,6 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
             />
           </>
         )}
-        {/* <div className="mt-4">
-          <h2 className="font-semibold text-lg mb-2">My Quests</h2>
-          {safeProfile.my_quests.length === 0 ? (
-            <p className="text-gray-500">You haven’t joined any quests yet.</p>
-          ) : (
-            <ul className="list-disc pl-5 space-y-1">
-              {safeProfile.my_quests.map((myQuest) => (
-                <li key={myQuest.quest_id}>
-                  <Link
-                    to={`/user/quest/${myQuest.quest_id}`}
-                    className="text-blue-600 hover:underline"
-                  >
-                    {myQuest.title}
-                  </Link>{' '}
-                  ({myQuest.completed ? 'Completed' : 'In Progress'})
-                </li>
-              ))}
-            </ul>
-          )}
-        </div> */}
 
         {/* Return button */}
         <button

@@ -24,7 +24,6 @@ export default function UserPage() {
     (field) =>
       !currentProfile[field] || currentProfile[field].toString().trim() === ''
   )
-  console.log('hasMissingFields: ', hasMissingFields)
 
   return hasMissingFields ? (
     <Navigate to="/user/account" replace />

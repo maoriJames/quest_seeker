@@ -40,6 +40,7 @@ import SponsorCreatorButton from './SponsorCreatorButton'
 // import { Edit, Trash, Plus } from 'lucide-react'
 import { Toolbar } from './Toolbar'
 import TaskPreview from './TaskPreview'
+import { QuestStatus } from '@/graphql/API'
 
 export default function QuestDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -206,6 +207,7 @@ export default function QuestDetailPage() {
         tasks,
         progress: 0,
         completed: false,
+        quest_status: QuestStatus.published,
       }
 
       await addQuestToProfile(quest.id, [userQuestEntry])

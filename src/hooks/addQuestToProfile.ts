@@ -3,6 +3,7 @@ import { getCurrentUser } from 'aws-amplify/auth'
 import { getProfile } from '@/graphql/queries'
 import { updateProfile } from '@/graphql/mutations'
 import { MyQuest } from '@/types'
+import { QuestStatus } from '@/graphql/API'
 
 const client = generateClient()
 
@@ -39,7 +40,8 @@ export async function addQuestToProfile(questId: string, MyQuests: MyQuest[]) {
         quest_id: questId,
         tasks: MyQuests.flatMap((qt) => qt.tasks),
         title: MyQuests[0].title,
-        completed: false, // merge all incoming MyQuest.tasks into one array
+        completed: false,
+        quest_status: QuestStatus.published,
       })
     } else {
       // 🔄 Merge/update existing tasks
