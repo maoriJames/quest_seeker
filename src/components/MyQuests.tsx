@@ -2,42 +2,13 @@
 import { Card } from '@aws-amplify/ui-react'
 import { Link } from 'react-router-dom'
 import { CardContent } from './ui/card'
-import { Profile } from '@/types'
+import { MyQuest, Profile } from '@/types'
 
-type MyQuest = {
-  quest_id: string
-  title: string
-  completed: boolean
-}
 type MyQuestsProps = {
   profile: Profile
 }
 
 export default function MyQuests({ profile }: MyQuestsProps) {
-  // const {
-  //   currentProfile: profile,
-  //   isLoading,
-  //   currentError: error,
-  // } = useCurrentUserProfile()
-
-  // if (isLoading) return <p className="p-4 text-center">Loading...</p>
-  // if (error || !profile)
-  //   return <p className="p-4 text-center">Profile not found.</p>
-
-  // const normalizedProfile = {
-  //   ...profile,
-  //   my_quests: (() => {
-  //     if (!profile.my_quests) return [] as MyQuest[]
-  //     if (Array.isArray(profile.my_quests)) return profile.my_quests
-  //     try {
-  //       return JSON.parse(profile.my_quests) as MyQuest[]
-  //     } catch {
-  //       console.warn('Failed to parse my_quests:', profile.my_quests)
-  //       return [] as MyQuest[]
-  //     }
-  //   })(),
-  // }
-
   const normalizedQuests = (() => {
     if (!profile.my_quests) return []
     if (Array.isArray(profile.my_quests)) return profile.my_quests

@@ -147,7 +147,7 @@ export default function QuestPage() {
       setVisibleCount((prev) => prev + pageSize)
     }, 500) // simulates load time
   }
-
+  console.log('Quest: ', allQuests)
   return (
     <div
       className="relative min-h-screen flex items-center justify-center bg-cover bg-center px-4"

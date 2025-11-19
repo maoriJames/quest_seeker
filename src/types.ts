@@ -1,4 +1,5 @@
 import { Dispatch, SetStateAction, ImgHTMLAttributes } from 'react'
+import { QuestStatus } from './graphql/API'
 
 // ---------------- Quests ----------------
 export type Status = 'draft' | 'published' | 'expired' | 'archived'
@@ -74,6 +75,7 @@ export type MyQuest = {
   tasks: Task[]
   progress?: number
   completed: boolean
+  quest_status: QuestStatus
 }
 
 // ---------------- Remote Image ----------------
