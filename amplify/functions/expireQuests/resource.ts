@@ -1,28 +1,37 @@
-import { Construct } from 'constructs'
-import { Duration } from 'aws-cdk-lib'
-import { Rule, Schedule } from 'aws-cdk-lib/aws-events'
-import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets'
-import { PolicyStatement } from 'aws-cdk-lib/aws-iam'
-import * as lambdaTypes from 'aws-cdk-lib/aws-lambda'
+// import { defineFunction } from "@aws-amplify/backend";
+// import { Construct } from "constructs";
+// import * as lambdaTypes from "aws-cdk-lib/aws-lambda";
+// import { Rule, Schedule } from "aws-cdk-lib/aws-events";
+// import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
+// import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 
-// Define argument type
-interface ResourceProps {
-  scope: Construct
-  lambda: lambdaTypes.IFunction
-}
+// export const expireQuests = defineFunction({
+//   entry: "./src/index.ts",   // relative to function folder
+//   runtime: "nodejs18.x",     // Gen 2 runtime
+//   environment: {
+//     APPSYNC_API_URL: process.env.APPSYNC_API_URL || "",
+//     APPSYNC_API_KEY: process.env.APPSYNC_API_KEY || "",
+//   },
+//   onCreate: (scope, lambda) => {
+//     // Attach AppSync permission
+//     lambda.addToRolePolicy(
+//       new PolicyStatement({
+//         actions: ["appsync:GraphQL"],
+//         resources: ["*"],
+//       })
+//     );
 
-export function resource({ scope, lambda }: ResourceProps) {
-  // Give Lambda permission to call AppSync
-  lambda.addToRolePolicy(
-    new PolicyStatement({
-      actions: ['appsync:GraphQL'],
-      resources: ['*'], // tighten later
-    })
-  )
+//     // Schedule Lambda to run daily at midnight UTC
+//     new Rule(scope, "ExpireQuestsSchedule", {
+//       schedule: Schedule.cron({ minute: "0", hour: "0" }),
+//       targets: [new LambdaFunction(lambda)],
+//     });
+//   },
+// });
 
-  // Schedule Lambda to run every hour
-  new Rule(scope, 'ExpireQuestsSchedule', {
-    schedule: Schedule.rate(Duration.hours(1)),
-    targets: [new LambdaFunction(lambda)],
-  })
-}
+import { defineFunction } from '@aws-amplify/backend'
+
+export const myFirstFunction = defineFunction({
+  name: 'my-first-function',
+  entry: './handler.ts',
+})
