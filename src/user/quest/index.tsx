@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import QuestListItem from '@/components/QuestListItem'
 import { useQuestList } from '@/hooks/userQuests'
 import { useMemo, useState } from 'react'
@@ -18,6 +18,8 @@ export default function QuestPage() {
   const { data: quests, error, isLoading } = useQuestList()
   const allQuests: Quest[] = quests ?? []
   const { data: profiles } = useProfileList()
+
+  const navigate = useNavigate()
 
   const [searchTerm, setSearchTerm] = useState('')
   const [sortOption, setSortOption] = useState('title')
@@ -157,9 +159,9 @@ export default function QuestPage() {
         <CardContent className="flex flex-col gap-4">
           <Toolbar
             buttons={[
-              { label: 'Home', onClick: () => alert('works') },
-              { label: 'About Us', onClick: () => alert('works') },
-              { label: 'FAQ', onClick: () => alert('works') },
+              { label: 'Home', onClick: () => navigate('/user/region') },
+              { label: 'About Us', onClick: () => navigate('/user/about') },
+              { label: 'FAQ', onClick: () => navigate('/user/faq') },
             ]}
           />
           {/* Top: Page title + add quest button */}
