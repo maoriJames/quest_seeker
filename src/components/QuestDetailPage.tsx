@@ -348,9 +348,9 @@ export default function QuestDetailPage() {
           <CardContent className="p-6 flex-1 text-left">
             <Toolbar
               buttons={[
-                { label: 'Home', onClick: () => alert('works') },
-                { label: 'About Us', onClick: () => alert('works') },
-                { label: 'FAQ', onClick: () => alert('works') },
+                { label: 'Home', onClick: () => navigate('/user/region') },
+                { label: 'About Us', onClick: () => navigate('/user/about') },
+                { label: 'FAQ', onClick: () => navigate('/user/faq') },
               ]}
             />
 
