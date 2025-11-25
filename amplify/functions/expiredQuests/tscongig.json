@@ -5,12 +5,10 @@
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-
-    "outDir": "./src",     
-    "rootDir": "./src",    
-
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "outDir": "./src",
+    "rootDir": "./src"
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "../resource.ts", "../backend.ts"]
 }
