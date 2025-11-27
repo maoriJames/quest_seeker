@@ -47,8 +47,10 @@ export type Task = {
   description: string
   isImage: boolean
   requiresCaption: boolean
+  isLocation: boolean
   caption: string
   answer: string
+  location: string
   completed: boolean
 }
 
@@ -89,18 +91,12 @@ export type Sponsor = {
   id: string
   name: string
   sponsorImage: boolean
-  image: string // string path/URL
+  image: string
 }
 
 export interface SponsorCreatorButtonProps {
   sponsorUpdates: Sponsor[]
   onNewSponsor: OnNewSponsorFunction
-  // prizeEnabled: boolean
-  // onPrizeToggle: (enabled: boolean) => void
-  // prizes: Prize[]
-  // onNewPrize: OnNewPrizeFunction
-  // prizeUpdates: Prize[]
-  // prizeContributor: string
 }
 
 export type OnNewSponsorFunction = (updatedSponsors: Sponsor[]) => void
@@ -121,9 +117,3 @@ export interface PrizeCreatorButtonProps {
 }
 
 export type OnNewPrizeFunction = (updatedPrizes: Prize[]) => void
-// ---------------- Optional future prize types ----------------
-// export type OnNewPrizeFunction = (updatedPrizes: Prize[]) => void
-// export interface PrizeCreatorButtonProps {
-//   prizeUpdates: Prize[]
-//   onNewPrize: OnNewPrizeFunction
-// }

@@ -8,6 +8,7 @@ import { UpdateProfileInput } from '@/graphql/API'
 import { toProfileRole } from '@/hooks/toProfileTole'
 import { generateClient } from 'aws-amplify/api'
 import { getQuest } from '@/graphql/queries'
+import { useLocation } from 'react-router-dom'
 import ExpiredQuests from '@/components/ExpiredQuests'
 
 const client = generateClient()
@@ -15,7 +16,7 @@ const client = generateClient()
 export default function AccountPage() {
   const { currentProfile } = useCurrentUserProfile()
   const { mutate: updateProfile } = useUpdateProfile()
-
+  const location = useLocation()
   const [profileData, setProfileData] = useState<Profile>({
     id: '',
     full_name: '',
@@ -36,10 +37,15 @@ export default function AccountPage() {
     my_quests: [],
   })
 
-  // Active tab: "account" or "my-quests"
+  const defaultTab = (
+    location.state as {
+      defaultTab?: 'account' | 'my-quests' | 'expired-quests'
+    }
+  )?.defaultTab
+
   const [activeTab, setActiveTab] = useState<
-    'account' | 'my-quests' | 'expired-quests' | 'archived-quests'
-  >('account')
+    'account' | 'my-quests' | 'expired-quests'
+  >(defaultTab || 'account')
 
   // 🧠 Load current profile into local state
   useEffect(() => {

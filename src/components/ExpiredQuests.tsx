@@ -1,5 +1,5 @@
 import { Card } from '@aws-amplify/ui-react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { CardContent } from './ui/card'
 import { MyQuest, Profile } from '@/types'
 
@@ -8,6 +8,7 @@ type MyQuestsProps = {
 }
 
 export default function ExpiredQuests({ profile }: MyQuestsProps) {
+  const navigate = useNavigate()
   const normalizedQuests = (() => {
     if (!profile.my_quests) return []
     if (Array.isArray(profile.my_quests)) return profile.my_quests
@@ -42,6 +43,12 @@ export default function ExpiredQuests({ profile }: MyQuestsProps) {
             </ul>
           )}
         </div>
+        <button
+          className="mt-4 px-4 py-2 bg-gray-200 rounded"
+          onClick={() => navigate('/user/region')}
+        >
+          Back to Home
+        </button>
       </CardContent>
     </Card>
   )
