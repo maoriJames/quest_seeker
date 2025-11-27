@@ -160,10 +160,19 @@ export default function QuestPage() {
           <Toolbar
             buttons={[
               { label: 'Home', onClick: () => navigate('/user/region') },
+              { label: 'My Account', onClick: () => navigate('/user/account') },
+              {
+                label: 'My Quests',
+                onClick: () =>
+                  navigate('/user/account', {
+                    state: { defaultTab: 'my-quests' },
+                  }),
+              },
               { label: 'About Us', onClick: () => navigate('/user/about') },
               { label: 'FAQ', onClick: () => navigate('/user/faq') },
             ]}
           />
+
           {/* Top: Page title + add quest button */}
           <div className="w-full flex justify-between items-center mb-2">
             <AddQuestButton to="/user/quest/create" />

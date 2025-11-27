@@ -168,7 +168,6 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
               label="Registration Number"
               value={profile.registration_number || ''}
               onSave={(newValue) => onUpdate({ registration_number: newValue })}
-              required
             />
             <label className="text-base font-bold">Business Type</label>
             <Select
@@ -184,11 +183,12 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
                 <SelectItem value="Registered Company">
                   Registered Company
                 </SelectItem>
-                <SelectItem value="Registered Charity">
-                  Registered Charity
+                <SelectItem value="Small Business">Small Business</SelectItem>
+                <SelectItem value="Charitable Trust">
+                  Charitable Trust
                 </SelectItem>
                 <SelectItem value="Not for Profit">Not for Profit</SelectItem>
-                <SelectItem value="Private Company">Private Company</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
               </SelectContent>
             </Select>
 
@@ -243,7 +243,7 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
           className="mt-4 px-4 py-2 bg-gray-200 rounded"
           onClick={() => navigate('/user/region')}
         >
-          Return to Quest Page
+          Back to Home
         </button>
       </CardContent>
     </Card>

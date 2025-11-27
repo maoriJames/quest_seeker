@@ -39,9 +39,32 @@ export default function TaskInformationWindow({
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [editableTasks, setEditableTasks] = useState<Task[]>([])
   const [caption, setCaption] = useState('')
+  const [location, setLocation] = useState('')
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+
+  const getCurrentCoords = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation not supported on this device.')
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = `${pos.coords.latitude},${pos.coords.longitude}`
+        setLocation(coords)
+
+        if (selectedTask) {
+          handleLocationChange(selectedTask.id, coords)
+        }
+      },
+      (err) => {
+        alert('Failed to get location: ' + err.message)
+      },
+      { enableHighAccuracy: true }
+    )
+  }
 
   // Prefill when a task is selected
   useEffect(() => {
@@ -54,6 +77,7 @@ export default function TaskInformationWindow({
           ...task,
           caption: existingAnswer?.caption || '',
           answer: existingAnswer?.answer || '',
+          location: existingAnswer?.location || '',
         }
       })
     )
@@ -63,7 +87,8 @@ export default function TaskInformationWindow({
     if (!selectedTask) return
     const task = editableTasks.find((t) => t.id === selectedTask.id)
     setCaption(task?.caption || '')
-    setPreviewUrl(task?.answer || '') // this will now show the latest image path
+    setPreviewUrl(task?.answer || '')
+    setLocation(task?.location || '')
   }, [selectedTask, editableTasks])
 
   const handleCaptionChange = (taskId: string, value: string) => {
@@ -75,6 +100,12 @@ export default function TaskInformationWindow({
   const handleAnswerChange = (taskId: string, answer: string) => {
     setEditableTasks((prev) =>
       prev.map((t) => (t.id === taskId ? { ...t, answer } : t))
+    )
+  }
+
+  const handleLocationChange = (taskId: string, location: string) => {
+    setEditableTasks((prev) =>
+      prev.map((t) => (t.id === taskId ? { ...t, location } : t))
     )
   }
 
@@ -125,9 +156,11 @@ export default function TaskInformationWindow({
               id: selectedTask.id,
               caption,
               answer: uploadedPath,
+              location,
               description: selectedTask.description || '',
               isImage: selectedTask.isImage,
               requiresCaption: selectedTask.requiresCaption,
+              isLocation: selectedTask.requiresCaption,
               completed: false,
             },
           ],
@@ -208,7 +241,6 @@ export default function TaskInformationWindow({
                 </button>
               </DialogClose>
             </div>
-
             {selectedTask.requiresCaption && (
               <label className="block mb-4 text-sm font-medium">
                 Caption:
@@ -241,7 +273,6 @@ export default function TaskInformationWindow({
                 </TooltipProvider>
               </label>
             )}
-
             {selectedTask.isImage && (
               <div className="mb-4">
                 <label className="block text-sm font-medium mb-1">
@@ -282,6 +313,41 @@ export default function TaskInformationWindow({
                     className="h-20 w-20 rounded object-cover mb-2"
                   />
                 )}
+              </div>
+            )}
+            {selectedTask.isLocation && (
+              <div className="mb-4">
+                <label className="block mb-1 text-sm font-medium">
+                  Location:
+                </label>
+
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={location}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      setLocation(value)
+                      if (selectedTask)
+                        handleLocationChange(selectedTask.id, value)
+                    }}
+                    className={`border p-1 rounded w-full ${readOnly ? 'bg-gray-100' : ''}`}
+                    placeholder="Press button to fill coordinates"
+                    disabled={readOnly}
+                  />
+
+                  <button
+                    onClick={getCurrentCoords}
+                    disabled={readOnly}
+                    className={`px-3 py-1 rounded text-white ${
+                      readOnly
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : 'bg-green-600 hover:bg-green-700'
+                    }`}
+                  >
+                    Use My Location
+                  </button>
+                </div>
               </div>
             )}
 

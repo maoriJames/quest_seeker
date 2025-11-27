@@ -9,8 +9,10 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
   const [task, setTask] = useState('')
   const [isImageTask, setIsImageTask] = useState(false)
   const [requiresCaption, setRequiresCaption] = useState(false)
+  const [isLocation, setIsLocation] = useState(false)
   const [answer, setAnswer] = useState('')
   const [caption, setCaption] = useState('')
+  const [location, setLocation] = useState('')
   const [tasks, setTasks] = useState<Task[]>(questUpdates)
 
   const [editIndex, setEditIndex] = useState(-1)
@@ -35,8 +37,10 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
           description: task,
           isImage: isImageTask,
           requiresCaption,
+          isLocation,
           caption,
           answer,
+          location,
         }
       } else {
         const newTask: Task = {
@@ -44,8 +48,10 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
           description: task,
           isImage: isImageTask,
           requiresCaption,
+          isLocation,
           caption: '',
           answer: '',
+          location: '',
           completed: false,
         }
 
@@ -59,6 +65,7 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
       setRequiresCaption(false)
       setAnswer('')
       setCaption('')
+      setLocation('')
     }
   }
 
@@ -90,6 +97,15 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
           onChange={(e) => setRequiresCaption(e.target.checked)}
         />
         <span>Require Caption</span>
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <input
+          type="checkbox"
+          checked={isLocation}
+          onChange={(e) => setIsLocation(e.target.checked)}
+        />
+        <span>Require Location</span>
       </div>
 
       <button

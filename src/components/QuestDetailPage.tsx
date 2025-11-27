@@ -349,6 +349,17 @@ export default function QuestDetailPage() {
             <Toolbar
               buttons={[
                 { label: 'Home', onClick: () => navigate('/user/region') },
+                {
+                  label: 'My Account',
+                  onClick: () => navigate('/user/account'),
+                },
+                {
+                  label: 'My Quests',
+                  onClick: () =>
+                    navigate('/user/account', {
+                      state: { defaultTab: 'my-quests' },
+                    }),
+                },
                 { label: 'About Us', onClick: () => navigate('/user/about') },
                 { label: 'FAQ', onClick: () => navigate('/user/faq') },
               ]}
