@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 import { HiMenu, HiX } from 'react-icons/hi'
 
 interface ToolbarButton {
-  label: string
+  label: React.ReactNode
   onClick: () => void
   icon?: React.ReactNode
   variant?: 'default' | 'outline' | 'destructive' | 'ghost'

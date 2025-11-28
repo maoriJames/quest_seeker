@@ -2,6 +2,7 @@ import { Card } from '@aws-amplify/ui-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { CardContent } from './ui/card'
 import { MyQuest, Profile } from '@/types'
+import { Button } from './ui/button'
 
 type MyQuestsProps = {
   profile: Profile
@@ -43,12 +44,9 @@ export default function ExpiredQuests({ profile }: MyQuestsProps) {
             </ul>
           )}
         </div>
-        <button
-          className="mt-4 px-4 py-2 bg-gray-200 rounded"
-          onClick={() => navigate('/user/region')}
-        >
+        <Button variant="yellow" onClick={() => navigate('/user/region')}>
           Back to Home
-        </button>
+        </Button>
       </CardContent>
     </Card>
   )

@@ -2,7 +2,13 @@ import { Dispatch, SetStateAction, ImgHTMLAttributes } from 'react'
 import { QuestStatus } from './graphql/API'
 
 // ---------------- Quests ----------------
-export type Status = 'draft' | 'published' | 'expired' | 'archived'
+export type Status =
+  | 'draft'
+  | 'published'
+  | 'expired'
+  | 'archived'
+  | 'upcoming'
+  | 'occurrring'
 
 export type Quest = {
   id: string
@@ -16,6 +22,7 @@ export type Quest = {
   region?: string | null
   creator_id?: string | null
   status: Status | null
+  participants: string
 }
 
 // ---------------- Profiles ----------------
