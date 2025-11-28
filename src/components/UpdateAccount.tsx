@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from './ui/select'
 import imageCompression from 'browser-image-compression'
+import { Button } from './ui/button'
 
 type ProfileProps = {
   profile: Profile
@@ -238,13 +239,9 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
           </>
         )}
 
-        {/* Return button */}
-        <button
-          className="mt-4 px-4 py-2 bg-gray-200 rounded"
-          onClick={() => navigate('/user/region')}
-        >
+        <Button variant="yellow" onClick={() => navigate('/user/region')}>
           Back to Home
-        </button>
+        </Button>
       </CardContent>
     </Card>
   )

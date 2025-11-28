@@ -24,7 +24,7 @@ import {
   DialogTrigger,
 } from '@radix-ui/react-dialog'
 import TaskInformationWindow from './TaskInformationWindow'
-import { Pencil } from 'lucide-react'
+import { Pencil, Home } from 'lucide-react'
 import {
   Tooltip,
   TooltipContent,
@@ -211,7 +211,31 @@ export default function QuestDetailPage() {
       }
 
       await addQuestToProfile(quest.id, [userQuestEntry])
+
+      // --- Update Quest participants safely ---
+      const currentParticipants: string[] = quest.participants
+        ? JSON.parse(quest.participants)
+        : []
+
+      // Only add if not already in the array
+      if (!currentParticipants.includes(currentUserProfile!.id)) {
+        currentParticipants.push(currentUserProfile!.id)
+      }
+
+      await client.graphql({
+        query: mutations.updateQuest,
+        variables: {
+          input: {
+            id: quest.id,
+            participants: JSON.stringify(currentParticipants),
+          },
+        },
+        authMode: 'userPool',
+      })
+
       alert('✅ Quest added to your profile!')
+
+      await refetch()
     } catch (err) {
       console.error(err)
       alert('❌ Failed to join quest.')
@@ -293,6 +317,10 @@ export default function QuestDetailPage() {
     setTasks(updatedTasks)
   }
 
+  const participantsArray: string[] = quest.participants
+    ? JSON.parse(quest.participants)
+    : []
+
   const isOwner =
     currentUserProfile?.id === quest.creator_id &&
     currentUserProfile?.role === 'creator'
@@ -348,7 +376,10 @@ export default function QuestDetailPage() {
           <CardContent className="p-6 flex-1 text-left">
             <Toolbar
               buttons={[
-                { label: 'Home', onClick: () => navigate('/user/region') },
+                {
+                  label: <Home className="w-5 h-5" />,
+                  onClick: () => navigate('/user/region'),
+                },
                 {
                   label: 'My Account',
                   onClick: () => navigate('/user/account'),
@@ -547,6 +578,10 @@ export default function QuestDetailPage() {
                 <p className="text-sm text-gray-500">
                   Entry: <strong>${quest.quest_entry}</strong>
                 </p>
+                <p className="text-sm text-gray-500">
+                  People joined:{' '}
+                  <strong>{participantsArray.length || 0}</strong>
+                </p>
               </div>
 
               {(isOwner || hasJoined) && (
@@ -562,13 +597,7 @@ export default function QuestDetailPage() {
                   />
                 </div>
               )}
-              {/* {!isOwner && !hasJoined && (
-                <div className="border rounded-lg p-4 bg-gray-50 shadow-inner max-h-64 lg:w-[450px] w-full overflow-y-auto">
-                  <h2 className="text-lg font-semibold mb-2 text-gray-800">
-                    Number of tasks in this quest: {tasks.length}
-                  </h2>
-                </div>
-              )} */}
+
               {!isOwner && !hasJoined && <TaskPreview tasks={tasks} />}
             </div>
             {/* Bottom action row: Delete/Join (left) + Back + Prize Info (right) */}
@@ -605,10 +634,7 @@ export default function QuestDetailPage() {
               {/* Right: Back + Prize Info */}
               <div className="flex items-center gap-3 ml-auto">
                 {/* ⬅️ Back to Quests */}
-                <Button
-                  onClick={() => navigate(-1)}
-                  className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded"
-                >
+                <Button onClick={() => navigate(-1)} variant="yellow">
                   Back to Quests
                 </Button>
 

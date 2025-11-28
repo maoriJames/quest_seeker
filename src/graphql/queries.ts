@@ -41,6 +41,7 @@ export const getQuest = /* GraphQL */ `query GetQuest($id: ID!) {
     createdAt
     creator_id
     id
+    participants
     quest_details
     quest_end
     quest_entry
@@ -105,6 +106,7 @@ export const listQuests = /* GraphQL */ `query ListQuests(
       createdAt
       creator_id
       id
+      participants
       quest_details
       quest_end
       quest_entry

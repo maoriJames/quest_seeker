@@ -10,6 +10,7 @@ import { generateClient } from 'aws-amplify/api'
 import { getQuest } from '@/graphql/queries'
 import { useLocation } from 'react-router-dom'
 import ExpiredQuests from '@/components/ExpiredQuests'
+import { cn } from '@/lib/utils'
 
 const client = generateClient()
 
@@ -168,27 +169,34 @@ export default function AccountPage() {
       {/* Tab buttons */}
       <div className="flex gap-2 mb-6">
         <button
-          className={`px-4 py-2 rounded ${
-            activeTab === 'account' ? 'bg-blue-500 text-white' : 'bg-gray-200'
-          }`}
+          className={cn(
+            'px-4 py-2 rounded transition-colors',
+            activeTab === 'account'
+              ? 'bg-yellow-500 text-black hover:bg-yellow-600'
+              : 'bg-gray-800 text-gray-300 hover:bg-yellow-500 hover:text-black'
+          )}
           onClick={() => setActiveTab('account')}
         >
           My Account
         </button>
         <button
-          className={`px-4 py-2 rounded ${
-            activeTab === 'my-quests' ? 'bg-blue-500 text-white' : 'bg-gray-200'
-          }`}
+          className={cn(
+            'px-4 py-2 rounded transition-colors',
+            activeTab === 'my-quests'
+              ? 'bg-yellow-500 text-black hover:bg-yellow-600'
+              : 'bg-gray-800 text-gray-300 hover:bg-yellow-500 hover:text-black'
+          )}
           onClick={() => setActiveTab('my-quests')}
         >
           My Quests
         </button>
         <button
-          className={`px-4 py-2 rounded ${
+          className={cn(
+            'px-4 py-2 rounded transition-colors',
             activeTab === 'expired-quests'
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-200'
-          }`}
+              ? 'bg-yellow-500 text-black hover:bg-yellow-600'
+              : 'bg-gray-800 text-gray-300 hover:bg-yellow-500 hover:text-black'
+          )}
           onClick={() => setActiveTab('expired-quests')}
         >
           Expired Quests

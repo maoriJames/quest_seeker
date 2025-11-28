@@ -6,10 +6,10 @@ import { Card, CardContent } from '@/components/ui/card'
 import bg from '@/assets/images/background_main.png'
 import type { MyQuest, Profile, Quest } from '@/types'
 import AddQuestButton from '@/components/AddQuestButton'
-import HomeButton from '@/components/HomeButton'
 import { useProfileList } from '@/hooks/userProfiles'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import { Toolbar } from '@/components/Toolbar'
+import { Home } from 'lucide-react'
 
 export default function QuestPage() {
   const location = useLocation()
@@ -157,27 +157,33 @@ export default function QuestPage() {
     >
       <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl max-w-5xl w-full flex flex-col">
         <CardContent className="flex flex-col gap-4">
-          <Toolbar
-            buttons={[
-              { label: 'Home', onClick: () => navigate('/user/region') },
-              { label: 'My Account', onClick: () => navigate('/user/account') },
-              {
-                label: 'My Quests',
-                onClick: () =>
-                  navigate('/user/account', {
-                    state: { defaultTab: 'my-quests' },
-                  }),
-              },
-              { label: 'About Us', onClick: () => navigate('/user/about') },
-              { label: 'FAQ', onClick: () => navigate('/user/faq') },
-            ]}
-          />
-
-          {/* Top: Page title + add quest button */}
-          <div className="w-full flex justify-between items-center mb-2">
-            <AddQuestButton to="/user/quest/create" />
+          <div className="flex items-center justify-between w-full">
+            <Toolbar
+              buttons={[
+                {
+                  label: <Home className="w-5 h-5" />,
+                  onClick: () => navigate('/user/region'),
+                },
+                {
+                  label: 'My Account',
+                  onClick: () => navigate('/user/account'),
+                },
+                {
+                  label: 'My Quests',
+                  onClick: () =>
+                    navigate('/user/account', {
+                      state: { defaultTab: 'my-quests' },
+                    }),
+                },
+                { label: 'About Us', onClick: () => navigate('/user/about') },
+                { label: 'FAQ', onClick: () => navigate('/user/faq') },
+                {
+                  label: <AddQuestButton to="/user/quest/create" />,
+                  onClick: () => {}, // no navigation required
+                },
+              ]}
+            />
           </div>
-
           {/* Search + Sort Controls */}
           <div className="flex flex-col sm:flex-row gap-2 justify-between items-center mb-2">
             {/* Search */}
@@ -236,9 +242,9 @@ export default function QuestPage() {
           </InfiniteScroll>
 
           {/* Bottom: Home button centered */}
-          <div className="flex justify-center mt-4">
+          {/* <div className="flex justify-center mt-4">
             <HomeButton />
-          </div>
+          </div> */}
         </CardContent>
       </Card>
     </div>
