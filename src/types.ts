@@ -42,6 +42,7 @@ export type Profile = {
   secondary_contact_name: string
   secondary_contact_position: string
   secondary_contact_phone: string
+  about_me: string
   image: string
   image_thumbnail: string
   role: Role
@@ -80,6 +81,7 @@ export type OnNewTaskFunction = (updatedTasks: Task[]) => void
 
 export type MyQuest = {
   quest_id: string
+  creator_id?: string
   title: string | undefined
   tasks: Task[]
   progress?: number

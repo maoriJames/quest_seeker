@@ -1,4 +1,4 @@
-import { generateClient } from 'aws-amplify/data'
+import { generateClient, GraphQLResult } from 'aws-amplify/data'
 import * as mutations from '@/graphql/mutations'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuest } from '@/hooks/userQuests'
@@ -10,7 +10,7 @@ import { Card, VisuallyHidden } from '@aws-amplify/ui-react'
 import { Button } from './ui/button'
 import { CardContent } from './ui/card'
 import { useEffect, useState } from 'react'
-import { Prize, MyQuest, Sponsor, Task } from '@/types'
+import { Prize, MyQuest, Sponsor, Task, Profile } from '@/types'
 import { addQuestToProfile } from '@/hooks/addQuestToProfile'
 import RemoteImage from './RemoteImage'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
@@ -40,7 +40,8 @@ import SponsorCreatorButton from './SponsorCreatorButton'
 // import { Edit, Trash, Plus } from 'lucide-react'
 import { Toolbar } from './Toolbar'
 import TaskPreview from './TaskPreview'
-import { QuestStatus } from '@/graphql/API'
+import { GetProfileQuery, QuestStatus } from '@/graphql/API'
+import { getProfile } from '@/graphql/queries'
 
 export default function QuestDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -55,6 +56,9 @@ export default function QuestDetailPage() {
   const { data: quest, isLoading, error, refetch } = useQuest(id)
   const questCreatorProfile = useProfile(quest?.creator_id || '')
   const { data: currentUserProfile } = useCurrentUserProfile()
+  const [participantProfiles, setParticipantProfiles] = useState<Profile[]>([])
+  const [participantsLoaded, setParticipantsLoaded] = useState(false)
+
   const [editName, setEditName] = useState(quest?.quest_name || '')
   const [editDetails, setEditDetails] = useState(quest?.quest_details || '')
   const [currentImageFile, setCurrentImageFile] = useState(
@@ -366,6 +370,33 @@ export default function QuestDetailPage() {
   })()
   const displayedSponsors = sponsors.slice(0, 2)
 
+  const handleOpenParticipants = async () => {
+    if (participantsLoaded) return
+
+    try {
+      const profiles = await Promise.all(
+        participantsArray.map(async (id) => {
+          const res = await client.graphql<GraphQLResult<GetProfileQuery>>({
+            query: getProfile,
+            variables: { id },
+            authMode: 'userPool',
+          })
+
+          // Type guard: only access 'data' if it exists
+          if ('data' in res) {
+            return res.data?.getProfile ?? null
+          }
+
+          return null
+        })
+      )
+
+      setParticipantProfiles(profiles.filter(Boolean) as Profile[])
+      setParticipantsLoaded(true)
+    } catch (err) {
+      console.error('Failed to fetch participant profiles:', err)
+    }
+  }
   return (
     <div
       className="relative min-h-screen flex items-center justify-center bg-cover bg-center"
@@ -579,8 +610,64 @@ export default function QuestDetailPage() {
                   Entry: <strong>${quest.quest_entry}</strong>
                 </p>
                 <p className="text-sm text-gray-500">
-                  People joined:{' '}
-                  <strong>{participantsArray.length || 0}</strong>
+                  People joined:
+                  {participantsArray.length > 0 && (
+                    <Dialog
+                      onOpenChange={(open) => open && handleOpenParticipants()}
+                    >
+                      <DialogTrigger asChild>
+                        <button className="text-blue-600 underline font-medium text-sm">
+                          {participantsArray.length} participant
+                          {participantsArray.length > 1 ? 's' : ''}
+                        </button>
+                      </DialogTrigger>
+
+                      <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
+                      <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[70vh] w-full max-w-md bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
+                        <DialogTitle className="text-lg font-bold mb-4">
+                          Participants
+                        </DialogTitle>
+
+                        <div className="flex flex-col gap-3">
+                          {participantProfiles.map((profile) => (
+                            <div
+                              key={profile.id}
+                              className="flex items-center gap-3"
+                            >
+                              <RemoteImage
+                                path={profile.image_thumbnail || placeHold}
+                                fallback={placeHold}
+                                className="w-32 h-32 rounded-full object-cover"
+                              />
+
+                              {/* Text stacked vertically */}
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium">
+                                  <strong>
+                                    {profile.full_name || 'Unknown'}
+                                  </strong>
+                                </span>
+
+                                <span className="text-xs text-gray-600">
+                                  {profile.about_me || ''}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+
+                          {participantProfiles.length === 0 && (
+                            <p className="text-gray-500">Loading...</p>
+                          )}
+                        </div>
+
+                        <DialogClose asChild>
+                          <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
+                            Close
+                          </button>
+                        </DialogClose>
+                      </DialogContent>
+                    </Dialog>
+                  )}
                 </p>
               </div>
 

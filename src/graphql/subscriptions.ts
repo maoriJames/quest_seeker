@@ -10,6 +10,7 @@ type GeneratedSubscription<InputType, OutputType> = string & {
 
 export const onCreateProfile = /* GraphQL */ `subscription OnCreateProfile($filter: ModelSubscriptionProfileFilterInput) {
   onCreateProfile(filter: $filter) {
+    about_me
     business_type
     createdAt
     email
@@ -65,6 +66,7 @@ export const onCreateQuest = /* GraphQL */ `subscription OnCreateQuest($filter: 
 >;
 export const onDeleteProfile = /* GraphQL */ `subscription OnDeleteProfile($filter: ModelSubscriptionProfileFilterInput) {
   onDeleteProfile(filter: $filter) {
+    about_me
     business_type
     createdAt
     email
@@ -120,6 +122,7 @@ export const onDeleteQuest = /* GraphQL */ `subscription OnDeleteQuest($filter: 
 >;
 export const onUpdateProfile = /* GraphQL */ `subscription OnUpdateProfile($filter: ModelSubscriptionProfileFilterInput) {
   onUpdateProfile(filter: $filter) {
+    about_me
     business_type
     createdAt
     email

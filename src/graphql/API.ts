@@ -4,6 +4,7 @@
 
 export type Profile = {
   __typename: "Profile",
+  about_me?: string | null,
   business_type?: string | null,
   createdAt: string,
   email?: string | null,
@@ -64,6 +65,7 @@ export enum QuestStatus {
 
 
 export type ModelProfileFilterInput = {
+  about_me?: ModelStringInput | null,
   and?: Array< ModelProfileFilterInput | null > | null,
   business_type?: ModelStringInput | null,
   createdAt?: ModelStringInput | null,
@@ -210,6 +212,7 @@ export type ModelQuestConnection = {
 };
 
 export type ModelProfileConditionInput = {
+  about_me?: ModelStringInput | null,
   and?: Array< ModelProfileConditionInput | null > | null,
   business_type?: ModelStringInput | null,
   createdAt?: ModelStringInput | null,
@@ -234,6 +237,7 @@ export type ModelProfileConditionInput = {
 };
 
 export type CreateProfileInput = {
+  about_me?: string | null,
   business_type?: string | null,
   email?: string | null,
   full_name?: string | null,
@@ -304,6 +308,7 @@ export type DeleteQuestInput = {
 };
 
 export type UpdateProfileInput = {
+  about_me?: string | null,
   business_type?: string | null,
   email?: string | null,
   full_name?: string | null,
@@ -343,6 +348,7 @@ export type UpdateQuestInput = {
 };
 
 export type ModelSubscriptionProfileFilterInput = {
+  about_me?: ModelSubscriptionStringInput | null,
   and?: Array< ModelSubscriptionProfileFilterInput | null > | null,
   business_type?: ModelSubscriptionStringInput | null,
   createdAt?: ModelSubscriptionStringInput | null,
@@ -443,6 +449,7 @@ export type GetProfileQueryVariables = {
 export type GetProfileQuery = {
   getProfile?:  {
     __typename: "Profile",
+    about_me?: string | null,
     business_type?: string | null,
     createdAt: string,
     email?: string | null,
@@ -504,6 +511,7 @@ export type ListProfilesQuery = {
     __typename: "ModelProfileConnection",
     items:  Array< {
       __typename: "Profile",
+      about_me?: string | null,
       business_type?: string | null,
       createdAt: string,
       email?: string | null,
@@ -570,6 +578,7 @@ export type CreateProfileMutationVariables = {
 export type CreateProfileMutation = {
   createProfile?:  {
     __typename: "Profile",
+    about_me?: string | null,
     business_type?: string | null,
     createdAt: string,
     email?: string | null,
@@ -629,6 +638,7 @@ export type DeleteProfileMutationVariables = {
 export type DeleteProfileMutation = {
   deleteProfile?:  {
     __typename: "Profile",
+    about_me?: string | null,
     business_type?: string | null,
     createdAt: string,
     email?: string | null,
@@ -688,6 +698,7 @@ export type UpdateProfileMutationVariables = {
 export type UpdateProfileMutation = {
   updateProfile?:  {
     __typename: "Profile",
+    about_me?: string | null,
     business_type?: string | null,
     createdAt: string,
     email?: string | null,
@@ -746,6 +757,7 @@ export type OnCreateProfileSubscriptionVariables = {
 export type OnCreateProfileSubscription = {
   onCreateProfile?:  {
     __typename: "Profile",
+    about_me?: string | null,
     business_type?: string | null,
     createdAt: string,
     email?: string | null,
@@ -803,6 +815,7 @@ export type OnDeleteProfileSubscriptionVariables = {
 export type OnDeleteProfileSubscription = {
   onDeleteProfile?:  {
     __typename: "Profile",
+    about_me?: string | null,
     business_type?: string | null,
     createdAt: string,
     email?: string | null,
@@ -860,6 +873,7 @@ export type OnUpdateProfileSubscriptionVariables = {
 export type OnUpdateProfileSubscription = {
   onUpdateProfile?:  {
     __typename: "Profile",
+    about_me?: string | null,
     business_type?: string | null,
     createdAt: string,
     email?: string | null,

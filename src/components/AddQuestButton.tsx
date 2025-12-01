@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,
@@ -73,7 +73,10 @@ export default function AddQuestButton({ to }: AddQuestButtonProps) {
               className="flex items-center justify-center h-auto w-auto p-0 bg-transparent hover:bg-transparent"
               onClick={handleClick}
             >
-              <Plus className="h-4 w-4 text-black" />
+              {/* Replace the icon with text */}
+              <span className="text-black text-sm font-medium">
+                Create a Quest
+              </span>
             </Button>
           </TooltipTrigger>
           <TooltipContent

@@ -10,6 +10,7 @@ type GeneratedQuery<InputType, OutputType> = string & {
 
 export const getProfile = /* GraphQL */ `query GetProfile($id: ID!) {
   getProfile(id: $id) {
+    about_me
     business_type
     createdAt
     email
@@ -67,6 +68,7 @@ export const listProfiles = /* GraphQL */ `query ListProfiles(
 ) {
   listProfiles(filter: $filter, limit: $limit, nextToken: $nextToken) {
     items {
+      about_me
       business_type
       createdAt
       email
