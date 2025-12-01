@@ -55,7 +55,9 @@ export default function QuestDetailPage() {
   // 🧩 Fetch quest data
   const { data: quest, isLoading, error, refetch } = useQuest(id)
   const questCreatorProfile = useProfile(quest?.creator_id || '')
-  const { data: currentUserProfile } = useCurrentUserProfile()
+  const { data: currentUserProfile, refetch: refetchProfile } =
+    useCurrentUserProfile()
+
   const [participantProfiles, setParticipantProfiles] = useState<Profile[]>([])
   const [participantsLoaded, setParticipantsLoaded] = useState(false)
 
@@ -239,7 +241,8 @@ export default function QuestDetailPage() {
 
       alert('✅ Quest added to your profile!')
 
-      await refetch()
+      await await refetch()
+      await refetchProfile()
     } catch (err) {
       console.error(err)
       alert('❌ Failed to join quest.')
@@ -302,6 +305,8 @@ export default function QuestDetailPage() {
       })
 
       await refetch()
+      await refetchProfile()
+
       alert('Quest updated successfully!')
 
       // Reset preview and file
@@ -679,6 +684,7 @@ export default function QuestDetailPage() {
                     userTasks={myQuestsArray}
                     onTasksUpdated={async () => {
                       await refetch()
+                      await refetchProfile()
                     }}
                     readOnly={isOwner} // <-- owner cannot answer tasks
                   />
