@@ -29,7 +29,7 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
   const [previewImage, setPreviewImage] = useState(profile.image || '')
   const [oldImagePath, setOldImagePath] = useState(profile.image || '')
   const [oldImageThumbPath, setOldImageThumbPath] = useState(
-    profile.image || ''
+    profile.image_thumbnail || ''
   )
 
   // ✅ Keep oldImagePath updated when profile changes
@@ -38,6 +38,12 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
       setOldImagePath(profile.image)
     }
   }, [profile.image])
+
+  useEffect(() => {
+    if (profile.image_thumbnail) {
+      setOldImageThumbPath(profile.image_thumbnail)
+    }
+  }, [profile.image_thumbnail])
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -153,6 +159,13 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
             value={profile.primary_contact_phone}
             onSave={(newValue) => onUpdate({ primary_contact_phone: newValue })}
             required
+          />
+        )}
+        {profile.about_me && (
+          <InlineEditField
+            label="About me"
+            value={profile.about_me}
+            onSave={(newValue) => onUpdate({ about_me: newValue })}
           />
         )}
 

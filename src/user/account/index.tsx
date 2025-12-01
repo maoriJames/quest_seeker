@@ -29,6 +29,7 @@ export default function AccountPage() {
     primary_contact_name: '',
     primary_contact_position: '',
     primary_contact_phone: '',
+    about_me: '',
     secondary_contact_name: '',
     secondary_contact_position: '',
     secondary_contact_phone: '',
@@ -69,6 +70,7 @@ export default function AccountPage() {
       primary_contact_name: currentProfile.primary_contact_name ?? '',
       primary_contact_position: currentProfile.primary_contact_position ?? '',
       primary_contact_phone: currentProfile.primary_contact_phone ?? '',
+      about_me: currentProfile.about_me ?? '',
       secondary_contact_name: currentProfile.secondary_contact_name ?? '',
       secondary_contact_position:
         currentProfile.secondary_contact_position ?? '',
@@ -146,6 +148,7 @@ export default function AccountPage() {
         profileData.primary_contact_position,
       primary_contact_phone:
         updates.primary_contact_phone ?? profileData.primary_contact_phone,
+      about_me: updates.about_me ?? profileData.about_me,
       secondary_contact_name:
         updates.secondary_contact_name ?? profileData.secondary_contact_name,
       secondary_contact_position:
@@ -154,6 +157,7 @@ export default function AccountPage() {
       secondary_contact_phone:
         updates.secondary_contact_phone ?? profileData.secondary_contact_phone,
       image: updates.image ?? profileData.image,
+      image_thumbnail: updates.image_thumbnail ?? profileData.image_thumbnail,
       role: toProfileRole(updates.role ?? profileData.role),
     }
 
@@ -190,7 +194,7 @@ export default function AccountPage() {
         >
           My Quests
         </button>
-        <button
+        {/* <button
           className={cn(
             'px-4 py-2 rounded transition-colors',
             activeTab === 'expired-quests'
@@ -200,7 +204,7 @@ export default function AccountPage() {
           onClick={() => setActiveTab('expired-quests')}
         >
           Expired Quests
-        </button>
+        </button> */}
       </div>
 
       {/* Tab content */}

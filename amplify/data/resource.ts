@@ -39,6 +39,7 @@ const schema = a.schema({
       primary_contact_name: a.string(),
       primary_contact_position: a.string(),
       primary_contact_phone: a.string(),
+      about_me: a.string(),
       secondary_contact_name: a.string(),
       secondary_contact_position: a.string(),
       secondary_contact_phone: a.string(),

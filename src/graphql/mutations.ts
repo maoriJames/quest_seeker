@@ -13,6 +13,7 @@ export const createProfile = /* GraphQL */ `mutation CreateProfile(
   $input: CreateProfileInput!
 ) {
   createProfile(condition: $condition, input: $input) {
+    about_me
     business_type
     createdAt
     email
@@ -74,6 +75,7 @@ export const deleteProfile = /* GraphQL */ `mutation DeleteProfile(
   $input: DeleteProfileInput!
 ) {
   deleteProfile(condition: $condition, input: $input) {
+    about_me
     business_type
     createdAt
     email
@@ -135,6 +137,7 @@ export const updateProfile = /* GraphQL */ `mutation UpdateProfile(
   $input: UpdateProfileInput!
 ) {
   updateProfile(condition: $condition, input: $input) {
+    about_me
     business_type
     createdAt
     email
