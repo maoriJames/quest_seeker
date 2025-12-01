@@ -43,6 +43,7 @@ export default function QuestPage() {
         primary_contact_name: p.primary_contact_name ?? '',
         primary_contact_position: p.primary_contact_position ?? '',
         primary_contact_phone: p.primary_contact_phone ?? '',
+        about_me: p.about_me ?? '',
         secondary_contact_name: p.secondary_contact_name ?? '',
         secondary_contact_position: p.secondary_contact_position ?? '',
         secondary_contact_phone: p.secondary_contact_phone ?? '',
