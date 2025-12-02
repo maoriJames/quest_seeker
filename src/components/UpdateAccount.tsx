@@ -153,21 +153,21 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
             required
           />
         )}
-        {profile.primary_contact_phone && (
-          <InlineEditField
-            label="Phone"
-            value={profile.primary_contact_phone}
-            onSave={(newValue) => onUpdate({ primary_contact_phone: newValue })}
-            required
-          />
-        )}
-        {profile.about_me && (
-          <InlineEditField
-            label="About me"
-            value={profile.about_me}
-            onSave={(newValue) => onUpdate({ about_me: newValue })}
-          />
-        )}
+
+        <InlineEditField
+          label="Phone"
+          value={profile.primary_contact_phone || ''}
+          onSave={(newValue) => onUpdate({ primary_contact_phone: newValue })}
+        />
+
+        <InlineEditTextarea
+          label="About me"
+          value={profile.about_me || ''}
+          onSave={(newValue) => {
+            console.log('ABOUT ME SAVING:', newValue)
+            onUpdate({ about_me: newValue })
+          }}
+        />
 
         {/* Creator-only fields */}
         {profile.role === 'creator' && (

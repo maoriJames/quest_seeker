@@ -176,7 +176,10 @@ export default function QuestPage() {
                       state: { defaultTab: 'my-quests' },
                     }),
                 },
-                { label: 'About Us', onClick: () => navigate('/user/about') },
+                {
+                  label: 'Leader Board',
+                  onClick: () => navigate('/user/leader'),
+                },
                 { label: 'FAQ', onClick: () => navigate('/user/faq') },
                 {
                   label: <AddQuestButton to="/user/quest/create" />,
