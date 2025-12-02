@@ -9,8 +9,8 @@ import AccountPage from './user/account'
 import QuestPage from './user/quest'
 import CreateQuestPage from './user/quest/create'
 import QuestDetailPage from './components/QuestDetailPage'
-import AboutUs from './user/about'
 import Faq from './user/faq'
+import Leader from './user/leader'
 
 const queryClient = new QueryClient()
 
@@ -28,7 +28,7 @@ function UserRoutes() {
         <Route path="account" element={<AccountPage />} />
         <Route path="quest/create" element={<CreateQuestPage />} />
         <Route path="quest/:id" element={<QuestDetailPage />} />
-        <Route path="about" element={<AboutUs />} />
+        <Route path="leader" element={<Leader />} />
         <Route path="faq" element={<Faq />} />
 
         {/* catch any /auth path and redirect */}

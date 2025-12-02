@@ -127,42 +127,33 @@ export default function AccountPage() {
   const handleUpdate = (updates: Partial<Profile>) => {
     if (!profileData.id) return
 
-    setProfileData((prev) => ({ ...prev, ...updates }))
+    const merged = { ...profileData, ...updates }
+
+    setProfileData(merged)
 
     const input: UpdateProfileInput = {
-      id: profileData.id,
-      full_name: updates.full_name ?? profileData.full_name,
-      email: updates.email ?? profileData.email,
-      organization_name:
-        updates.organization_name ?? profileData.organization_name,
-      registration_number:
-        updates.registration_number ?? profileData.registration_number,
-      business_type: updates.business_type ?? profileData.business_type,
-      organization_description:
-        updates.organization_description ??
-        profileData.organization_description,
-      primary_contact_name:
-        updates.primary_contact_name ?? profileData.primary_contact_name,
-      primary_contact_position:
-        updates.primary_contact_position ??
-        profileData.primary_contact_position,
-      primary_contact_phone:
-        updates.primary_contact_phone ?? profileData.primary_contact_phone,
-      about_me: updates.about_me ?? profileData.about_me,
-      secondary_contact_name:
-        updates.secondary_contact_name ?? profileData.secondary_contact_name,
-      secondary_contact_position:
-        updates.secondary_contact_position ??
-        profileData.secondary_contact_position,
-      secondary_contact_phone:
-        updates.secondary_contact_phone ?? profileData.secondary_contact_phone,
-      image: updates.image ?? profileData.image,
-      image_thumbnail: updates.image_thumbnail ?? profileData.image_thumbnail,
-      role: toProfileRole(updates.role ?? profileData.role),
+      id: merged.id,
+      full_name: merged.full_name,
+      email: merged.email,
+      organization_name: merged.organization_name,
+      registration_number: merged.registration_number,
+      business_type: merged.business_type,
+      organization_description: merged.organization_description,
+      primary_contact_name: merged.primary_contact_name,
+      primary_contact_position: merged.primary_contact_position,
+      primary_contact_phone: merged.primary_contact_phone,
+      about_me: merged.about_me,
+      secondary_contact_name: merged.secondary_contact_name,
+      secondary_contact_position: merged.secondary_contact_position,
+      secondary_contact_phone: merged.secondary_contact_phone,
+      image: merged.image,
+      image_thumbnail: merged.image_thumbnail,
+      role: toProfileRole(merged.role),
     }
 
     updateProfile({ input })
   }
+
   console.log('Profile Data: ', profileData)
   // ✅ Render
   return (

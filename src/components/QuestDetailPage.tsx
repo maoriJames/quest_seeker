@@ -427,7 +427,10 @@ export default function QuestDetailPage() {
                       state: { defaultTab: 'my-quests' },
                     }),
                 },
-                { label: 'About Us', onClick: () => navigate('/user/about') },
+                {
+                  label: 'Leader Board',
+                  onClick: () => navigate('/user/leader'),
+                },
                 { label: 'FAQ', onClick: () => navigate('/user/faq') },
               ]}
             />

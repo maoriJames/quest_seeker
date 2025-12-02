@@ -36,10 +36,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({ buttons, className }) => {
       </div>
 
       {/* Mobile Slide-In Menu Under Header */}
-      <div className="fixed inset-x-0 top-0 z-40 md:hidden">
-        {/* Keep toolbar visible on top */}
+      <div className="fixed inset-0 z-40 md:hidden">
+        {/* Toolbar header */}
         <div className="relative z-50">
-          <div className="flex justify-between items-center p-2 border rounded-md bg-black shadow-sm">
+          <div className="flex justify-between items-center p-2 bg-black shadow-sm">
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="text-yellow-500 focus:outline-none"
@@ -49,45 +49,40 @@ export const Toolbar: React.FC<ToolbarProps> = ({ buttons, className }) => {
           </div>
         </div>
 
-        {/* Content area BELOW toolbar */}
-        <div className="relative z-40">
-          {/* Backdrop below the toolbar */}
-          <div
-            onClick={() => setIsOpen(false)}
-            className={cn(
-              'absolute inset-x-0 top-0 bottom-0 bg-black/50 transition-opacity',
-              isOpen
-                ? 'opacity-100 pointer-events-auto'
-                : 'opacity-0 pointer-events-none'
-            )}
-          />
+        {/* Backdrop below the toolbar */}
+        <div
+          onClick={() => setIsOpen(false)}
+          className={cn(
+            'absolute inset-0 bg-black/50 transition-opacity',
+            isOpen
+              ? 'opacity-100 pointer-events-auto'
+              : 'opacity-0 pointer-events-none'
+          )}
+        />
 
-          <div
-            className={cn(
-              'absolute top-[56px] left-0 h-[calc(100%-56px)] w-64 transition-transform',
-              isOpen ? 'translate-x-0' : '-translate-x-[280px]'
-            )}
-          >
-            {/* Background behind buttons */}
-            <div className="absolute inset-0 bg-black shadow-lg rounded-md"></div>
-
-            {/* Button container */}
-            <div className="relative z-10 flex flex-col gap-2 p-4">
-              {buttons.map((btn, i) => (
-                <Button
-                  key={i}
-                  onClick={() => {
-                    btn.onClick?.()
-                    setIsOpen(false)
-                  }}
-                  variant={btn.variant || 'default'}
-                  className="flex items-center gap-2 bg-yellow-500 text-black hover:bg-yellow-600 transition w-full justify-start"
-                >
-                  {btn.icon}
-                  {btn.label}
-                </Button>
-              ))}
-            </div>
+        {/* Slide-in menu */}
+        <div
+          className={cn(
+            'absolute top-[56px] left-0 transition-transform duration-300 ease-in-out z-50',
+            isOpen ? 'translate-x-0' : '-translate-x-[120%]' // move further left
+          )}
+        >
+          {/* Background behind buttons */}
+          <div className="bg-black shadow-lg rounded-md p-4 flex flex-col gap-2">
+            {buttons.map((btn, i) => (
+              <Button
+                key={i}
+                onClick={() => {
+                  btn.onClick?.()
+                  setIsOpen(false)
+                }}
+                variant={btn.variant || 'default'}
+                className="flex items-center gap-2 bg-yellow-500 text-black hover:bg-yellow-600 transition w-full justify-start"
+              >
+                {btn.icon}
+                {btn.label}
+              </Button>
+            ))}
           </div>
         </div>
       </div>
