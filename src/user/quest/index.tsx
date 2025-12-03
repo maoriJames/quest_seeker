@@ -158,7 +158,7 @@ export default function QuestPage() {
     >
       <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl max-w-5xl w-full flex flex-col">
         <CardContent className="flex flex-col gap-4">
-          <div className="flex items-center justify-between w-full">
+          <div className="flex items-center justify-between w-full sticky top-0 z-50 bg-white/80 backdrop-blur-md p-2 rounded-md shadow-md">
             <Toolbar
               buttons={[
                 {
@@ -183,7 +183,7 @@ export default function QuestPage() {
                 { label: 'FAQ', onClick: () => navigate('/user/faq') },
                 {
                   label: <AddQuestButton to="/user/quest/create" />,
-                  onClick: () => {}, // no navigation required
+                  onClick: () => {},
                 },
               ]}
             />

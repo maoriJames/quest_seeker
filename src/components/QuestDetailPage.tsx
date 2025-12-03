@@ -409,34 +409,33 @@ export default function QuestDetailPage() {
     >
       <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl max-w-5xl w-full flex flex-col">
         <CardContent className="flex flex-col gap-4">
-          <div className="flex items-center justify-between w-full">
-            <div className="relative w-[90vw] max-w-[1200px] mx-auto">
-              <Toolbar
-                buttons={[
-                  {
-                    label: <Home className="w-5 h-5" />,
-                    onClick: () => navigate('/user/region'),
-                  },
-                  {
-                    label: 'My Account',
-                    onClick: () => navigate('/user/account'),
-                  },
-                  {
-                    label: 'My Quests',
-                    onClick: () =>
-                      navigate('/user/account', {
-                        state: { defaultTab: 'my-quests' },
-                      }),
-                  },
-                  {
-                    label: 'Leader Board',
-                    onClick: () => navigate('/user/leader'),
-                  },
-                  { label: 'FAQ', onClick: () => navigate('/user/faq') },
-                ]}
-              />
-            </div>
+          <div className="flex items-center justify-between w-full sticky top-0 z-50 bg-white/80 backdrop-blur-md p-2 rounded-md shadow-md">
+            <Toolbar
+              buttons={[
+                {
+                  label: <Home className="w-5 h-5" />,
+                  onClick: () => navigate('/user/region'),
+                },
+                {
+                  label: 'My Account',
+                  onClick: () => navigate('/user/account'),
+                },
+                {
+                  label: 'My Quests',
+                  onClick: () =>
+                    navigate('/user/account', {
+                      state: { defaultTab: 'my-quests' },
+                    }),
+                },
+                {
+                  label: 'Leader Board',
+                  onClick: () => navigate('/user/leader'),
+                },
+                { label: 'FAQ', onClick: () => navigate('/user/faq') },
+              ]}
+            />
           </div>
+
           {/* Banner Image with overlayed quest title + floating sponsors card */}
           <div className="relative w-full mb-20">
             {' '}

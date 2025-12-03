@@ -19,6 +19,7 @@ import {
 import { useCurrentUserProfile } from '@/hooks/userProfiles'
 import { useUpdateProfile } from '@/hooks/userProfiles'
 import { ProfileRole } from '@/graphql/API'
+import { Plus } from 'lucide-react'
 
 type AddQuestButtonProps = {
   to: string
@@ -63,7 +64,7 @@ export default function AddQuestButton({ to }: AddQuestButtonProps) {
   }
 
   return (
-    <div className="ml-auto">
+    <div>
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -74,6 +75,7 @@ export default function AddQuestButton({ to }: AddQuestButtonProps) {
               onClick={handleClick}
             >
               {/* Replace the icon with text */}
+              <Plus />
               <span className="text-black text-sm font-medium">
                 Create a Quest
               </span>

@@ -74,7 +74,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ buttons, className }) => {
                   setIsOpen(false)
                 }}
                 variant={btn.variant || 'default'}
-                className="flex items-center gap-2 bg-yellow-500 text-black hover:bg-yellow-600 transition justify-start"
+                className="flex items-center gap-2 bg-yellow-500 text-black hover:bg-yellow-600 transition justify-center"
               >
                 {btn.icon}
                 {btn.label}
