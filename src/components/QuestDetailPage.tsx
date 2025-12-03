@@ -6,9 +6,9 @@ import { useProfile, useCurrentUserProfile } from '@/hooks/userProfiles'
 import { uploadData } from '@aws-amplify/storage'
 import { useDeleteQuest } from '@/hooks/userQuests'
 import bg from '@/assets/images/background_main.png'
-import { Card, VisuallyHidden } from '@aws-amplify/ui-react'
+import { VisuallyHidden } from '@aws-amplify/ui-react'
 import { Button } from './ui/button'
-import { CardContent } from './ui/card'
+import { Card, CardContent } from './ui/card'
 import { useEffect, useState } from 'react'
 import { Prize, MyQuest, Sponsor, Task, Profile } from '@/types'
 import { addQuestToProfile } from '@/hooks/addQuestToProfile'
@@ -404,12 +404,12 @@ export default function QuestDetailPage() {
   }
   return (
     <div
-      className="relative min-h-screen flex items-center justify-center bg-cover bg-center"
+      className="relative min-h-screen flex items-center justify-center bg-cover bg-center px-4"
       style={{ backgroundImage: `url(${bg})` }}
     >
-      <div className="w-[90vw] max-w-[1200px] mx-auto">
-        <Card className="bg-white/90 backdrop-blur-md shadow-xl rounded-2xl flex flex-col overflow-hidden">
-          <CardContent className="p-6 flex-1 text-left">
+      <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl max-w-5xl w-full flex flex-col">
+        <CardContent className="flex flex-col gap-4">
+          <div className="flex items-center justify-between w-full sticky top-0 z-50 bg-white/80 backdrop-blur-md p-2 rounded-md shadow-md">
             <Toolbar
               buttons={[
                 {
@@ -434,359 +434,77 @@ export default function QuestDetailPage() {
                 { label: 'FAQ', onClick: () => navigate('/user/faq') },
               ]}
             />
+          </div>
 
-            {/* Banner Image with overlayed quest title + floating sponsors card */}
-            <div className="relative w-full mb-20">
-              {' '}
-              {/* Increased bottom margin for the overlap */}
-              {/* Banner Image */}
-              <RemoteImage
-                path={quest.quest_image || placeHold}
-                fallback={placeHold}
-                className="w-full h-[250px] md:h-[350px] object-cover rounded-t-2xl"
-              />
-              {/* Gradient overlay at bottom for contrast */}
-              <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black/70 to-transparent rounded-b-2xl" />
-              {/* Overlayed quest name (left) */}
-              <div className="absolute bottom-8 left-6 z-10">
-                <h1 className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg">
-                  {quest.quest_name}
-                </h1>
-              </div>
-              {/* Floating white sponsors card (right) */}
-              {displayedSponsors.length > 0 && (
-                <div className="absolute left-1/2 md:left-auto md:right-10 bottom-[-60px] transform -translate-x-1/2 md:translate-x-0 bg-white rounded-2xl shadow-xl border border-gray-200 p-4 md:p-5 flex flex-col items-center md:items-end gap-3 w-[90%] md:w-auto z-20">
-                  {/* Featured Sponsors link */}
-                  {sponsors.length >= 3 && (
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <span className="text-sm text-blue-600 font-medium underline cursor-pointer hover:text-blue-800">
-                          Featured Sponsors
-                        </span>
-                      </DialogTrigger>
-                      <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
-                      <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
-                        <DialogTitle className="text-lg font-bold mb-4">
-                          Featured Sponsors
-                        </DialogTitle>
-
-                        <div className="overflow-hidden" ref={emblaRef}>
-                          <div className="flex">
-                            {sponsors.map((sponsor) => (
-                              <div
-                                key={sponsor.id}
-                                className="flex-[0_0_100%] flex flex-col items-center justify-center p-4"
-                              >
-                                <RemoteImage
-                                  path={sponsor.image || placeHold}
-                                  fallback={placeHold}
-                                  className="w-24 h-24 object-contain rounded-full mb-2"
-                                />
-                                <p className="font-semibold text-sm text-gray-700">
-                                  {sponsor.name}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="flex justify-between items-center mt-4">
-                          <button
-                            onClick={scrollPrev}
-                            className="text-sm text-blue-600 hover:underline"
-                          >
-                            Previous
-                          </button>
-                          <button
-                            onClick={scrollNext}
-                            className="text-sm text-blue-600 hover:underline"
-                          >
-                            Next
-                          </button>
-                        </div>
-
-                        <DialogClose asChild>
-                          <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
-                            Close
-                          </button>
-                        </DialogClose>
-                      </DialogContent>
-                    </Dialog>
-                  )}
-
-                  {/* Sponsor Avatars */}
-                  <div className="flex gap-4 flex-wrap justify-center md:justify-end">
-                    {displayedSponsors.map((sponsor) => (
-                      <div
-                        key={sponsor.id}
-                        className="flex flex-col items-center w-20 text-center"
-                      >
-                        <div className="p-[3px] bg-gradient-to-b from-gray-100 to-gray-200 rounded-full shadow-inner">
-                          <RemoteImage
-                            path={sponsor.image || placeHold}
-                            fallback={placeHold}
-                            className="w-14 h-14 object-contain rounded-full border border-gray-300 shadow-sm bg-white"
-                          />
-                        </div>
-                        <span className="text-xs mt-1 font-semibold text-gray-700">
-                          {sponsor.name}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {/* Edit Button (top right of banner) */}
-              {isOwner && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={() => setOpen(true)}
-                        className="absolute top-4 right-4 p-2 rounded-full bg-white/80 hover:bg-white shadow z-20"
-                      >
-                        <Pencil className="w-5 h-5 text-gray-700" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent
-                      side="top"
-                      className="bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg"
-                    >
-                      Edit quest image
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
+          {/* Banner Image with overlayed quest title + floating sponsors card */}
+          <div className="relative w-full mb-20">
+            {' '}
+            {/* Increased bottom margin for the overlap */}
+            {/* Banner Image */}
+            <RemoteImage
+              path={quest.quest_image || placeHold}
+              fallback={placeHold}
+              className="w-full h-[250px] md:h-[350px] object-cover rounded-t-2xl"
+            />
+            {/* Gradient overlay at bottom for contrast */}
+            <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black/70 to-transparent rounded-b-2xl" />
+            {/* Overlayed quest name (left) */}
+            <div className="absolute bottom-8 left-6 z-10">
+              <h1 className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg">
+                {quest.quest_name}
+              </h1>
             </div>
-
-            {/* Quest details + Task list side by side */}
-            <div className="flex flex-col lg:flex-row gap-6 mt-2 w-full">
-              <div className="flex-1">
-                <p className="text-gray-700 mb-2">{quest.quest_details}</p>
-                <p className="text-sm text-gray-500 mb-1">
-                  Region: <strong>{quest.region}</strong>
-                </p>
-                <div className="text-sm mb-1">
-                  Organisation:{' '}
-                  {questCreatorProfile?.data?.organization_name ? (
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <span className="text-blue-600 underline cursor-pointer">
-                          {questCreatorProfile.data.organization_name}
-                        </span>
-                      </DialogTrigger>
-
-                      <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
-                      <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[70vh] w-full max-w-md bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
-                        <RemoteImage
-                          path={questCreatorProfile.data.image || placeHold}
-                          fallback={placeHold}
-                          className="w-32 h-32 rounded-full object-cover"
-                        />
-                        <DialogTitle className="text-lg font-bold mb-4">
-                          {questCreatorProfile.data.organization_name}
-                        </DialogTitle>
-
-                        <div className="text-gray-700">
-                          <p>
-                            {questCreatorProfile.data
-                              .organization_description || 'N/A'}
-                          </p>
-                        </div>
-                        <DialogClose asChild>
-                          <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
-                            Close
-                          </button>
-                        </DialogClose>
-                      </DialogContent>
-                    </Dialog>
-                  ) : (
-                    <span className="text-gray-500">N/A</span>
-                  )}
-                </div>
-
-                <p className="text-sm text-gray-500 mb-1">
-                  Start: <strong>{quest.quest_start}</strong>
-                </p>
-                <p className="text-sm text-gray-500">
-                  End: <strong>{quest.quest_end}</strong>
-                </p>
-                <p className="text-sm text-gray-500">
-                  Number of tasks in this quest: <strong>{tasks.length}</strong>
-                </p>
-                <p className="text-sm text-gray-500">
-                  Entry: <strong>${quest.quest_entry}</strong>
-                </p>
-                <p className="text-sm text-gray-500">
-                  People joined:
-                  {participantsArray.length > 0 && (
-                    <Dialog
-                      onOpenChange={(open) => open && handleOpenParticipants()}
-                    >
-                      <DialogTrigger asChild>
-                        <button className="text-blue-600 underline font-medium text-sm">
-                          {participantsArray.length} participant
-                          {participantsArray.length > 1 ? 's' : ''}
-                        </button>
-                      </DialogTrigger>
-
-                      <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
-                      <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[70vh] w-full max-w-md bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
-                        <DialogTitle className="text-lg font-bold mb-4">
-                          Participants
-                        </DialogTitle>
-
-                        <div className="flex flex-col gap-3">
-                          {participantProfiles.map((profile) => (
-                            <div
-                              key={profile.id}
-                              className="flex items-center gap-3"
-                            >
-                              <RemoteImage
-                                path={profile.image_thumbnail || placeHold}
-                                fallback={placeHold}
-                                className="w-32 h-32 rounded-full object-cover"
-                              />
-
-                              {/* Text stacked vertically */}
-                              <div className="flex flex-col">
-                                <span className="text-sm font-medium">
-                                  <strong>
-                                    {profile.full_name || 'Unknown'}
-                                  </strong>
-                                </span>
-
-                                <span className="text-xs text-gray-600">
-                                  {profile.about_me || ''}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-
-                          {participantProfiles.length === 0 && (
-                            <p className="text-gray-500">Loading...</p>
-                          )}
-                        </div>
-
-                        <DialogClose asChild>
-                          <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
-                            Close
-                          </button>
-                        </DialogClose>
-                      </DialogContent>
-                    </Dialog>
-                  )}
-                </p>
-              </div>
-
-              {(isOwner || hasJoined) && (
-                <div className="lg:w-[450px] w-full">
-                  <TaskInformationWindow
-                    questId={quest.id}
-                    tasks={seekerTasks}
-                    userTasks={myQuestsArray}
-                    onTasksUpdated={async () => {
-                      await refetch()
-                      await refetchProfile()
-                    }}
-                    readOnly={isOwner} // <-- owner cannot answer tasks
-                  />
-                </div>
-              )}
-
-              {!isOwner && !hasJoined && <TaskPreview tasks={tasks} />}
-            </div>
-            {/* Bottom action row: Delete/Join (left) + Back + Prize Info (right) */}
-            <div className="mt-4 flex items-center justify-between w-full gap-4">
-              {/* Left: Delete / Join */}
-              <div className="flex items-center gap-2">
-                {isOwner && (
-                  <Button
-                    onClick={handleDelete}
-                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
-                  >
-                    Delete Quest
-                  </Button>
-                )}
-
-                {!isOwner &&
-                  (hasJoined ? (
-                    <p className="text-green-600 font-semibold">✅ Joined!</p>
-                  ) : (
-                    <button
-                      onClick={handleJoinQuest}
-                      disabled={joining}
-                      className={`px-4 py-2 rounded text-white ${
-                        joining
-                          ? 'bg-yellow-300'
-                          : 'bg-[#facc15] hover:bg-[#ca8a04]'
-                      }`}
-                    >
-                      {joining ? 'Joining...' : 'Join the quest!'}
-                    </button>
-                  ))}
-              </div>
-
-              {/* Right: Back + Prize Info */}
-              <div className="flex items-center gap-3 ml-auto">
-                {/* ⬅️ Back to Quests */}
-                <Button onClick={() => navigate(-1)} variant="yellow">
-                  Back to Quests
-                </Button>
-
-                {/* 🏆 Prize Information Modal */}
-                {prizes.length > 0 && (
+            {/* Floating white sponsors card (right) */}
+            {displayedSponsors.length > 0 && (
+              <div className="absolute left-1/2 md:left-auto md:right-10 bottom-[-60px] transform -translate-x-1/2 md:translate-x-0 bg-white rounded-2xl shadow-xl border border-gray-200 p-4 md:p-5 flex flex-col items-center md:items-end gap-3 w-[90%] md:w-auto z-20">
+                {/* Featured Sponsors link */}
+                {sponsors.length >= 3 && (
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded">
-                        Prize Information
-                      </Button>
+                      <span className="text-sm text-blue-600 font-medium underline cursor-pointer hover:text-blue-800">
+                        Featured Sponsors
+                      </span>
                     </DialogTrigger>
-
                     <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
                     <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
                       <DialogTitle className="text-lg font-bold mb-4">
-                        Prize Information
+                        Featured Sponsors
                       </DialogTitle>
 
-                      {/* Carousel for prizes */}
                       <div className="overflow-hidden" ref={emblaRef}>
-                        <div className="flex gap-4">
-                          {prizes.map((prize) => (
+                        <div className="flex">
+                          {sponsors.map((sponsor) => (
                             <div
-                              key={prize.id}
-                              className="flex-[0_0_33.3333%] flex flex-col items-center justify-center p-2"
+                              key={sponsor.id}
+                              className="flex-[0_0_100%] flex flex-col items-center justify-center p-4"
                             >
                               <RemoteImage
-                                path={prize.image || placeHold}
+                                path={sponsor.image || placeHold}
                                 fallback={placeHold}
-                                className="w-20 h-20 object-contain rounded"
+                                className="w-24 h-24 object-contain rounded-full mb-2"
                               />
-                              <span className="text-xs mt-1 font-semibold text-gray-700">
-                                {prize.name}
-                              </span>
+                              <p className="font-semibold text-sm text-gray-700">
+                                {sponsor.name}
+                              </p>
                             </div>
                           ))}
                         </div>
                       </div>
 
-                      {/* Navigation only if more than 4 prizes */}
-                      {prizes.length > 4 && (
-                        <div className="flex justify-between items-center mt-4">
-                          <button
-                            onClick={() => emblaApi?.scrollPrev()}
-                            className="text-sm text-blue-600 hover:underline"
-                          >
-                            Previous
-                          </button>
-                          <button
-                            onClick={() => emblaApi?.scrollNext()}
-                            className="text-sm text-blue-600 hover:underline"
-                          >
-                            Next
-                          </button>
-                        </div>
-                      )}
+                      <div className="flex justify-between items-center mt-4">
+                        <button
+                          onClick={scrollPrev}
+                          className="text-sm text-blue-600 hover:underline"
+                        >
+                          Previous
+                        </button>
+                        <button
+                          onClick={scrollNext}
+                          className="text-sm text-blue-600 hover:underline"
+                        >
+                          Next
+                        </button>
+                      </div>
 
                       <DialogClose asChild>
                         <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
@@ -796,186 +514,468 @@ export default function QuestDetailPage() {
                     </DialogContent>
                   </Dialog>
                 )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        {isOwner && (
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogOverlay className="fixed inset-0 bg-black/40 z-40" />
-            <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
-              <DialogTitle className="text-xl font-bold mb-4">
-                Edit Quest
-              </DialogTitle>
-
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  handleEditSubmit()
-                }}
-                className="flex flex-col gap-4"
-              >
-                {/* Quest Image */}
-                <label className="flex flex-col text-sm font-medium text-gray-700">
-                  Quest Image
-                  {previewImage ? (
-                    <RemoteImage
-                      path={previewImage || quest.quest_image}
-                      fallback={placeHold}
-                      className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-full"
-                    />
-                  ) : (
-                    <RemoteImage
-                      path={quest.quest_image || placeHold}
-                      fallback={placeHold}
-                      className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-full"
-                    />
-                  )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                  />
-                </label>
-
-                {/* Quest Name */}
-                <label className="flex flex-col text-sm font-medium text-gray-700">
-                  Quest Name
-                  <input
-                    type="text"
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    className="mt-1 border border-gray-300 rounded p-2"
-                  />
-                </label>
-
-                {/* Quest Details */}
-                <label className="flex flex-col text-sm font-medium text-gray-700">
-                  Details
-                  <textarea
-                    value={editDetails}
-                    onChange={(e) => setEditDetails(e.target.value)}
-                    className="mt-1 border border-gray-300 rounded p-2"
-                  />
-                </label>
-
-                {/* Region */}
-                <label className="block text-sm font-medium">
-                  <PickRegion
-                    value={selectedRegion}
-                    onChange={setSelectedRegion}
-                  />
-                </label>
-
-                {/* Start Date */}
-                <Dialog open={openStart} onOpenChange={setOpenStart}>
-                  <DialogTrigger asChild>
-                    <Button>
-                      {`Start Date: ${
-                        editStart
-                          ? new Date(editStart).toLocaleDateString('en-NZ', {
-                              day: 'numeric',
-                              month: 'long',
-                              year: 'numeric',
-                            })
-                          : 'Not set'
-                      }`}
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-h-[70vh] overflow-y-auto">
-                    <DialogTitle>
-                      <VisuallyHidden>Choose Start Date</VisuallyHidden>
-                    </DialogTitle>
-                    <Calendar
-                      mode="single"
-                      selected={editStart ? new Date(editStart) : undefined}
-                      onSelect={(date) => {
-                        if (date) {
-                          const localDate = new Date(
-                            date.getTime() - date.getTimezoneOffset() * 60000
-                          )
-                          setEditStart(localDate.toISOString().split('T')[0])
-                        }
-                      }}
-                    />
-                    <DialogClose asChild>
-                      <Button>Confirm</Button>
-                    </DialogClose>
-                  </DialogContent>
-                </Dialog>
-
-                {/* End Date */}
-                <Dialog open={openEnd} onOpenChange={setOpenEnd}>
-                  <DialogTrigger asChild>
-                    <Button>
-                      {`End Date: ${
-                        editEnd
-                          ? new Date(editEnd).toLocaleDateString('en-NZ', {
-                              day: 'numeric',
-                              month: 'long',
-                              year: 'numeric',
-                            })
-                          : 'Not set'
-                      }`}
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-h-[70vh] overflow-y-auto">
-                    <DialogTitle>
-                      <VisuallyHidden>Choose End Date</VisuallyHidden>
-                    </DialogTitle>
-                    <Calendar
-                      mode="single"
-                      selected={editEnd ? new Date(editEnd) : undefined}
-                      onSelect={(date) => {
-                        if (date) {
-                          const localDate = new Date(
-                            date.getTime() - date.getTimezoneOffset() * 60000
-                          )
-                          setEditEnd(localDate.toISOString().split('T')[0])
-                        }
-                      }}
-                    />
-                    <DialogClose asChild>
-                      <Button>Confirm</Button>
-                    </DialogClose>
-                  </DialogContent>
-                </Dialog>
-
-                {/* Task Editor */}
-                <TaskCreatorButton
-                  questUpdates={tasks}
-                  onNewTask={handleTasksUpdate}
-                />
-
-                {/* Sponsor & Prize Editor */}
-                <SponsorCreatorButton
-                  sponsorUpdates={sponsorsState}
-                  onNewSponsor={setSponsorsState}
-                />
-
-                {/* Action Buttons */}
-                <div className="flex justify-end gap-3 mt-4">
-                  <DialogClose asChild>
-                    <button
-                      type="button"
-                      className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
+                {/* Sponsor Avatars */}
+                <div className="flex gap-4 flex-wrap justify-center md:justify-end">
+                  {displayedSponsors.map((sponsor) => (
+                    <div
+                      key={sponsor.id}
+                      className="flex flex-col items-center w-20 text-center"
                     >
-                      Cancel
-                    </button>
-                  </DialogClose>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 rounded bg-blue-500 hover:bg-blue-600 text-white"
-                  >
-                    Save Changes
-                  </button>
+                      <div className="p-[3px] bg-gradient-to-b from-gray-100 to-gray-200 rounded-full shadow-inner">
+                        <RemoteImage
+                          path={sponsor.image || placeHold}
+                          fallback={placeHold}
+                          className="w-14 h-14 object-contain rounded-full border border-gray-300 shadow-sm bg-white"
+                        />
+                      </div>
+                      <span className="text-xs mt-1 font-semibold text-gray-700">
+                        {sponsor.name}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-        )}
-      </div>
+              </div>
+            )}
+            {/* Edit Button (top right of banner) */}
+            {isOwner && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => setOpen(true)}
+                      className="absolute top-4 right-4 p-2 rounded-full bg-white/80 hover:bg-white shadow z-20"
+                    >
+                      <Pencil className="w-5 h-5 text-gray-700" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    className="bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg"
+                  >
+                    Edit quest image
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
+
+          {/* Quest details + Task list side by side */}
+          <div className="flex flex-col lg:flex-row gap-6 mt-2 w-full">
+            <div className="flex-1">
+              <p className="text-gray-700 mb-2">{quest.quest_details}</p>
+              <p className="text-sm text-gray-500 mb-1">
+                Region: <strong>{quest.region}</strong>
+              </p>
+              <div className="text-sm mb-1">
+                Organisation:{' '}
+                {questCreatorProfile?.data?.organization_name ? (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <span className="text-blue-600 underline cursor-pointer">
+                        {questCreatorProfile.data.organization_name}
+                      </span>
+                    </DialogTrigger>
+
+                    <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
+                    <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[70vh] w-full max-w-md bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
+                      <RemoteImage
+                        path={questCreatorProfile.data.image || placeHold}
+                        fallback={placeHold}
+                        className="w-32 h-32 rounded-full object-cover"
+                      />
+                      <DialogTitle className="text-lg font-bold mb-4">
+                        {questCreatorProfile.data.organization_name}
+                      </DialogTitle>
+
+                      <div className="text-gray-700">
+                        <p>
+                          {questCreatorProfile.data.organization_description ||
+                            'N/A'}
+                        </p>
+                      </div>
+                      <DialogClose asChild>
+                        <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
+                          Close
+                        </button>
+                      </DialogClose>
+                    </DialogContent>
+                  </Dialog>
+                ) : (
+                  <span className="text-gray-500">N/A</span>
+                )}
+              </div>
+
+              <p className="text-sm text-gray-500 mb-1">
+                Start: <strong>{quest.quest_start}</strong>
+              </p>
+              <p className="text-sm text-gray-500">
+                End: <strong>{quest.quest_end}</strong>
+              </p>
+              <p className="text-sm text-gray-500">
+                Number of tasks in this quest: <strong>{tasks.length}</strong>
+              </p>
+              <p className="text-sm text-gray-500">
+                Entry: <strong>${quest.quest_entry}</strong>
+              </p>
+              <p className="text-sm text-gray-500">
+                People joined:
+                {participantsArray.length > 0 && (
+                  <Dialog
+                    onOpenChange={(open) => open && handleOpenParticipants()}
+                  >
+                    <DialogTrigger asChild>
+                      <button className="text-blue-600 underline font-medium text-sm">
+                        {participantsArray.length} participant
+                        {participantsArray.length > 1 ? 's' : ''}
+                      </button>
+                    </DialogTrigger>
+
+                    <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
+                    <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[70vh] w-full max-w-md bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
+                      <DialogTitle className="text-lg font-bold mb-4">
+                        Participants
+                      </DialogTitle>
+
+                      <div className="flex flex-col gap-3">
+                        {participantProfiles.map((profile) => (
+                          <div
+                            key={profile.id}
+                            className="flex items-center gap-3"
+                          >
+                            <RemoteImage
+                              path={profile.image_thumbnail || placeHold}
+                              fallback={placeHold}
+                              className="w-32 h-32 rounded-full object-cover"
+                            />
+
+                            {/* Text stacked vertically */}
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium">
+                                <strong>
+                                  {profile.full_name || 'Unknown'}
+                                </strong>
+                              </span>
+
+                              <span className="text-xs text-gray-600">
+                                {profile.about_me || ''}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+
+                        {participantProfiles.length === 0 && (
+                          <p className="text-gray-500">Loading...</p>
+                        )}
+                      </div>
+
+                      <DialogClose asChild>
+                        <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
+                          Close
+                        </button>
+                      </DialogClose>
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </p>
+            </div>
+
+            {(isOwner || hasJoined) && (
+              <div className="lg:w-[450px] w-full">
+                <TaskInformationWindow
+                  questId={quest.id}
+                  tasks={seekerTasks}
+                  userTasks={myQuestsArray}
+                  onTasksUpdated={async () => {
+                    await refetch()
+                    await refetchProfile()
+                  }}
+                  readOnly={isOwner} // <-- owner cannot answer tasks
+                />
+              </div>
+            )}
+
+            {!isOwner && !hasJoined && <TaskPreview tasks={tasks} />}
+          </div>
+          {/* Bottom action row: Delete/Join (left) + Back + Prize Info (right) */}
+          <div className="mt-4 flex items-center justify-between w-full gap-4">
+            {/* Left: Delete / Join */}
+            <div className="flex items-center gap-2">
+              {isOwner && (
+                <Button
+                  onClick={handleDelete}
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+                >
+                  Delete Quest
+                </Button>
+              )}
+
+              {!isOwner &&
+                (hasJoined ? (
+                  <p className="text-green-600 font-semibold">✅ Joined!</p>
+                ) : (
+                  <button
+                    onClick={handleJoinQuest}
+                    disabled={joining}
+                    className={`px-4 py-2 rounded text-white ${
+                      joining
+                        ? 'bg-yellow-300'
+                        : 'bg-[#facc15] hover:bg-[#ca8a04]'
+                    }`}
+                  >
+                    {joining ? 'Joining...' : 'Join the quest!'}
+                  </button>
+                ))}
+            </div>
+
+            {/* Right: Back + Prize Info */}
+            <div className="flex items-center gap-3 ml-auto">
+              {/* ⬅️ Back to Quests */}
+              <Button onClick={() => navigate(-1)} variant="yellow">
+                Back to Quests
+              </Button>
+
+              {/* 🏆 Prize Information Modal */}
+              {prizes.length > 0 && (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded">
+                      Prize Information
+                    </Button>
+                  </DialogTrigger>
+
+                  <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
+                  <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
+                    <DialogTitle className="text-lg font-bold mb-4">
+                      Prize Information
+                    </DialogTitle>
+
+                    {/* Carousel for prizes */}
+                    <div className="overflow-hidden" ref={emblaRef}>
+                      <div className="flex gap-4">
+                        {prizes.map((prize) => (
+                          <div
+                            key={prize.id}
+                            className="flex-[0_0_33.3333%] flex flex-col items-center justify-center p-2"
+                          >
+                            <RemoteImage
+                              path={prize.image || placeHold}
+                              fallback={placeHold}
+                              className="w-20 h-20 object-contain rounded"
+                            />
+                            <span className="text-xs mt-1 font-semibold text-gray-700">
+                              {prize.name}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Navigation only if more than 4 prizes */}
+                    {prizes.length > 4 && (
+                      <div className="flex justify-between items-center mt-4">
+                        <button
+                          onClick={() => emblaApi?.scrollPrev()}
+                          className="text-sm text-blue-600 hover:underline"
+                        >
+                          Previous
+                        </button>
+                        <button
+                          onClick={() => emblaApi?.scrollNext()}
+                          className="text-sm text-blue-600 hover:underline"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    )}
+
+                    <DialogClose asChild>
+                      <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
+                        Close
+                      </button>
+                    </DialogClose>
+                  </DialogContent>
+                </Dialog>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {isOwner && (
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogOverlay className="fixed inset-0 bg-black/40 z-40" />
+          <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
+            <DialogTitle className="text-xl font-bold mb-4">
+              Edit Quest
+            </DialogTitle>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleEditSubmit()
+              }}
+              className="flex flex-col gap-4"
+            >
+              {/* Quest Image */}
+              <label className="flex flex-col text-sm font-medium text-gray-700">
+                Quest Image
+                {previewImage ? (
+                  <RemoteImage
+                    path={previewImage || quest.quest_image}
+                    fallback={placeHold}
+                    className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-full"
+                  />
+                ) : (
+                  <RemoteImage
+                    path={quest.quest_image || placeHold}
+                    fallback={placeHold}
+                    className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-full"
+                  />
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
+              </label>
+
+              {/* Quest Name */}
+              <label className="flex flex-col text-sm font-medium text-gray-700">
+                Quest Name
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="mt-1 border border-gray-300 rounded p-2"
+                />
+              </label>
+
+              {/* Quest Details */}
+              <label className="flex flex-col text-sm font-medium text-gray-700">
+                Details
+                <textarea
+                  value={editDetails}
+                  onChange={(e) => setEditDetails(e.target.value)}
+                  className="mt-1 border border-gray-300 rounded p-2"
+                />
+              </label>
+
+              {/* Region */}
+              <label className="block text-sm font-medium">
+                <PickRegion
+                  value={selectedRegion}
+                  onChange={setSelectedRegion}
+                />
+              </label>
+
+              {/* Start Date */}
+              <Dialog open={openStart} onOpenChange={setOpenStart}>
+                <DialogTrigger asChild>
+                  <Button>
+                    {`Start Date: ${
+                      editStart
+                        ? new Date(editStart).toLocaleDateString('en-NZ', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric',
+                          })
+                        : 'Not set'
+                    }`}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-h-[70vh] overflow-y-auto">
+                  <DialogTitle>
+                    <VisuallyHidden>Choose Start Date</VisuallyHidden>
+                  </DialogTitle>
+                  <Calendar
+                    mode="single"
+                    selected={editStart ? new Date(editStart) : undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        const localDate = new Date(
+                          date.getTime() - date.getTimezoneOffset() * 60000
+                        )
+                        setEditStart(localDate.toISOString().split('T')[0])
+                      }
+                    }}
+                  />
+                  <DialogClose asChild>
+                    <Button>Confirm</Button>
+                  </DialogClose>
+                </DialogContent>
+              </Dialog>
+
+              {/* End Date */}
+              <Dialog open={openEnd} onOpenChange={setOpenEnd}>
+                <DialogTrigger asChild>
+                  <Button>
+                    {`End Date: ${
+                      editEnd
+                        ? new Date(editEnd).toLocaleDateString('en-NZ', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric',
+                          })
+                        : 'Not set'
+                    }`}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-h-[70vh] overflow-y-auto">
+                  <DialogTitle>
+                    <VisuallyHidden>Choose End Date</VisuallyHidden>
+                  </DialogTitle>
+                  <Calendar
+                    mode="single"
+                    selected={editEnd ? new Date(editEnd) : undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        const localDate = new Date(
+                          date.getTime() - date.getTimezoneOffset() * 60000
+                        )
+                        setEditEnd(localDate.toISOString().split('T')[0])
+                      }
+                    }}
+                  />
+                  <DialogClose asChild>
+                    <Button>Confirm</Button>
+                  </DialogClose>
+                </DialogContent>
+              </Dialog>
+
+              {/* Task Editor */}
+              <TaskCreatorButton
+                questUpdates={tasks}
+                onNewTask={handleTasksUpdate}
+              />
+
+              {/* Sponsor & Prize Editor */}
+              <SponsorCreatorButton
+                sponsorUpdates={sponsorsState}
+                onNewSponsor={setSponsorsState}
+              />
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-3 mt-4">
+                <DialogClose asChild>
+                  <button
+                    type="button"
+                    className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
+                  >
+                    Cancel
+                  </button>
+                </DialogClose>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded bg-blue-500 hover:bg-blue-600 text-white"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }

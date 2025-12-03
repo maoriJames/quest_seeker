@@ -2,9 +2,11 @@
 import { Card } from '@aws-amplify/ui-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { CardContent } from './ui/card'
-import { MyQuest, Profile, Quest } from '@/types'
+import { Profile, Quest } from '@/types'
 import { Button } from './ui/button'
 import { useQuestList } from '@/hooks/userQuests'
+import RemoteImage from './RemoteImage'
+import placeHold from '@/assets/images/placeholder_view_vector.svg'
 
 type MyQuestsProps = {
   profile: Profile
@@ -19,68 +21,83 @@ export default function MyQuests({ profile }: MyQuestsProps) {
   const myCreatedQuests = allQuests.filter(
     (quest) => quest.creator_id === profile.id
   )
+  console.log('myCreatedQuests: ', myCreatedQuests)
 
-  const normalizedQuests = (() => {
-    if (!profile.my_quests) return []
-    if (Array.isArray(profile.my_quests)) return profile.my_quests
-    try {
-      return JSON.parse(profile.my_quests) as MyQuest[]
-    } catch {
-      console.warn('Failed to parse my_quests:', profile.my_quests)
-      return []
+  const normalizedQuests = (profile.my_quests ?? []).map((myQuest) => {
+    const fullQuest = allQuests.find((q) => q.id === myQuest.quest_id)
+
+    return {
+      ...myQuest,
+      quest: fullQuest || null,
     }
-  })()
+  })
 
   return (
-    <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl p-8 max-w-md w-full text-center">
+    <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl p-8 max-w-md w-full">
       <CardContent className="flex flex-col gap-4">
-        <div className="p-4 max-w-xl mx-auto">
-          <h2 className="font-semibold text-lg mb-2">My Quests</h2>
+        <div className="space-y-3">
+          <h2 className="font-semibold text-lg mb-2">Joined Quests</h2>
 
           {normalizedQuests.length === 0 ? (
             <p className="text-gray-500">You haven’t joined any quests yet.</p>
           ) : (
-            <ul className="list-disc pl-5 space-y-1">
+            <div className="space-y-3">
               {normalizedQuests.map((myQuest) => (
-                <li key={myQuest.quest_id}>
-                  <Link
-                    to={`/user/quest/${myQuest.quest_id}`}
-                    className="text-blue-600 hover:underline"
-                  >
-                    {myQuest.title}
-                  </Link>{' '}
-                  ({myQuest.completed ? 'Completed' : 'In Progress'})
-                </li>
+                <div key={myQuest.quest_id} className="flex items-center gap-3">
+                  <RemoteImage
+                    path={myQuest.quest?.quest_image_thumb || placeHold}
+                    fallback={placeHold}
+                    className="w-14 h-14 object-contain rounded-full border border-gray-300 shadow-sm bg-white"
+                  />
+
+                  <div className="flex flex-col">
+                    <Link
+                      to={`/user/quest/${myQuest.quest_id}`}
+                      className="text-blue-600 hover:underline font-medium"
+                    >
+                      {myQuest.title}
+                    </Link>
+
+                    <span className="text-sm text-gray-500">
+                      {myQuest.completed ? 'Completed' : 'In Progress'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-3">
+          <h2 className="font-semibold text-lg mb-2">Quests I've Created</h2>
+          {myCreatedQuests.length === 0 ? (
+            <p className="text-gray-500">You haven’t created any quests yet.</p>
+          ) : (
+            <ul className="list-disc pl-5 space-y-1">
+              {myCreatedQuests.map((quest) => (
+                <div key={quest.id} className="flex items-center gap-3">
+                  <RemoteImage
+                    path={quest.quest_image_thumb || placeHold}
+                    fallback={placeHold}
+                    className="w-14 h-14 object-contain rounded-full border border-gray-300 shadow-sm bg-white"
+                  />
+                  <div className="flex flex-col">
+                    <Link
+                      to={`/user/quest/${quest.id}`}
+                      className="text-blue-600 hover:underline font-medium"
+                    >
+                      {quest.quest_name}
+                    </Link>
+                    <span className="text-sm text-gray-500">
+                      {quest.status ?? 'unknown'}
+                    </span>
+                  </div>
+                </div>
               ))}
             </ul>
           )}
-
-          <div className="p-4 max-w-xl mx-auto">
-            <h2 className="font-semibold text-lg mb-2">
-              Quests I Created (Just need to tidy this up)
-            </h2>
-
-            {myCreatedQuests.length === 0 ? (
-              <p className="text-gray-500">
-                You haven’t created any quests yet.
-              </p>
-            ) : (
-              <ul className="list-disc pl-5 space-y-1">
-                {myCreatedQuests.map((quest) => (
-                  <li key={quest.id}>
-                    <Link
-                      to={`/user/quest/${quest.id}`}
-                      className="text-blue-600 hover:underline"
-                    >
-                      {quest.quest_name}
-                    </Link>{' '}
-                    ({quest.status ?? 'unknown'})
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
         </div>
+
         <Button variant="yellow" onClick={() => navigate('/user/region')}>
           Back to Home
         </Button>

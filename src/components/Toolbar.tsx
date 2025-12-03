@@ -20,12 +20,11 @@ export const Toolbar: React.FC<ToolbarProps> = ({ buttons, className }) => {
 
   return (
     <div className={cn('w-full', className)}>
-      {/* Desktop Toolbar */}
       <div className="hidden md:flex justify-evenly items-center w-full p-2 border rounded-md bg-black shadow-sm">
         {buttons.map((btn, i) => (
           <Button
             key={i}
-            onClick={btn.onClick || (() => console.log(`${btn.label} clicked`))}
+            onClick={btn.onClick}
             variant={btn.variant || 'default'}
             className="flex items-center gap-2 bg-yellow-500 text-black hover:bg-yellow-600 transition"
           >
@@ -35,49 +34,47 @@ export const Toolbar: React.FC<ToolbarProps> = ({ buttons, className }) => {
         ))}
       </div>
 
-      {/* Mobile Slide-In Menu Under Header */}
-      <div className="fixed inset-0 z-40 md:hidden">
-        {/* Toolbar header */}
-        <div className="relative z-50">
-          <div className="flex justify-between items-center p-2 bg-black shadow-sm">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="text-yellow-500 focus:outline-none"
-            >
-              {isOpen ? <HiX size={24} /> : <HiMenu size={24} />}
-            </button>
-          </div>
-        </div>
+      <div className="md:hidden relative z-50 bg-black p-2 shadow-sm flex justify-between items-center">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="text-yellow-500 focus:outline-none"
+        >
+          {isOpen ? <HiX size={24} /> : <HiMenu size={24} />}
+        </button>
+      </div>
 
-        {/* Backdrop below the toolbar */}
+      <div
+        className={cn(
+          'fixed inset-0 z-40 md:hidden transition-all',
+          isOpen ? 'pointer-events-auto' : 'pointer-events-none'
+        )}
+      >
+        {/* Backdrop */}
         <div
           onClick={() => setIsOpen(false)}
           className={cn(
             'absolute inset-0 bg-black/50 transition-opacity',
-            isOpen
-              ? 'opacity-100 pointer-events-auto'
-              : 'opacity-0 pointer-events-none'
+            isOpen ? 'opacity-100' : 'opacity-0'
           )}
         />
 
-        {/* Slide-in menu */}
+        {/* Slide-in panel */}
         <div
           className={cn(
-            'absolute top-[56px] left-0 transition-transform duration-300 ease-in-out z-50',
-            isOpen ? 'translate-x-0' : '-translate-x-[120%]' // move further left
+            'absolute top-[56px] left-0 w-64 p-4 bg-black rounded-r-xl shadow-xl transition-transform duration-300 ease-in-out',
+            isOpen ? 'translate-x-0' : '-translate-x-[120%]'
           )}
         >
-          {/* Background behind buttons */}
-          <div className="bg-black shadow-lg rounded-md p-4 flex flex-col gap-2">
+          <div className="flex flex-col gap-2">
             {buttons.map((btn, i) => (
               <Button
                 key={i}
                 onClick={() => {
-                  btn.onClick?.()
+                  btn.onClick()
                   setIsOpen(false)
                 }}
                 variant={btn.variant || 'default'}
-                className="flex items-center gap-2 bg-yellow-500 text-black hover:bg-yellow-600 transition w-full justify-start"
+                className="flex items-center gap-2 bg-yellow-500 text-black hover:bg-yellow-600 transition justify-center"
               >
                 {btn.icon}
                 {btn.label}

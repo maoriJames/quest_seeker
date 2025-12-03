@@ -154,7 +154,6 @@ export default function AccountPage() {
     updateProfile({ input })
   }
 
-  console.log('Profile Data: ', profileData)
   // ✅ Render
   return (
     <div
@@ -185,17 +184,6 @@ export default function AccountPage() {
         >
           My Quests
         </button>
-        {/* <button
-          className={cn(
-            'px-4 py-2 rounded transition-colors',
-            activeTab === 'expired-quests'
-              ? 'bg-yellow-500 text-black hover:bg-yellow-600'
-              : 'bg-gray-800 text-gray-300 hover:bg-yellow-500 hover:text-black'
-          )}
-          onClick={() => setActiveTab('expired-quests')}
-        >
-          Expired Quests
-        </button> */}
       </div>
 
       {/* Tab content */}
