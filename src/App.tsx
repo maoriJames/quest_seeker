@@ -9,7 +9,7 @@ import AccountPage from './user/account'
 import QuestPage from './user/quest'
 import CreateQuestPage from './user/quest/create'
 import QuestDetailPage from './components/QuestDetailPage'
-import Faq from './user/faq'
+import Help from './user/help'
 import Leader from './user/leader'
 
 const queryClient = new QueryClient()
@@ -29,7 +29,7 @@ function UserRoutes() {
         <Route path="quest/create" element={<CreateQuestPage />} />
         <Route path="quest/:id" element={<QuestDetailPage />} />
         <Route path="leader" element={<Leader />} />
-        <Route path="faq" element={<Faq />} />
+        <Route path="help" element={<Help />} />
 
         {/* catch any /auth path and redirect */}
         <Route path="auth/*" element={<Navigate to="/user/region" replace />} />

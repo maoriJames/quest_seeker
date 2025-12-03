@@ -87,6 +87,8 @@ export type MyQuest = {
   progress?: number
   completed: boolean
   quest_status: QuestStatus
+
+  quest?: Quest // 👈 NEW: linked full quest object
 }
 
 // ---------------- Remote Image ----------------
