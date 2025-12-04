@@ -1,5 +1,6 @@
 import { signOut } from '@aws-amplify/auth'
 import { Button } from '@/components/ui/button'
+import { LogOut } from 'lucide-react'
 
 export default function SignOutButton() {
   const handleSignOut = async () => {
@@ -12,8 +13,15 @@ export default function SignOutButton() {
   }
 
   return (
-    <Button onClick={handleSignOut} className="w-full mt-6">
-      Sign Out
-    </Button>
+    <>
+      <Button
+        size="icon"
+        variant="ghost"
+        className="flex items-center justify-center h-auto w-auto p-0 bg-transparent hover:bg-transparent"
+        onClick={handleSignOut}
+      >
+        <LogOut />
+      </Button>
+    </>
   )
 }

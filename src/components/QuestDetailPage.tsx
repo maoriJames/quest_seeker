@@ -40,6 +40,7 @@ import { Toolbar } from './Toolbar'
 import TaskPreview from './TaskPreview'
 import { GetProfileQuery, QuestStatus } from '@/graphql/API'
 import { getProfile } from '@/graphql/queries'
+import SignOutButton from './SignOutButton'
 
 export default function QuestDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -283,6 +284,10 @@ export default function QuestDetailPage() {
                   onClick: () => navigate('/user/leader'),
                 },
                 { label: 'Help', onClick: () => navigate('/user/help') },
+                {
+                  label: <SignOutButton />,
+                  onClick: () => {},
+                },
               ]}
             />
           </div>

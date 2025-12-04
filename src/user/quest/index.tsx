@@ -10,6 +10,7 @@ import { useProfileList } from '@/hooks/userProfiles'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import { Toolbar } from '@/components/Toolbar'
 import { Home } from 'lucide-react'
+import SignOutButton from '@/components/SignOutButton'
 
 export default function QuestPage() {
   const location = useLocation()
@@ -183,6 +184,10 @@ export default function QuestPage() {
                 { label: 'Help', onClick: () => navigate('/user/help') },
                 {
                   label: <AddQuestButton to="/user/quest/create" />,
+                  onClick: () => {},
+                },
+                {
+                  label: <SignOutButton />,
                   onClick: () => {},
                 },
               ]}
