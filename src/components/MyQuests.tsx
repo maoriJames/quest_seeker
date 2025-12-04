@@ -37,11 +37,10 @@ export default function MyQuests({ profile }: MyQuestsProps) {
       <CardContent className="flex flex-col gap-4">
         <div className="space-y-3">
           <h2 className="font-semibold text-lg mb-2">Joined Quests</h2>
-
           {normalizedQuests.length === 0 ? (
             <p className="text-gray-500">You haven’t joined any quests yet.</p>
           ) : (
-            <div className="space-y-3">
+            <ul className="list-disc pl-5 space-y-1">
               {normalizedQuests.map((myQuest) => (
                 <div key={myQuest.quest_id} className="flex items-center gap-3">
                   <RemoteImage
@@ -64,7 +63,7 @@ export default function MyQuests({ profile }: MyQuestsProps) {
                   </div>
                 </div>
               ))}
-            </div>
+            </ul>
           )}
         </div>
 

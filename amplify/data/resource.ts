@@ -23,6 +23,7 @@ const schema = a.schema({
         'archived',
         'upcoming',
         'occurrring',
+        'completed',
       ]),
       participants: a.json(),
     })

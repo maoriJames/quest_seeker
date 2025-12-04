@@ -56,6 +56,7 @@ export type Quest = {
 
 export enum QuestStatus {
   archived = "archived",
+  completed = "completed",
   draft = "draft",
   expired = "expired",
   occurrring = "occurrring",

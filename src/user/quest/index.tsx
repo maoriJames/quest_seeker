@@ -180,7 +180,7 @@ export default function QuestPage() {
                   label: 'Leader Board',
                   onClick: () => navigate('/user/leader'),
                 },
-                { label: 'FAQ', onClick: () => navigate('/user/faq') },
+                { label: 'Help', onClick: () => navigate('/user/help') },
                 {
                   label: <AddQuestButton to="/user/quest/create" />,
                   onClick: () => {},

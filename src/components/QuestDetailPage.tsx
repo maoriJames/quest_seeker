@@ -3,10 +3,10 @@ import * as mutations from '@/graphql/mutations'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuest } from '@/hooks/userQuests'
 import { useProfile, useCurrentUserProfile } from '@/hooks/userProfiles'
-import { uploadData } from '@aws-amplify/storage'
+
 import { useDeleteQuest } from '@/hooks/userQuests'
 import bg from '@/assets/images/background_main.png'
-import { VisuallyHidden } from '@aws-amplify/ui-react'
+
 import { Button } from './ui/button'
 import { Card, CardContent } from './ui/card'
 import { useEffect, useState } from 'react'
@@ -31,12 +31,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@radix-ui/react-tooltip'
-import PickRegion from './PickRegion'
-import { Calendar } from './ui/calendar'
-import TaskCreatorButton from './TaskCreatorButton'
+
 import { deleteS3Object } from '@/tools/deleteS3Object'
-import { parseQuestTasks, serializeQuestTasks } from '@/tools/questTasks'
-import SponsorCreatorButton from './SponsorCreatorButton'
+import { parseQuestTasks } from '@/tools/questTasks'
+
 // import { Edit, Trash, Plus } from 'lucide-react'
 import { Toolbar } from './Toolbar'
 import TaskPreview from './TaskPreview'
@@ -61,28 +59,7 @@ export default function QuestDetailPage() {
   const [participantProfiles, setParticipantProfiles] = useState<Profile[]>([])
   const [participantsLoaded, setParticipantsLoaded] = useState(false)
 
-  const [editName, setEditName] = useState(quest?.quest_name || '')
-  const [editDetails, setEditDetails] = useState(quest?.quest_details || '')
-  const [currentImageFile, setCurrentImageFile] = useState(
-    quest?.quest_image || ''
-  ) // current image file
-  const [imageFile, setImageFile] = useState<File | null>(null) // new selected file
-  const [previewImage, setPreviewImage] = useState<string>('') // URL for preview, could be S3 URL or blob
-
-  const [openStart, setOpenStart] = useState(false)
-  const [openEnd, setOpenEnd] = useState(false)
-  const [editStart, setEditStart] = useState<string>(
-    new Date().toISOString().split('T')[0]
-  )
-  const [editEnd, setEditEnd] = useState<string>(
-    new Date().toISOString().split('T')[0]
-  )
-  const [selectedRegion, setSelectedRegion] = useState('')
-  const [open, setOpen] = useState(false)
   const [tasks, setTasks] = useState<Task[]>([])
-  const [sponsorsState, setSponsorsState] = useState<Sponsor[]>([])
-  const [prizesState, setPrizesState] = useState<Prize[]>([])
-  const [prizeEnabled, setPrizeEnabled] = useState(false)
 
   const deleteQuestMutation = useDeleteQuest()
 
@@ -91,11 +68,6 @@ export default function QuestDetailPage() {
   // Update edit fields when quest data is fetched
   useEffect(() => {
     if (!quest) return
-    setEditName(quest.quest_name || '')
-    setEditDetails(quest.quest_details || '')
-    setEditStart(quest.quest_start || new Date().toISOString().split('T')[0])
-    setEditEnd(quest.quest_end || new Date().toISOString().split('T')[0])
-    setSelectedRegion(quest.region || '')
 
     const parsedTasks: Task[] = Array.isArray(quest.quest_tasks)
       ? quest.quest_tasks
@@ -103,52 +75,6 @@ export default function QuestDetailPage() {
 
     setTasks(parsedTasks)
   }, [quest])
-
-  useEffect(() => {
-    if (!quest) return
-    try {
-      setSponsorsState(
-        quest.quest_sponsor ? JSON.parse(quest.quest_sponsor) : []
-      )
-      const parsedPrizes = quest.quest_prize_info
-        ? JSON.parse(quest.quest_prize_info)
-        : []
-      setPrizesState(parsedPrizes)
-      setPrizeEnabled(parsedPrizes.length > 0)
-    } catch {
-      setSponsorsState([])
-      setPrizesState([])
-      setPrizeEnabled(false)
-    }
-  }, [quest])
-
-  useEffect(() => {
-    if (quest?.quest_image) {
-      setCurrentImageFile(quest.quest_image)
-    }
-  }, [quest?.quest_image])
-
-  // --- Helpers ---
-  // const getPublicUrl = (path: string) =>
-  //   `https://amplify-amplifyvitereactt-amplifyquestseekerbucket-beyjfgpn1vr2.s3.ap-southeast-2.amazonaws.com/${path}`
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return
-    const file = e.target.files[0]
-    setImageFile(file) // store the File
-    setPreviewImage(URL.createObjectURL(file)) // update preview for <img>
-  }
-
-  useEffect(() => {
-    if (open) {
-      // when opening the modal, show the current quest image
-      setPreviewImage(quest?.quest_image ?? '')
-    } else {
-      // when closing the modal, reset
-      setPreviewImage('')
-      setImageFile(null)
-    }
-  }, [open, quest?.quest_image])
 
   const client = generateClient()
 
@@ -249,81 +175,6 @@ export default function QuestDetailPage() {
     } finally {
       setJoining(false)
     }
-  }
-
-  const uploadImage = async (file: File): Promise<string> => {
-    const path = `public/${crypto.randomUUID()}-${file.name}`
-
-    try {
-      await uploadData({
-        path,
-        data: file,
-        options: { contentType: file.type },
-      })
-      return path // store S3 key in DB
-    } catch (err) {
-      console.error('Error uploading file:', err)
-      return ''
-    }
-  }
-
-  const handleEditSubmit = async () => {
-    try {
-      let imagePath = quest.quest_image ?? ''
-
-      if (imageFile) {
-        // Upload new image
-        const uploadedPath = await uploadImage(imageFile)
-        if (uploadedPath) {
-          imagePath = uploadedPath
-
-          // Delete old image from S3
-          if (currentImageFile && currentImageFile !== uploadedPath) {
-            await deleteS3Object(currentImageFile)
-          }
-        }
-      }
-
-      const input = {
-        id: quest.id,
-        quest_name: editName,
-        quest_details: editDetails,
-        quest_start: editStart,
-        quest_end: editEnd,
-        quest_tasks: serializeQuestTasks(tasks),
-        region: selectedRegion,
-        quest_image: imagePath,
-        quest_sponsor: JSON.stringify(sponsorsState),
-        quest_prize_info: JSON.stringify(prizesState),
-        quest_prize: prizeEnabled,
-      }
-
-      await client.graphql({
-        query: mutations.updateQuest,
-        variables: { input },
-        authMode: 'userPool',
-      })
-
-      await refetch()
-      await refetchProfile()
-
-      alert('Quest updated successfully!')
-
-      // Reset preview and file
-      setOpen(false)
-      setImageFile(null)
-      setPreviewImage('')
-
-      // Update oldQuestImage to the new one
-      setCurrentImageFile(imagePath)
-    } catch (err) {
-      console.error('❌ Failed to update quest:', err)
-      alert('Failed to update quest.')
-    }
-  }
-
-  const handleTasksUpdate = (updatedTasks: Task[]) => {
-    setTasks(updatedTasks)
   }
 
   const participantsArray: string[] = quest.participants
@@ -431,7 +282,7 @@ export default function QuestDetailPage() {
                   label: 'Leader Board',
                   onClick: () => navigate('/user/leader'),
                 },
-                { label: 'FAQ', onClick: () => navigate('/user/faq') },
+                { label: 'Help', onClick: () => navigate('/user/help') },
               ]}
             />
           </div>
@@ -543,7 +394,7 @@ export default function QuestDetailPage() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
-                      onClick={() => setOpen(true)}
+                      onClick={() => navigate(`/user/quest/${id}/edit`)}
                       className="absolute top-4 right-4 p-2 rounded-full bg-white/80 hover:bg-white shadow z-20"
                     >
                       <Pencil className="w-5 h-5 text-gray-700" />
@@ -553,7 +404,7 @@ export default function QuestDetailPage() {
                     side="top"
                     className="bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg"
                   >
-                    Edit quest image
+                    Edit quest
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -801,181 +652,6 @@ export default function QuestDetailPage() {
           </div>
         </CardContent>
       </Card>
-
-      {isOwner && (
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogOverlay className="fixed inset-0 bg-black/40 z-40" />
-          <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
-            <DialogTitle className="text-xl font-bold mb-4">
-              Edit Quest
-            </DialogTitle>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                handleEditSubmit()
-              }}
-              className="flex flex-col gap-4"
-            >
-              {/* Quest Image */}
-              <label className="flex flex-col text-sm font-medium text-gray-700">
-                Quest Image
-                {previewImage ? (
-                  <RemoteImage
-                    path={previewImage || quest.quest_image}
-                    fallback={placeHold}
-                    className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-full"
-                  />
-                ) : (
-                  <RemoteImage
-                    path={quest.quest_image || placeHold}
-                    fallback={placeHold}
-                    className="max-w-[100px] max-h-[100px] w-auto h-auto object-contain rounded-full"
-                  />
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                />
-              </label>
-
-              {/* Quest Name */}
-              <label className="flex flex-col text-sm font-medium text-gray-700">
-                Quest Name
-                <input
-                  type="text"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  className="mt-1 border border-gray-300 rounded p-2"
-                />
-              </label>
-
-              {/* Quest Details */}
-              <label className="flex flex-col text-sm font-medium text-gray-700">
-                Details
-                <textarea
-                  value={editDetails}
-                  onChange={(e) => setEditDetails(e.target.value)}
-                  className="mt-1 border border-gray-300 rounded p-2"
-                />
-              </label>
-
-              {/* Region */}
-              <label className="block text-sm font-medium">
-                <PickRegion
-                  value={selectedRegion}
-                  onChange={setSelectedRegion}
-                />
-              </label>
-
-              {/* Start Date */}
-              <Dialog open={openStart} onOpenChange={setOpenStart}>
-                <DialogTrigger asChild>
-                  <Button>
-                    {`Start Date: ${
-                      editStart
-                        ? new Date(editStart).toLocaleDateString('en-NZ', {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric',
-                          })
-                        : 'Not set'
-                    }`}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-h-[70vh] overflow-y-auto">
-                  <DialogTitle>
-                    <VisuallyHidden>Choose Start Date</VisuallyHidden>
-                  </DialogTitle>
-                  <Calendar
-                    mode="single"
-                    selected={editStart ? new Date(editStart) : undefined}
-                    onSelect={(date) => {
-                      if (date) {
-                        const localDate = new Date(
-                          date.getTime() - date.getTimezoneOffset() * 60000
-                        )
-                        setEditStart(localDate.toISOString().split('T')[0])
-                      }
-                    }}
-                  />
-                  <DialogClose asChild>
-                    <Button>Confirm</Button>
-                  </DialogClose>
-                </DialogContent>
-              </Dialog>
-
-              {/* End Date */}
-              <Dialog open={openEnd} onOpenChange={setOpenEnd}>
-                <DialogTrigger asChild>
-                  <Button>
-                    {`End Date: ${
-                      editEnd
-                        ? new Date(editEnd).toLocaleDateString('en-NZ', {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric',
-                          })
-                        : 'Not set'
-                    }`}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-h-[70vh] overflow-y-auto">
-                  <DialogTitle>
-                    <VisuallyHidden>Choose End Date</VisuallyHidden>
-                  </DialogTitle>
-                  <Calendar
-                    mode="single"
-                    selected={editEnd ? new Date(editEnd) : undefined}
-                    onSelect={(date) => {
-                      if (date) {
-                        const localDate = new Date(
-                          date.getTime() - date.getTimezoneOffset() * 60000
-                        )
-                        setEditEnd(localDate.toISOString().split('T')[0])
-                      }
-                    }}
-                  />
-                  <DialogClose asChild>
-                    <Button>Confirm</Button>
-                  </DialogClose>
-                </DialogContent>
-              </Dialog>
-
-              {/* Task Editor */}
-              <TaskCreatorButton
-                questUpdates={tasks}
-                onNewTask={handleTasksUpdate}
-              />
-
-              {/* Sponsor & Prize Editor */}
-              <SponsorCreatorButton
-                sponsorUpdates={sponsorsState}
-                onNewSponsor={setSponsorsState}
-              />
-
-              {/* Action Buttons */}
-              <div className="flex justify-end gap-3 mt-4">
-                <DialogClose asChild>
-                  <button
-                    type="button"
-                    className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
-                  >
-                    Cancel
-                  </button>
-                </DialogClose>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded bg-blue-500 hover:bg-blue-600 text-white"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      )}
     </div>
   )
 }
