@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useQuest } from '@/hooks/userQuests'
 import { useProfile, useCurrentUserProfile } from '@/hooks/userProfiles'
 
-import { useDeleteQuest } from '@/hooks/userQuests'
+// import { useDeleteQuest } from '@/hooks/userQuests'
 import bg from '@/assets/images/background_main.png'
 
 import { Button } from './ui/button'
@@ -32,7 +32,7 @@ import {
   TooltipTrigger,
 } from '@radix-ui/react-tooltip'
 
-import { deleteS3Object } from '@/tools/deleteS3Object'
+// import { deleteS3Object } from '@/tools/deleteS3Object'
 import { parseQuestTasks } from '@/tools/questTasks'
 
 // import { Edit, Trash, Plus } from 'lucide-react'
@@ -41,11 +41,13 @@ import TaskPreview from './TaskPreview'
 import { GetProfileQuery, QuestStatus } from '@/graphql/API'
 import { getProfile } from '@/graphql/queries'
 import SignOutButton from './SignOutButton'
+import { useQuestDeletion } from '@/hooks/useQuestDeletion'
 
 export default function QuestDetailPage() {
   const { id } = useParams<{ id: string }>()
   const [joining, setJoining] = useState(false)
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true })
+  const { deleteQuest, loading: deleting } = useQuestDeletion()
 
   const scrollPrev = () => emblaApi && emblaApi.scrollPrev()
   const scrollNext = () => emblaApi && emblaApi.scrollNext()
@@ -62,9 +64,7 @@ export default function QuestDetailPage() {
 
   const [tasks, setTasks] = useState<Task[]>([])
 
-  const deleteQuestMutation = useDeleteQuest()
-
-  // Parse quest tasks when quest changes
+  // const deleteQuestMutation = useDeleteQuest()
 
   // Update edit fields when quest data is fetched
   useEffect(() => {
@@ -83,46 +83,46 @@ export default function QuestDetailPage() {
   if (error) return <p>Failed to fetch quest.</p>
   if (!quest) return <p>Quest not found.</p>
 
-  const handleDelete = async () => {
-    if (!quest) return
-    if (!window.confirm('Are you sure you want to delete this quest?')) return
+  // const handleDelete = async () => {
+  //   if (!quest) return
+  //   if (!window.confirm('Are you sure you want to delete this quest?')) return
 
-    try {
-      // Delete quest image
-      console.log('quest image:', quest.quest_image)
-      if (quest.quest_image) {
-        console.log('quest image deleting?:')
-        await deleteS3Object(quest.quest_image)
-      }
-      // Delete all sponsor images
-      const sponsors = Array.isArray(quest.quest_sponsor)
-        ? quest.quest_sponsor
-        : JSON.parse(quest.quest_sponsor || '[]')
-      for (const sponsor of sponsors) {
-        if (sponsor.sponsorImage && sponsor.image) {
-          await deleteS3Object(sponsor.image)
-        }
-      }
+  //   try {
+  //     // Delete quest image
+  //     console.log('quest image:', quest.quest_image)
+  //     if (quest.quest_image) {
+  //       console.log('quest image deleting?:')
+  //       await deleteS3Object(quest.quest_image)
+  //     }
+  //     // Delete all sponsor images
+  //     const sponsors = Array.isArray(quest.quest_sponsor)
+  //       ? quest.quest_sponsor
+  //       : JSON.parse(quest.quest_sponsor || '[]')
+  //     for (const sponsor of sponsors) {
+  //       if (sponsor.sponsorImage && sponsor.image) {
+  //         await deleteS3Object(sponsor.image)
+  //       }
+  //     }
 
-      // Delete all prize images
-      const prizes = Array.isArray(quest.quest_prize_info)
-        ? quest.quest_prize_info
-        : JSON.parse(quest.quest_prize_info || '[]')
-      for (const prize of prizes) {
-        if (prize.prizeImage && prize.image) {
-          await deleteS3Object(prize.image)
-        }
-      }
+  //     // Delete all prize images
+  //     const prizes = Array.isArray(quest.quest_prize_info)
+  //       ? quest.quest_prize_info
+  //       : JSON.parse(quest.quest_prize_info || '[]')
+  //     for (const prize of prizes) {
+  //       if (prize.prizeImage && prize.image) {
+  //         await deleteS3Object(prize.image)
+  //       }
+  //     }
 
-      // Delete quest record
-      await deleteQuestMutation.mutateAsync(quest.id)
-      window.alert('Quest and associated images deleted successfully!')
-      navigate(-1)
-    } catch (err) {
-      console.error('Failed to delete quest:', err)
-      window.alert('Failed to delete quest.')
-    }
-  }
+  //     // Delete quest record
+  //     await deleteQuestMutation.mutateAsync(quest.id)
+  //     window.alert('Quest and associated images deleted successfully!')
+  //     navigate(-1)
+  //   } catch (err) {
+  //     console.error('Failed to delete quest:', err)
+  //     window.alert('Failed to delete quest.')
+  //   }
+  // }
 
   const handleJoinQuest = async () => {
     if (!quest?.id || !quest?.quest_tasks) return
@@ -559,10 +559,11 @@ export default function QuestDetailPage() {
             <div className="flex items-center gap-2">
               {isOwner && (
                 <Button
-                  onClick={handleDelete}
+                  onClick={() => deleteQuest(quest)}
                   className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+                  disabled={deleting}
                 >
-                  Delete Quest
+                  {deleting ? 'Deleting...' : 'Delete Quest'}
                 </Button>
               )}
 

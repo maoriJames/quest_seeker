@@ -7,6 +7,7 @@ import { Button } from './ui/button'
 import { useQuestList } from '@/hooks/userQuests'
 import RemoteImage from './RemoteImage'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
+import { Trash2 } from 'lucide-react'
 
 type MyQuestsProps = {
   profile: Profile
@@ -123,6 +124,27 @@ export default function MyQuests({ profile }: MyQuestsProps) {
                             ? 'Expired'
                             : 'Draft'}
                       </Button>
+
+                      {/* Decide when to show the bin */}
+                      <div className="w-10 flex justify-center">
+                        {(quest.status === 'draft' ||
+                          ((quest.status === 'published' ||
+                            quest.status === 'expired') &&
+                            Number(quest.participants) === 0)) && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              console.log('Delete quest:', quest.id)
+                              // delete logic here
+                            }}
+                          >
+                            <Trash2 className="w-5 h-5 text-red-600" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </Link>
                 )

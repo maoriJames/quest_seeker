@@ -1,15 +1,17 @@
 import React, { useState } from 'react'
-import { Quest } from '@/types'
+import { MyQuest, Profile, Quest } from '@/types'
 import { useNavigate } from 'react-router-dom'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
 import RemoteImage from './RemoteImage'
 
 interface QuestListItemProps {
   quest: Quest
+  currentUserProfile?: Profile
 }
 
 const QuestListItem = React.memo(function QuestListItem({
   quest,
+  currentUserProfile,
 }: QuestListItemProps) {
   const navigate = useNavigate()
   const [loaded, setLoaded] = useState(false)
@@ -17,6 +19,22 @@ const QuestListItem = React.memo(function QuestListItem({
   const now = new Date()
   const startDate = new Date(quest.quest_start ?? '')
   const endDate = new Date(quest.quest_end ?? '')
+
+  // Convert my_quests to an array safely
+  const myQuestsArray: MyQuest[] = (() => {
+    if (!currentUserProfile?.my_quests) return []
+    if (typeof currentUserProfile.my_quests === 'string') {
+      try {
+        return JSON.parse(currentUserProfile.my_quests) as MyQuest[]
+      } catch {
+        return []
+      }
+    }
+    return currentUserProfile.my_quests // already an array
+  })()
+
+  // Check if user has joined this quest
+  const hasJoined = myQuestsArray.some((q) => q.quest_id === quest.id)
 
   const currentQuest = endDate < now
   if (currentQuest) return null
@@ -63,7 +81,7 @@ const QuestListItem = React.memo(function QuestListItem({
         {/* Live badge */}
         {isLive && (
           <span className="absolute bottom-2 right-2 bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded">
-            Started!
+            In Progress
           </span>
         )}
       </div>
@@ -77,6 +95,11 @@ const QuestListItem = React.memo(function QuestListItem({
         <p className="text-xs text-gray-500">
           Ends: {quest.quest_end ? quest.quest_end.split('T')[0] : 'N/A'}
         </p>
+        {hasJoined && (
+          <span className="absolute top-2 right-2 text-green-500 text-lg">
+            ✅
+          </span>
+        )}
       </div>
     </div>
   )

@@ -80,6 +80,7 @@ export const useUpdateQuest = () => {
       const { data } = await client.graphql({
         query: updateQuest,
         variables: { input: questInput },
+        authMode: 'userPool',
       })
       return data.updateQuest
     },

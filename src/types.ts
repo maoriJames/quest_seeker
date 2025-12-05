@@ -12,18 +12,24 @@ export type Status =
   | 'completed'
 
 export type Quest = {
+  __typename: 'Quest'
   id: string
-  quest_name: string
-  quest_details: string
-  quest_start?: string
+  quest_name?: string | null
+  quest_details?: string | null
+  quest_start?: string | null
   quest_end?: string | null
   quest_image?: string | null
-  quest_image_thumb: string | null
+  quest_image_thumb?: string | null
   quest_entry?: number | null
   region?: string | null
   creator_id?: string | null
-  status: Status | null
-  participants: string
+  status?: QuestStatus | null
+  participants?: string | null
+  quest_sponsor?: string | null
+  quest_prize_info?: string | null
+  quest_tasks?: string | unknown
+  createdAt: string
+  updatedAt: string
 }
 
 // ---------------- Profiles ----------------
