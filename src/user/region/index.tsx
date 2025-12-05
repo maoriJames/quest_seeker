@@ -63,7 +63,9 @@ export default function RegionPage() {
           <Button className="w-full mt-6" onClick={updateAccount}>
             Update Account
           </Button>
-          <SignOutButton />
+          <Button className="w-full mt-6">
+            <SignOutButton />
+          </Button>
         </CardContent>
       </Card>
     </div>

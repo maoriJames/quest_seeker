@@ -28,6 +28,7 @@ function UserRoutes() {
         <Route path="account" element={<AccountPage />} />
         <Route path="quest/create" element={<CreateQuestPage />} />
         <Route path="quest/:id" element={<QuestDetailPage />} />
+        <Route path="quest/:id/edit" element={<CreateQuestPage />} />
         <Route path="leader" element={<Leader />} />
         <Route path="help" element={<Help />} />
 

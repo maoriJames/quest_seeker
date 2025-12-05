@@ -37,34 +37,42 @@ export default function MyQuests({ profile }: MyQuestsProps) {
       <CardContent className="flex flex-col gap-4">
         <div className="space-y-3">
           <h2 className="font-semibold text-lg mb-2">Joined Quests</h2>
-
           {normalizedQuests.length === 0 ? (
             <p className="text-gray-500">You haven’t joined any quests yet.</p>
           ) : (
-            <div className="space-y-3">
+            <ul className="list-disc pl-5 space-y-1">
               {normalizedQuests.map((myQuest) => (
-                <div key={myQuest.quest_id} className="flex items-center gap-3">
-                  <RemoteImage
-                    path={myQuest.quest?.quest_image_thumb || placeHold}
-                    fallback={placeHold}
-                    className="w-14 h-14 object-contain rounded-full border border-gray-300 shadow-sm bg-white"
-                  />
+                <Link
+                  to={`/user/quest/${myQuest.quest_id}`}
+                  className="text-blue-600 hover:underline font-medium"
+                  key={myQuest.quest_id}
+                >
+                  <div className="flex items-center gap-3 w-full">
+                    <RemoteImage
+                      path={myQuest.quest?.quest_image_thumb || placeHold}
+                      fallback={placeHold}
+                      className="w-14 h-14 object-contain rounded-full border border-gray-300 shadow-sm bg-white"
+                    />
 
-                  <div className="flex flex-col">
-                    <Link
-                      to={`/user/quest/${myQuest.quest_id}`}
-                      className="text-blue-600 hover:underline font-medium"
+                    {/* Left content */}
+                    <div className="flex flex-col">{myQuest.title}</div>
+
+                    {/* Right-aligned status button */}
+                    <Button
+                      variant="secondary"
+                      className={`
+            ml-auto
+            pointer-events-none 
+            text-white 
+            ${myQuest.completed ? 'bg-red-600' : 'bg-green-600'}
+          `}
                     >
-                      {myQuest.title}
-                    </Link>
-
-                    <span className="text-sm text-gray-500">
                       {myQuest.completed ? 'Completed' : 'In Progress'}
-                    </span>
+                    </Button>
                   </div>
-                </div>
+                </Link>
               ))}
-            </div>
+            </ul>
           )}
         </div>
 
@@ -74,26 +82,51 @@ export default function MyQuests({ profile }: MyQuestsProps) {
             <p className="text-gray-500">You haven’t created any quests yet.</p>
           ) : (
             <ul className="list-disc pl-5 space-y-1">
-              {myCreatedQuests.map((quest) => (
-                <div key={quest.id} className="flex items-center gap-3">
-                  <RemoteImage
-                    path={quest.quest_image_thumb || placeHold}
-                    fallback={placeHold}
-                    className="w-14 h-14 object-contain rounded-full border border-gray-300 shadow-sm bg-white"
-                  />
-                  <div className="flex flex-col">
-                    <Link
-                      to={`/user/quest/${quest.id}`}
-                      className="text-blue-600 hover:underline font-medium"
-                    >
-                      {quest.quest_name}
-                    </Link>
-                    <span className="text-sm text-gray-500">
-                      {quest.status ?? 'unknown'}
-                    </span>
-                  </div>
-                </div>
-              ))}
+              {myCreatedQuests.map((quest) => {
+                // Pick status color classes
+                const statusClasses =
+                  quest.status === 'published'
+                    ? 'bg-green-600 text-white'
+                    : quest.status === 'expired'
+                      ? 'bg-red-600 text-white'
+                      : 'bg-gray-400 text-white' // draft or unknown
+
+                return (
+                  <Link
+                    to={`/user/quest/${quest.id}`}
+                    className="text-blue-600 hover:underline font-medium"
+                    key={quest.id}
+                  >
+                    <div className="flex items-center gap-3 w-full">
+                      <RemoteImage
+                        path={quest.quest_image_thumb || placeHold}
+                        fallback={placeHold}
+                        className="w-14 h-14 object-contain rounded-full border border-gray-300 shadow-sm bg-white"
+                      />
+
+                      {/* Left content */}
+                      <div className="flex flex-col">
+                        {quest.quest_name}
+                        <span className="text-sm text-gray-500">
+                          {quest.status ?? 'unknown'}
+                        </span>
+                      </div>
+
+                      {/* Right-aligned status button */}
+                      <Button
+                        variant="secondary"
+                        className={`ml-auto pointer-events-none px-3 py-1 rounded ${statusClasses}`}
+                      >
+                        {quest.status === 'published'
+                          ? 'Published'
+                          : quest.status === 'expired'
+                            ? 'Expired'
+                            : 'Draft'}
+                      </Button>
+                    </div>
+                  </Link>
+                )
+              })}
             </ul>
           )}
         </div>

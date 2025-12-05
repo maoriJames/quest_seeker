@@ -9,6 +9,7 @@ export type Status =
   | 'archived'
   | 'upcoming'
   | 'occurrring'
+  | 'completed'
 
 export type Quest = {
   id: string

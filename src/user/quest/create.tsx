@@ -5,7 +5,6 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-// import { Switch } from '@/components/ui/switch'
 import {
   Dialog,
   DialogContent,
@@ -15,23 +14,18 @@ import {
 import { Calendar } from '@/components/ui/calendar'
 import TaskCreatorButton from '@/components/TaskCreatorButton'
 import SponsorCreatorButton from '@/components/SponsorCreatorButton'
+import PrizeCreatorButton from '@/components/PrizeCreatorButton'
 import RemoteImage from '@/components/RemoteImage'
 import PickRegion from '@/components/PickRegion'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
 import bg from '@/assets/images/background_main.png'
-import {
-  useInsertQuest,
-  useUpdateQuest,
-  // useDeleteQuest,
-  useQuest,
-} from '@/hooks/userQuests'
+import { useInsertQuest, useUpdateQuest, useQuest } from '@/hooks/userQuests'
 import { Prize, Sponsor, Task } from '@/types'
 import { useCurrentUserProfile } from '@/hooks/userProfiles'
 import { DialogTitle } from '@radix-ui/react-dialog'
 import { VisuallyHidden } from '@aws-amplify/ui-react'
 import { uploadData } from 'aws-amplify/storage'
 import imageCompression from 'browser-image-compression'
-import PrizeCreatorButton from '@/components/PrizeCreatorButton'
 import { QuestStatus } from '@/graphql/API'
 
 export default function CreateQuestPage() {
@@ -45,12 +39,10 @@ export default function CreateQuestPage() {
   const [details, setDetails] = useState('')
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [previewImage, setPreviewImage] = useState<string>('')
-  const [startDate, setStartDate] = useState<string>(
+  const [startDate, setStartDate] = useState(
     new Date().toISOString().split('T')[0]
   )
-  const [endDate, setEndDate] = useState<string>(
-    new Date().toISOString().split('T')[0]
-  )
+  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0])
   const [prizeEnabled, setPrizeEnabled] = useState(false)
   const [prizes, setPrizes] = useState<Prize[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
@@ -61,20 +53,21 @@ export default function CreateQuestPage() {
   const [openStart, setOpenStart] = useState(false)
   const [openEnd, setOpenEnd] = useState(false)
   const [step, setStep] = useState(0)
+  const [loading, setLoading] = useState(isUpdating) // Loading only for edit
 
   const next = () => setStep((s) => s + 1)
   const prev = () => setStep((s) => Math.max(0, s - 1))
 
   const { mutate: insertQuest } = useInsertQuest()
   const { mutate: updateQuest } = useUpdateQuest()
-  // const { mutate: deleteQuest } = useDeleteQuest()
   const { data: currentUser } = useCurrentUserProfile()
   const creatorId = currentUser?.id ?? ''
 
   const { data: updatingQuest } = useQuest(questId)
 
-  // --- Pre-fill fields if editing ---
+  // --- Prefill fields if editing ---
   useEffect(() => {
+    if (!isUpdating) return
     if (!updatingQuest) return
 
     setName(updatingQuest.quest_name ?? '')
@@ -96,19 +89,25 @@ export default function CreateQuestPage() {
     setTasks(
       updatingQuest.quest_tasks ? JSON.parse(updatingQuest.quest_tasks) : []
     )
+
+    setLoading(false)
   }, [updatingQuest])
 
-  // --- Helpers ---
-  // const getPublicUrl = (path: string) =>
-  //   `https://amplify-amplifyvitereactt-amplifyquestseekerbucket-beyjfgpn1vr2.s3.ap-southeast-2.amazonaws.com/${path}`
+  if (isUpdating && loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading quest data...
+      </div>
+    )
+  }
 
+  // --- Helpers ---
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
     setImageFile(file)
     setPreviewImage(URL.createObjectURL(file))
-    console.log('imageFile', imageFile)
   }
 
   const validateInput = () => {
@@ -120,35 +119,26 @@ export default function CreateQuestPage() {
     return true
   }
 
-  const uploadImage = async (
-    file: File
-  ): Promise<{ fullPath: string; thumbPath: string }> => {
+  const uploadImage = async (file: File) => {
     const fullPath = `public/${crypto.randomUUID()}-${file.name}`
     const thumbPath = `public/thumbnails/${crypto.randomUUID()}-${file.name}`
 
     try {
-      // 1️⃣ Upload full image
       await uploadData({
         path: fullPath,
         data: file,
         options: { contentType: file.type },
       })
-
-      // 2️⃣ Create a lightweight thumbnail (~300px wide)
       const compressedFile = await imageCompression(file, {
         maxWidthOrHeight: 300,
         maxSizeMB: 0.25,
         useWebWorker: true,
       })
-
-      // 3️⃣ Upload the thumbnail
       await uploadData({
         path: thumbPath,
         data: compressedFile,
         options: { contentType: file.type },
       })
-
-      // 4️⃣ Return both paths for DB storage
       return { fullPath, thumbPath }
     } catch (err) {
       console.error('Error uploading file:', err)
@@ -156,7 +146,9 @@ export default function CreateQuestPage() {
     }
   }
 
-  const onSaveDraft = async () => {
+  const saveQuest = async (status: QuestStatus) => {
+    if (status === QuestStatus.published && !validateInput()) return
+
     const imagePaths = imageFile
       ? await uploadImage(imageFile)
       : { fullPath: previewImage, thumbPath: '' }
@@ -175,45 +167,9 @@ export default function CreateQuestPage() {
       quest_entry: currencyValue ? Number(currencyValue) : null,
       quest_tasks: JSON.stringify(tasks),
       creator_id: creatorId,
-      status: QuestStatus.draft,
+      status,
     }
 
-    console.log('Saving draft:', payload)
-
-    if (isUpdating) {
-      updateQuest(
-        { id: questId!, ...payload },
-        { onSuccess: () => navigate(-1) }
-      )
-    } else {
-      insertQuest(payload, { onSuccess: () => navigate(-1) })
-    }
-  }
-
-  const onSubmit = async () => {
-    if (!validateInput()) return
-
-    const imagePaths = imageFile
-      ? await uploadImage(imageFile)
-      : { fullPath: previewImage, thumbPath: '' }
-
-    const payload = {
-      quest_name: name,
-      quest_details: details,
-      quest_image: imagePaths.fullPath,
-      quest_image_thumb: imagePaths.thumbPath,
-      quest_start: startDate,
-      quest_end: endDate,
-      quest_prize: prizeEnabled,
-      quest_prize_info: JSON.stringify(prizes),
-      quest_sponsor: JSON.stringify(sponsors),
-      region: selectedRegion,
-      quest_entry: Number(currencyValue),
-      quest_tasks: JSON.stringify(tasks),
-      creator_id: creatorId,
-      status: QuestStatus.published,
-    }
-    console.log(payload)
     if (isUpdating) {
       updateQuest(
         { id: questId!, ...payload },
@@ -233,35 +189,47 @@ export default function CreateQuestPage() {
       style={{ backgroundImage: `url(${bg})` }}
     >
       <div className="w-full max-w-3xl p-6 bg-white/80 rounded-lg shadow-md">
+        {/* --- Multi-step UI --- */}
         {step === 0 && (
           <>
             <h2 className="text-xl font-bold mb-4">Name of the quest</h2>
             <Input value={name} onChange={(e) => setName(e.target.value)} />
-            <Button className="mt-4" onClick={next}>
-              Next
-            </Button>
-            <Button variant="outline" onClick={onSaveDraft}>
-              Save as Draft
-            </Button>
+            <div className="flex gap-2 mt-4">
+              <Button onClick={next}>Next</Button>
+              <Button
+                variant="outline"
+                onClick={() => saveQuest(QuestStatus.draft)}
+              >
+                Save as Draft
+              </Button>
+            </div>
           </>
         )}
 
+        {/* Step 1: Image */}
         {step === 1 && (
           <>
             <h2 className="text-xl font-bold mb-4">Quest Image</h2>
             {previewImage ? (
-              <img src={previewImage} className="w-1/2 mx-auto rounded-lg" />
+              <RemoteImage
+                path={previewImage || updatingQuest?.quest_image}
+                fallback={placeHold}
+                className="w-1/2 mx-auto rounded-lg"
+              />
             ) : (
               <RemoteImage
-                className="w-1/2 mx-auto rounded-lg"
+                path={updatingQuest?.quest_image || placeHold}
                 fallback={placeHold}
-                path={placeHold}
+                className="w-1/2 mx-auto rounded-lg"
               />
             )}
             <input type="file" accept="image/*" onChange={handleImageChange} />
             <div className="flex justify-between mt-4">
               <Button onClick={prev}>Back</Button>
-              <Button variant="outline" onClick={onSaveDraft}>
+              <Button
+                variant="outline"
+                onClick={() => saveQuest(QuestStatus.draft)}
+              >
                 Save as Draft
               </Button>
               <Button onClick={next}>Next</Button>
@@ -269,13 +237,17 @@ export default function CreateQuestPage() {
           </>
         )}
 
+        {/* Step 2: Region */}
         {step === 2 && (
           <>
             <h2 className="text-xl font-bold mb-4">Select Region</h2>
             <PickRegion value={selectedRegion} onChange={setSelectedRegion} />
             <div className="flex justify-between mt-4">
               <Button onClick={prev}>Back</Button>
-              <Button variant="outline" onClick={onSaveDraft}>
+              <Button
+                variant="outline"
+                onClick={() => saveQuest(QuestStatus.draft)}
+              >
                 Save as Draft
               </Button>
               <Button onClick={next}>Next</Button>
@@ -283,49 +255,51 @@ export default function CreateQuestPage() {
           </>
         )}
 
+        {/* Step 3: Details */}
         {step === 3 && (
           <>
             <h2 className="text-xl font-bold mb-4">Quest Details</h2>
-            <label className="block text-sm font-medium">
-              <Textarea
-                value={details}
-                onChange={(e) => setDetails(e.target.value)}
-                className="border rounded p-2 w-full"
-              />
-            </label>
+            <Textarea
+              value={details}
+              onChange={(e) => setDetails(e.target.value)}
+              className="border rounded p-2 w-full"
+            />
             <div className="flex justify-between mt-4">
               <Button onClick={prev}>Back</Button>
-              <Button variant="outline" onClick={onSaveDraft}>
+              <Button
+                variant="outline"
+                onClick={() => saveQuest(QuestStatus.draft)}
+              >
                 Save as Draft
               </Button>
               <Button onClick={next}>Next</Button>
             </div>
           </>
         )}
+
+        {/* Step 4: Entry Fee */}
         {step === 4 && (
           <>
-            <h2 className="text-xl font-bold mb-4">Entrry Fee</h2>
+            <h2 className="text-xl font-bold mb-4">Entry Fee</h2>
             <Input
               inputMode="decimal"
               type="text"
               value={currencyValue}
               onChange={(e) => {
                 const val = e.target.value
-                // allow empty, or numbers matching regex
-                if (val === '' || currencyExp.test(val)) {
-                  setCurrencyValue(val)
-                }
+                if (val === '' || currencyExp.test(val)) setCurrencyValue(val)
               }}
               onBlur={() => {
-                if (currencyValue !== '') {
-                  // format to 2 decimal places
+                if (currencyValue !== '')
                   setCurrencyValue(parseFloat(currencyValue).toFixed(2))
-                }
               }}
             />
             <div className="flex justify-between mt-4">
               <Button onClick={prev}>Back</Button>
-              <Button variant="outline" onClick={onSaveDraft}>
+              <Button
+                variant="outline"
+                onClick={() => saveQuest(QuestStatus.draft)}
+              >
                 Save as Draft
               </Button>
               <Button onClick={next}>Next</Button>
@@ -336,6 +310,8 @@ export default function CreateQuestPage() {
         {step === 5 && (
           <>
             <h2 className="text-xl font-bold mb-4">Quest Dates</h2>
+
+            {/* --- Start Date Picker --- */}
             <Dialog open={openStart} onOpenChange={setOpenStart}>
               <DialogTrigger asChild>
                 <Button>
@@ -359,11 +335,20 @@ export default function CreateQuestPage() {
                   selected={startDate ? new Date(startDate) : undefined}
                   onSelect={(date) => {
                     if (date) {
-                      // Adjust for timezone so we don’t get “day before”
                       const localDate = new Date(
                         date.getTime() - date.getTimezoneOffset() * 60000
                       )
-                      setStartDate(localDate.toISOString().split('T')[0]) // "YYYY-MM-DD"
+                      const newStart = localDate.toISOString().split('T')[0]
+                      setStartDate(newStart)
+
+                      // Ensure endDate is at least one day after startDate
+                      const currentEnd = new Date(endDate)
+                      const minEnd = new Date(localDate)
+                      minEnd.setDate(minEnd.getDate() + 1)
+
+                      if (!endDate || currentEnd <= localDate) {
+                        setEndDate(minEnd.toISOString().split('T')[0])
+                      }
                     }
                   }}
                 />
@@ -373,6 +358,7 @@ export default function CreateQuestPage() {
               </DialogContent>
             </Dialog>
 
+            {/* --- End Date Picker --- */}
             <Dialog open={openEnd} onOpenChange={setOpenEnd}>
               <DialogTrigger asChild>
                 <Button>
@@ -396,11 +382,18 @@ export default function CreateQuestPage() {
                   selected={endDate ? new Date(endDate) : undefined}
                   onSelect={(date) => {
                     if (date) {
-                      // Adjust for timezone so we don’t get “day before”
                       const localDate = new Date(
                         date.getTime() - date.getTimezoneOffset() * 60000
                       )
-                      setEndDate(localDate.toISOString().split('T')[0]) // "YYYY-MM-DD"
+                      const minEnd = new Date(startDate)
+                      minEnd.setDate(minEnd.getDate() + 1)
+
+                      if (localDate >= minEnd) {
+                        setEndDate(localDate.toISOString().split('T')[0])
+                      } else {
+                        // Optionally alert the user or auto-set it
+                        setEndDate(minEnd.toISOString().split('T')[0])
+                      }
                     }
                   }}
                 />
@@ -409,9 +402,13 @@ export default function CreateQuestPage() {
                 </DialogClose>
               </DialogContent>
             </Dialog>
+
             <div className="flex justify-between mt-4">
               <Button onClick={prev}>Back</Button>
-              <Button variant="outline" onClick={onSaveDraft}>
+              <Button
+                variant="outline"
+                onClick={() => saveQuest(QuestStatus.draft)}
+              >
                 Save as Draft
               </Button>
               <Button onClick={next}>Next</Button>
@@ -452,7 +449,10 @@ export default function CreateQuestPage() {
             />
             <div className="flex justify-between mt-4">
               <Button onClick={prev}>Back</Button>
-              <Button variant="outline" onClick={onSaveDraft}>
+              <Button
+                variant="outline"
+                onClick={() => saveQuest(QuestStatus.draft)}
+              >
                 Save as Draft
               </Button>
               <Button onClick={next}>Next</Button>
@@ -493,7 +493,10 @@ export default function CreateQuestPage() {
             />
             <div className="flex justify-between mt-4">
               <Button onClick={prev}>Back</Button>
-              <Button variant="outline" onClick={onSaveDraft}>
+              <Button
+                variant="outline"
+                onClick={() => saveQuest(QuestStatus.draft)}
+              >
                 Save as Draft
               </Button>
               <Button onClick={next}>Next</Button>
@@ -503,13 +506,16 @@ export default function CreateQuestPage() {
 
         {step === 10 && (
           <>
-            <TaskCreatorButton questUpdates={tasks} onNewTask={setTasks} />{' '}
+            <TaskCreatorButton questUpdates={tasks} onNewTask={setTasks} />
             <div className="flex justify-between mt-4">
               <Button onClick={prev}>Back</Button>
-              <Button onClick={onSubmit}>Finish & Create Quest</Button>
+              <Button onClick={() => saveQuest(QuestStatus.published)}>
+                {isUpdating ? 'Save Changes' : 'Finish & Create Quest'}
+              </Button>
             </div>
           </>
         )}
+
         {errors && <p className="text-red-600 mt-2">{errors}</p>}
       </div>
     </div>
