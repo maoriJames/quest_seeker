@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import bg from '@/assets/images/background_main.png'
 import type { MyQuest, Profile, Quest } from '@/types'
 import AddQuestButton from '@/components/AddQuestButton'
-import { useProfileList } from '@/hooks/userProfiles'
+import { useCurrentUserProfile, useProfileList } from '@/hooks/userProfiles'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import { Toolbar } from '@/components/Toolbar'
 import { Home } from 'lucide-react'
@@ -19,6 +19,7 @@ export default function QuestPage() {
   const { data: quests, error, isLoading } = useQuestList()
   const allQuests: Quest[] = quests ?? []
   const { data: profiles } = useProfileList()
+  const { currentProfile } = useCurrentUserProfile()
 
   const navigate = useNavigate()
 
@@ -245,6 +246,7 @@ export default function QuestPage() {
                     quest_end: quest.quest_end ?? undefined,
                     region: quest.region ?? 'Unknown',
                   }}
+                  currentUserProfile={currentProfile as Profile | undefined}
                 />
               ))}
             </div>

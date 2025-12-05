@@ -147,11 +147,31 @@ export default function CreateQuestPage() {
   }
 
   const saveQuest = async (status: QuestStatus) => {
-    if (status === QuestStatus.published && !validateInput()) return
+    console.log('saveQuest called with status:', status)
+    console.log('Current form state:', {
+      name,
+      details,
+      startDate,
+      endDate,
+      previewImage,
+      prizeEnabled,
+      prizes,
+      sponsors,
+      selectedRegion,
+      currencyValue,
+      tasks,
+    })
+
+    if (status === QuestStatus.published && !validateInput()) {
+      console.log('Validation failed, not saving.')
+      return
+    }
 
     const imagePaths = imageFile
       ? await uploadImage(imageFile)
       : { fullPath: previewImage, thumbPath: '' }
+
+    console.log('Image paths:', imagePaths)
 
     const payload = {
       quest_name: name,
@@ -170,13 +190,33 @@ export default function CreateQuestPage() {
       status,
     }
 
+    console.log('Payload to send:', payload)
+
     if (isUpdating) {
+      console.log('Updating quest with id:', questId)
       updateQuest(
         { id: questId!, ...payload },
-        { onSuccess: () => navigate(-1) }
+        {
+          onSuccess: (data) => {
+            console.log('Update successful:', data)
+            navigate(-1)
+          },
+          onError: (err) => {
+            console.error('Update failed:', err)
+          },
+        }
       )
     } else {
-      insertQuest(payload, { onSuccess: () => navigate(-1) })
+      console.log('Inserting new quest')
+      insertQuest(payload, {
+        onSuccess: (data) => {
+          console.log('Insert successful:', data)
+          navigate(-1)
+        },
+        onError: (err) => {
+          console.error('Insert failed:', err)
+        },
+      })
     }
 
     setImageFile(null)
