@@ -9,6 +9,8 @@ import RemoteImage from './RemoteImage'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
 import { Trash2 } from 'lucide-react'
 
+import { useQuestDeletion } from '@/hooks/useQuestDeletion'
+
 type MyQuestsProps = {
   profile: Profile
   // allQuests: Quest[]
@@ -17,6 +19,7 @@ type MyQuestsProps = {
 export default function MyQuests({ profile }: MyQuestsProps) {
   const { data: quests } = useQuestList()
   const allQuests: Quest[] = quests ?? []
+  const { deleteQuest } = useQuestDeletion()
   const navigate = useNavigate()
 
   const myCreatedQuests = allQuests.filter(
@@ -138,7 +141,7 @@ export default function MyQuests({ profile }: MyQuestsProps) {
                               e.preventDefault()
                               e.stopPropagation()
                               console.log('Delete quest:', quest.id)
-                              // delete logic here
+                              deleteQuest(quest)
                             }}
                           >
                             <Trash2 className="w-5 h-5 text-red-600" />
