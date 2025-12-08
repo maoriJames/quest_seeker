@@ -64,6 +64,14 @@ export async function addQuestToProfile(questId: string, MyQuests: MyQuest[]) {
             existingQuest!.tasks.push(newTask)
           }
         })
+
+        // 🔥 UPDATE QUEST COMPLETED STATUS HERE
+        console.log('🔄 Checking if quest is now completed...')
+        existingQuest!.completed = existingQuest!.tasks.every(
+          (t) => t.completed
+        )
+
+        console.log('🏁 Quest completed:', existingQuest!.completed)
       })
     }
 
