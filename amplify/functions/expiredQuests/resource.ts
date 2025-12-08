@@ -16,7 +16,7 @@ export const expiredQuests = defineFunction((scope: Construct) => {
     },
   })
 
-  // Add AppSync permission
+  // Add AppSync permissions
   lambda.addToRolePolicy(
     new PolicyStatement({
       actions: ['appsync:GraphQL'],
@@ -24,7 +24,7 @@ export const expiredQuests = defineFunction((scope: Construct) => {
     })
   )
 
-  // Schedule to run daily at midnight UTC
+  // Scheduled event at midnight UTC
   new Rule(scope, 'ExpireQuestsSchedule', {
     schedule: Schedule.cron({ minute: '0', hour: '0' }),
     targets: [new LambdaFunction(lambda)],
