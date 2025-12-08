@@ -1,4 +1,5 @@
 import { generateClient } from 'aws-amplify/data'
+
 import { Schema } from '../../../data/resource'
 
 const client = generateClient<Schema>({})
