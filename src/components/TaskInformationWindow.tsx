@@ -89,6 +89,11 @@ export default function TaskInformationWindow({
     setCaption(task?.caption || '')
     setPreviewUrl(task?.answer || '')
     setLocation(task?.location || '')
+    setEditableTasks((prev) =>
+      prev.map((t) =>
+        t.id === selectedTask.id ? { ...t, completed: true } : t
+      )
+    )
   }, [selectedTask, editableTasks])
 
   const handleCaptionChange = (taskId: string, value: string) => {
@@ -148,39 +153,56 @@ export default function TaskInformationWindow({
     try {
       setSaving(true)
 
+      // 🔥 1. Determine if this specific task is now complete
+      const taskIsCompleted = (() => {
+        if (selectedTask.isImage) return !!uploadedPath
+        if (selectedTask.requiresCaption) return caption.trim().length > 0
+        if (selectedTask.isLocation) return location.trim().length > 0
+        return true
+      })()
+
+      // 🔥 2. Build updated task entry for DB
+      const updatedTaskEntry = {
+        id: selectedTask.id,
+        caption,
+        answer: uploadedPath,
+        location,
+        description: selectedTask.description || '',
+        isImage: selectedTask.isImage,
+        requiresCaption: selectedTask.requiresCaption,
+        isLocation: selectedTask.isLocation,
+        completed: taskIsCompleted,
+      }
+
+      // 🔥 3. Compute quest-wide `completed` state AFTER updating this task
+      const allCompleted = editableTasks
+        .map((t) =>
+          t.id === selectedTask.id ? { ...t, completed: taskIsCompleted } : t
+        )
+        .every((t) => t.completed)
+
+      // 🔥 4. Save everything to the profile
       await addQuestToProfile(questId, [
         {
           quest_id: questId,
-          tasks: [
-            {
-              id: selectedTask.id,
-              caption,
-              answer: uploadedPath,
-              location,
-              description: selectedTask.description || '',
-              isImage: selectedTask.isImage,
-              requiresCaption: selectedTask.requiresCaption,
-              isLocation: selectedTask.requiresCaption,
-              completed: false,
-            },
-          ],
+          tasks: [updatedTaskEntry],
           title: '',
-          completed: false,
+          completed: allCompleted, // 👈 quest becomes complete if all tasks are done
           quest_status: QuestStatus.published,
         },
       ])
 
       alert('✅ Answer saved successfully!')
 
-      // Optimistic UI update
-      setPreviewUrl(uploadedPath || previewUrl)
-      setCaption(caption)
+      // 🔥 5. Optimistic UI update
+      setEditableTasks((prev) =>
+        prev.map((t) =>
+          t.id === selectedTask.id ? { ...t, completed: taskIsCompleted } : t
+        )
+      )
 
-      if (onTasksUpdated) {
-        await onTasksUpdated()
-      }
+      if (onTasksUpdated) await onTasksUpdated()
 
-      // ✅ Close modal after successful save
       setSelectedTask(null)
     } catch (err) {
       console.error('❌ Failed to save answer:', err)

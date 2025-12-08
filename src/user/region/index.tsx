@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import logo from '@/assets/images/logo_trans.png'
 import bg from '@/assets/images/background_main.png'
 import { useCurrentUserProfile } from '@/hooks/userProfiles'
-import SignOutButton from '@/components/SignOutButton'
+import { signOut } from 'aws-amplify/auth'
 
 export default function RegionPage() {
   const [selectedRegion, setSelectedRegion] = useState('')
@@ -27,6 +27,15 @@ export default function RegionPage() {
 
   const updateAccount = () => {
     navigate('/user/account')
+  }
+
+  const handleSignOut = async () => {
+    try {
+      await signOut()
+      window.location.href = '/user/auth' // redirect after signing out
+    } catch (err) {
+      console.error('Error signing out:', err)
+    }
   }
 
   if (isLoading) {
@@ -63,8 +72,8 @@ export default function RegionPage() {
           <Button className="w-full mt-6" onClick={updateAccount}>
             Update Account
           </Button>
-          <Button className="w-full mt-6">
-            <SignOutButton />
+          <Button className="w-full mt-6" onClick={handleSignOut}>
+            Sign Out
           </Button>
         </CardContent>
       </Card>

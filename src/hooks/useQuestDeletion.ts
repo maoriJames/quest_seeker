@@ -2,9 +2,6 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { deleteS3Object } from '@/tools/deleteS3Object'
 import { useDeleteQuest } from '@/hooks/userQuests'
-// import { generateClient } from 'aws-amplify/data'
-// import { GraphQLResult } from '@aws-amplify/api-graphql'
-// import * as mutations from '@/graphql/mutations'
 import { Quest } from '@/types'
 
 interface UseDeleteQuestOptions {
@@ -16,9 +13,8 @@ export function useQuestDeletion(options?: UseDeleteQuestOptions) {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
   const deleteQuestMutation = useDeleteQuest()
-  // const client = generateClient()
 
-  const deleteQuest = async (quest: Quest) => {
+  const deleteQuest = async (quest: Quest, opts?: { stayHere?: boolean }) => {
     if (!quest) return
     if (!window.confirm('Are you sure you want to delete this quest?')) return
 
@@ -54,7 +50,11 @@ export function useQuestDeletion(options?: UseDeleteQuestOptions) {
 
       window.alert('Quest and associated images deleted successfully!')
       options?.onSuccess?.()
-      navigate(-1)
+
+      // 👇 Only navigate if the caller didn't request to stay on page
+      if (!opts?.stayHere) {
+        navigate(-1)
+      }
     } catch (err) {
       console.error('Failed to delete quest:', err)
       window.alert('Failed to delete quest.')
