@@ -162,32 +162,40 @@ export default function TaskInformationWindow({
       })()
 
       // 🔥 2. Build updated task entry for DB
-      const updatedTaskEntry = {
-        id: selectedTask.id,
-        caption,
-        answer: uploadedPath,
-        location,
-        description: selectedTask.description || '',
-        isImage: selectedTask.isImage,
-        requiresCaption: selectedTask.requiresCaption,
-        isLocation: selectedTask.isLocation,
-        completed: taskIsCompleted,
-      }
+      const updatedTasksForUser = editableTasks.map((t) =>
+        t.id === selectedTask.id
+          ? {
+              ...t,
+              caption,
+              answer: uploadedPath,
+              location,
+              completed: taskIsCompleted,
+            }
+          : t
+      )
 
       // 🔥 3. Compute quest-wide `completed` state AFTER updating this task
-      const allCompleted = editableTasks
-        .map((t) =>
-          t.id === selectedTask.id ? { ...t, completed: taskIsCompleted } : t
-        )
-        .every((t) => t.completed)
+      const allCompleted = updatedTasksForUser.every((t) => t.completed)
+
+      console.log('📌 Selected task completed:', taskIsCompleted)
+
+      console.log('📌 Updated tasks for user:', updatedTasksForUser)
+
+      console.log('📌 allCompleted:', allCompleted)
+
+      console.log('📌 Payload sending to addQuestToProfile:', {
+        quest_id: questId,
+        tasks: updatedTasksForUser,
+        completed: allCompleted,
+      })
 
       // 🔥 4. Save everything to the profile
       await addQuestToProfile(questId, [
         {
           quest_id: questId,
-          tasks: [updatedTaskEntry],
+          tasks: updatedTasksForUser,
           title: '',
-          completed: allCompleted, // 👈 quest becomes complete if all tasks are done
+          completed: allCompleted,
           quest_status: QuestStatus.published,
         },
       ])

@@ -35,52 +35,45 @@ export default function MyQuests({ profile }: MyQuestsProps) {
       quest: fullQuest || null,
     }
   })
-
+  console.log('normalizedQuests: ', normalizedQuests)
   return (
     <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl p-8 max-w-md w-full">
       <CardContent className="flex flex-col gap-4">
         <div className="space-y-3">
           <h2 className="font-semibold text-lg mb-2">Joined Quests</h2>
-          {normalizedQuests.length === 0 ? (
-            <p className="text-gray-500">You haven’t joined any quests yet.</p>
-          ) : (
-            <ul className="list-disc pl-5 space-y-1">
-              {normalizedQuests.map((myQuest) => (
-                <Link
-                  to={`/user/quest/${myQuest.quest_id}`}
-                  className="text-blue-600 hover:underline font-medium"
-                  key={myQuest.quest_id}
-                >
-                  <div className="flex items-center gap-3 w-full">
-                    <RemoteImage
-                      path={myQuest.quest?.quest_image_thumb || placeHold}
-                      fallback={placeHold}
-                      className="w-14 h-14 object-contain rounded-full border border-gray-300 shadow-sm bg-white"
-                    />
-                    {/* Red tick if completed */}
-                    {myQuest.completed && (
-                      <CheckCircle className="w-5 h-5 text-red-600" />
-                    )}
-                    {/* Left content */}
-                    <div className="flex flex-col">{myQuest.title}</div>
+          {normalizedQuests.map((myQuest) => (
+            <Link
+              to={`/user/quest/${myQuest.quest_id}`}
+              className="text-blue-600 hover:underline font-medium"
+              key={myQuest.quest_id}
+            >
+              <div className="flex items-center gap-3 w-full">
+                <RemoteImage
+                  path={myQuest.quest?.quest_image_thumb || placeHold}
+                  fallback={placeHold}
+                  className="w-14 h-14 object-contain rounded-full border border-gray-300 shadow-sm bg-white"
+                />
 
-                    {/* Right-aligned status button */}
-                    <Button
-                      variant="secondary"
-                      className={`
-            ml-auto
-            pointer-events-none 
-            text-white 
-            ${myQuest.completed ? 'bg-red-600' : 'bg-green-600'}
-          `}
-                    >
-                      {myQuest.completed ? 'Completed' : 'In Progress'}
-                    </Button>
-                  </div>
-                </Link>
-              ))}
-            </ul>
-          )}
+                {/* Quest title */}
+                <div className="flex flex-col">{myQuest.title}</div>
+
+                {/* Status badge */}
+                <Button
+                  variant="secondary"
+                  className={`ml-auto pointer-events-none text-white ${
+                    myQuest.completed ? 'bg-red-600' : 'bg-green-600'
+                  }`}
+                >
+                  {myQuest.completed ? 'Completed' : 'In Progress'}
+                </Button>
+
+                {/* 🔥 Red tick for completed quests */}
+                {myQuest.completed && (
+                  <CheckCircle className="w-6 h-6 text-red-600 ml-2" />
+                )}
+              </div>
+            </Link>
+          ))}
         </div>
 
         <div className="space-y-3">
