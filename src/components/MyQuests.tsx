@@ -7,7 +7,7 @@ import { Button } from './ui/button'
 import { useQuestList } from '@/hooks/userQuests'
 import RemoteImage from './RemoteImage'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
-import { Trash2 } from 'lucide-react'
+import { CheckCircle, Trash2 } from 'lucide-react'
 
 import { useQuestDeletion } from '@/hooks/useQuestDeletion'
 
@@ -57,7 +57,10 @@ export default function MyQuests({ profile }: MyQuestsProps) {
                       fallback={placeHold}
                       className="w-14 h-14 object-contain rounded-full border border-gray-300 shadow-sm bg-white"
                     />
-
+                    {/* Red tick if completed */}
+                    {myQuest.completed && (
+                      <CheckCircle className="w-5 h-5 text-red-600" />
+                    )}
                     {/* Left content */}
                     <div className="flex flex-col">{myQuest.title}</div>
 
@@ -141,7 +144,7 @@ export default function MyQuests({ profile }: MyQuestsProps) {
                               e.preventDefault()
                               e.stopPropagation()
                               console.log('Delete quest:', quest.id)
-                              deleteQuest(quest)
+                              deleteQuest(quest, { stayHere: true })
                             }}
                           >
                             <Trash2 className="w-5 h-5 text-red-600" />

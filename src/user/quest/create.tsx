@@ -549,7 +549,10 @@ export default function CreateQuestPage() {
             <TaskCreatorButton questUpdates={tasks} onNewTask={setTasks} />
             <div className="flex justify-between mt-4">
               <Button onClick={prev}>Back</Button>
-              <Button onClick={() => saveQuest(QuestStatus.published)}>
+              <Button
+                variant="yellow"
+                onClick={() => saveQuest(QuestStatus.published)}
+              >
                 {isUpdating ? 'Save Changes' : 'Finish & Create Quest'}
               </Button>
             </div>
