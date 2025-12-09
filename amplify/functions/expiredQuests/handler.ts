@@ -1,7 +1,12 @@
 import { Amplify } from 'aws-amplify'
 import { generateClient } from 'aws-amplify/data'
 
-// Configure Amplify using environment variables
+type Quest = {
+  id: string
+  quest_end: string
+  status: string
+}
+
 Amplify.configure({
   API: {
     GraphQL: {
@@ -12,43 +17,17 @@ Amplify.configure({
   },
 })
 
-// Your typed model interfaces
-type Quest = {
-  id: string
-  quest_end: string
-  status: string
-}
+const client = generateClient({ authMode: 'iam' })
 
-interface QuestModel {
-  list(args: {
-    filter?: {
-      quest_end?: { lt?: string }
-      status?: { ne?: string }
-    }
-  }): Promise<{ data: Quest[] }>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const models = client.models as any
 
-  update(args: { id: string; status?: string }): Promise<Quest>
-}
-
-// Generate client
-const client = generateClient({
-  authMode: 'iam',
-})
-
-// Type the models
-const models = client.models as unknown as {
-  Quest: QuestModel
-}
-
-const QuestModel = models.Quest
-
-// Lambda handler
 export const handler = async () => {
   console.log('Checking for expired quests…')
 
   const now = new Date().toISOString()
 
-  const { data: expiredItems } = await QuestModel.list({
+  const { data: expiredItems } = await models.Quest.list({
     filter: {
       quest_end: { lt: now },
       status: { ne: 'expired' },
@@ -61,9 +40,9 @@ export const handler = async () => {
   }
 
   await Promise.all(
-    expiredItems.map((item) =>
-      QuestModel.update({
-        id: item.id,
+    expiredItems.map((q: Quest) =>
+      models.Quest.update({
+        id: q.id,
         status: 'expired',
       })
     )

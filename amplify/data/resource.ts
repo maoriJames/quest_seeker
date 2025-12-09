@@ -1,6 +1,6 @@
-import { type ClientSchema, a, defineData } from '@aws-amplify/backend'
+import { a, defineData } from '@aws-amplify/backend'
 
-const schema = a.schema({
+export const schema = a.schema({
   Quest: a
     .model({
       quest_name: a.string(),
@@ -51,8 +51,6 @@ const schema = a.schema({
     })
     .authorization((allow) => [allow.authenticated()]),
 })
-
-export type Schema = ClientSchema<typeof schema>
 
 export const data = defineData({
   schema,
