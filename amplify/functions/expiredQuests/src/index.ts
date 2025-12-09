@@ -1,39 +1,63 @@
+import { Amplify } from 'aws-amplify'
+import outputs from './amplify_outputs.json'
 import { generateClient } from 'aws-amplify/data'
 
-import { Schema } from '../../../data/resource'
+type Quest = {
+  id: string
+  quest_end: string
+  status: string
+}
 
-const client = generateClient<Schema>({})
+interface QuestModel {
+  list(args: {
+    filter?: {
+      quest_end?: { lt?: string }
+      status?: { ne?: string }
+    }
+  }): Promise<{ data: Quest[] }>
+
+  update(args: { id: string; status?: string }): Promise<Quest>
+}
+
+Amplify.configure(outputs)
+
+// Generate client normally (untyped for backend)
+const client = generateClient({
+  authMode: 'iam',
+})
+
+// Type ONLY the Quest model (safe, no TS complaints)
+const models = client.models as unknown as {
+  Quest: QuestModel
+}
+
+const QuestModel = models.Quest
 
 export const handler = async () => {
   console.log('Checking for expired Quests.')
 
-  // Use quest_end field from your schema
   const now = new Date().toISOString()
 
-  const { data: expiredItems } = await client.models.Quest.list({
+  const { data: expiredItems } = await QuestModel.list({
     filter: {
-      quest_end: {
-        // *** Use quest_end here ***
-        lt: now,
-      },
-      status: {
-        ne: 'expired',
-      },
+      quest_end: { lt: now },
+      status: { ne: 'expired' },
     },
   })
 
-  if (expiredItems.length === 0) {
-    console.log('No expired items found.')
+  if (!expiredItems.length) {
+    console.log('No expired quests found.')
     return
   }
 
-  const updatePromises = expiredItems.map((item) =>
-    client.models.Quest.update({
-      id: item.id,
-      status: 'expired',
-    })
+  await Promise.all(
+    expiredItems.map((item) =>
+      QuestModel.update({
+        id: item.id,
+        status: 'expired',
+      })
+    )
   )
 
-  await Promise.all(updatePromises)
-  console.log(`Updated ${expiredItems.length} Quests to 'expired' status.`)
+  console.log(`Updated ${expiredItems.length} quests.`)
 }

@@ -9,14 +9,15 @@ export const expiredQuests = defineFunction((scope: Construct) => {
   const lambda = new lambdaTypes.Function(scope, 'ExpireQuestsLambda', {
     runtime: lambdaTypes.Runtime.NODEJS_18_X,
     handler: 'index.handler',
-    code: lambdaTypes.Code.fromAsset('./dist'),
+    code: lambdaTypes.Code.fromAsset(
+      './amplify/functions/expiredQuests/dist' // <-- FIXED
+    ),
     environment: {
       APPSYNC_API_URL: process.env.APPSYNC_API_URL || '',
       APPSYNC_API_KEY: process.env.APPSYNC_API_KEY || '',
     },
   })
 
-  // Add AppSync permissions
   lambda.addToRolePolicy(
     new PolicyStatement({
       actions: ['appsync:GraphQL'],
@@ -24,7 +25,6 @@ export const expiredQuests = defineFunction((scope: Construct) => {
     })
   )
 
-  // Scheduled event at midnight UTC
   new Rule(scope, 'ExpireQuestsSchedule', {
     schedule: Schedule.cron({ minute: '0', hour: '0' }),
     targets: [new LambdaFunction(lambda)],
