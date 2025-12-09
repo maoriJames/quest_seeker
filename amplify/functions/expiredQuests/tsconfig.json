@@ -5,17 +5,15 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-
-    "allowArbitraryExtensions": true,
-    "resolveJsonModule": true,
-
+    
     "outDir": "./dist",
     "rootDir": "./src",
 
-    // prevents TS from emitting anything except files in "src"
-    "isolatedModules": false
-  },
+    "resolveJsonModule": true,
+    "allowJs": true,
 
+    "noEmit": false
+  },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "../../../data"]
+  "exclude": ["node_modules"]
 }
