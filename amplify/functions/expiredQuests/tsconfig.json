@@ -5,15 +5,14 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    
+
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": ".",           // <-- important (NOT ./src)
 
     "resolveJsonModule": true,
     "allowJs": true,
-
     "noEmit": false
   },
-  "include": ["src/**/*.ts"],
+  "include": ["handler.ts"],
   "exclude": ["node_modules"]
 }
