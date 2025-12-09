@@ -1,7 +1,18 @@
 import { Amplify } from 'aws-amplify'
-import outputs from './amplify_outputs.json'
 import { generateClient } from 'aws-amplify/data'
 
+// Configure Amplify using environment variables
+Amplify.configure({
+  API: {
+    GraphQL: {
+      endpoint: process.env.APPSYNC_API_URL!,
+      region: process.env.AWS_REGION!,
+      defaultAuthMode: 'iam',
+    },
+  },
+})
+
+// Your typed model interfaces
 type Quest = {
   id: string
   quest_end: string
@@ -19,22 +30,21 @@ interface QuestModel {
   update(args: { id: string; status?: string }): Promise<Quest>
 }
 
-Amplify.configure(outputs)
-
-// Generate client normally (untyped for backend)
+// Generate client
 const client = generateClient({
   authMode: 'iam',
 })
 
-// Type ONLY the Quest model (safe, no TS complaints)
+// Type the models
 const models = client.models as unknown as {
   Quest: QuestModel
 }
 
 const QuestModel = models.Quest
 
+// Lambda handler
 export const handler = async () => {
-  console.log('Checking for expired Quests.')
+  console.log('Checking for expired quests…')
 
   const now = new Date().toISOString()
 
