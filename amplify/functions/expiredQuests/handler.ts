@@ -1,52 +1,31 @@
-import { Amplify } from 'aws-amplify'
+import { type Schema } from '../../data/resource'
+import type { Handler } from 'aws-lambda'
 import { generateClient } from 'aws-amplify/data'
 
-type Quest = {
-  id: string
-  quest_end: string
-  status: string
-}
+// Create a typed client
+const client = generateClient<Schema>()
 
-Amplify.configure({
-  API: {
-    GraphQL: {
-      endpoint: process.env.APPSYNC_API_URL!,
-      region: process.env.AWS_REGION!,
-      defaultAuthMode: 'iam',
-    },
-  },
-})
-
-const client = generateClient({ authMode: 'iam' })
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const models = client.models as any
-
-export const handler = async () => {
-  console.log('Expired quests job running…')
-
+export const handler: Handler = async () => {
+  // Example: find quests where quest_end < now and status !== 'expired'
   const now = new Date().toISOString()
 
-  const { data: expiredItems } = await models.Quest.list({
+  const { data: quests } = await client.models.Quest.list({
     filter: {
       quest_end: { lt: now },
       status: { ne: 'expired' },
     },
   })
 
-  if (!expiredItems.length) {
-    console.log('No expired quests found.')
-    return
+  console.log(`Found ${quests.length} quests to expire.`)
+
+  for (const quest of quests) {
+    await client.models.Quest.update({
+      id: quest.id,
+      status: 'expired',
+    })
   }
 
-  await Promise.all(
-    expiredItems.map((q: Quest) =>
-      models.Quest.update({
-        id: q.id,
-        status: 'expired',
-      })
-    )
-  )
-
-  console.log(`Updated ${expiredItems.length} quests.`)
+  return {
+    updated: quests.length,
+  }
 }
