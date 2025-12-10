@@ -23,7 +23,7 @@ const client = generateClient({ authMode: 'iam' })
 const models = client.models as any
 
 export const handler = async () => {
-  console.log('Checking for expired quests…')
+  console.log('Expired quests job running…')
 
   const now = new Date().toISOString()
 
