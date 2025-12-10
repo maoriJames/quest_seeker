@@ -1,6 +1,0 @@
-{
-  "scripts": {
-    "build": "tsc -p tsconfig.json"
-  },
-  "amplify-build-ignore": true
-}
