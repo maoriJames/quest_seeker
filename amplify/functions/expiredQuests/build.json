@@ -1,5 +1,0 @@
-{
-  "esbuild": {
-    "external": ["$amplify/env/expiredQuests"]
-  }
-}
