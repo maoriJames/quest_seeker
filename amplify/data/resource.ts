@@ -39,10 +39,7 @@ export const schema = a
         ]),
         participants: a.json(),
       })
-      .authorization((allow) => [
-        // Keep existing authenticated user access
-        allow.authenticated(),
-      ]),
+      .authorization((allow) => [allow.authenticated()]),
 
     Profile: a
       .model({
@@ -66,12 +63,9 @@ export const schema = a
       })
       .authorization((allow) => [allow.authenticated()]),
   })
-  // ADD the function resource permission here, at the schema level:
   .authorization((allow) => [
-    // This grants global read/write access to the entire API for the function
     allow.resource(expiredQuests).to(['query', 'mutate']),
   ])
-
 export type Schema = ClientSchema<typeof schema>
 
 export const data = defineData({

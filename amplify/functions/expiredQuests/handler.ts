@@ -1,34 +1,22 @@
 // amplify/functions/expiredQuests/handler.ts
-import { type Handler } from 'aws-lambda'
-// Add this line at the very top of your file:
-// @ts-ignore
-import { env } from '$amplify/env/expiredQuests';
-import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtime'
+import type { Handler } from 'aws-lambda'
+import type { Schema } from '../../data/resource'
+
 import { Amplify } from 'aws-amplify'
 import { generateClient } from 'aws-amplify/data'
-import { type Schema } from '../../data/resource'
+import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtime'
 
-// Use 'any' specifically within an intersection to add the missing properties
-// to the type definition *for this file only*.
-const runtimeEnv = { ...env } as typeof env & {
-  AMPLIFY_DATA_DEFAULT_NAME: string
-  AWS_ACCESS_KEY_ID: string
-  AWS_SECRET_ACCESS_KEY: string
-  AWS_SESSION_TOKEN: string
-  // We already know AWS_REGION exists
-}
+// IMPORTANT: use the *function name* from defineFunction({ name: 'expired-quests' })
+import { env } from '$amplify/env/expired-quests'
 
-// Pass the flexible runtimeEnv object to the configuration function.
-const { resourceConfig, libraryOptions } =
-  await getAmplifyDataClientConfig(runtimeEnv)
-
+// Configure Amplify using Lambda credentials + schema info
+const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env)
 Amplify.configure(resourceConfig, libraryOptions)
 
-// Create a typed client
+// Typed client
 const client = generateClient<Schema>()
 
 export const handler: Handler = async () => {
-  // Example: find quests where quest_end < now and status !== 'expired'
   const now = new Date().toISOString()
 
   const { data: quests } = await client.models.Quest.list({
@@ -47,7 +35,5 @@ export const handler: Handler = async () => {
     })
   }
 
-  return {
-    updated: quests.length,
-  }
+  return { updated: quests.length }
 }
