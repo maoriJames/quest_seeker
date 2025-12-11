@@ -30,11 +30,18 @@ export default function MyQuests({ profile }: MyQuestsProps) {
   const normalizedQuests = (profile.my_quests ?? []).map((myQuest) => {
     const fullQuest = allQuests.find((q) => q.id === myQuest.quest_id)
 
+    const endDate = fullQuest?.quest_end ? new Date(fullQuest.quest_end) : null
+    const now = new Date()
+
+    const isExpired = !!endDate && endDate < now && !myQuest.completed
+
     return {
       ...myQuest,
       quest: fullQuest || null,
+      expired: isExpired,
     }
   })
+
   console.log('normalizedQuests: ', normalizedQuests)
   return (
     <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl p-8 max-w-md w-full">
@@ -61,10 +68,18 @@ export default function MyQuests({ profile }: MyQuestsProps) {
                 <Button
                   variant="secondary"
                   className={`ml-auto pointer-events-none text-white ${
-                    myQuest.completed ? 'bg-red-600' : 'bg-green-600'
+                    myQuest.completed
+                      ? 'bg-red-600'
+                      : myQuest.expired
+                        ? 'bg-gray-500'
+                        : 'bg-green-600'
                   }`}
                 >
-                  {myQuest.completed ? 'Completed' : 'In Progress'}
+                  {myQuest.completed
+                    ? 'Completed'
+                    : myQuest.expired
+                      ? 'Unfinished'
+                      : 'In Progress'}
                 </Button>
 
                 {/* 🔥 Red tick for completed quests */}

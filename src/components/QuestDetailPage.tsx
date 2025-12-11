@@ -3,10 +3,7 @@ import * as mutations from '@/graphql/mutations'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuest } from '@/hooks/userQuests'
 import { useProfile, useCurrentUserProfile } from '@/hooks/userProfiles'
-
-// import { useDeleteQuest } from '@/hooks/userQuests'
 import bg from '@/assets/images/background_main.png'
-
 import { Button } from './ui/button'
 import { Card, CardContent } from './ui/card'
 import { useEffect, useState } from 'react'
@@ -31,11 +28,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@radix-ui/react-tooltip'
-
-// import { deleteS3Object } from '@/tools/deleteS3Object'
 import { parseQuestTasks } from '@/tools/questTasks'
-
-// import { Edit, Trash, Plus } from 'lucide-react'
 import { Toolbar } from './Toolbar'
 import TaskPreview from './TaskPreview'
 import { GetProfileQuery, QuestStatus } from '@/graphql/API'
@@ -61,10 +54,10 @@ export default function QuestDetailPage() {
 
   const [participantProfiles, setParticipantProfiles] = useState<Profile[]>([])
   const [participantsLoaded, setParticipantsLoaded] = useState(false)
-
   const [tasks, setTasks] = useState<Task[]>([])
+  const [winner, setWinner] = useState<Profile | null>(null)
 
-  // const deleteQuestMutation = useDeleteQuest()
+  const isExpired = quest?.status === QuestStatus.expired
 
   // Update edit fields when quest data is fetched
   useEffect(() => {
@@ -77,52 +70,26 @@ export default function QuestDetailPage() {
     setTasks(parsedTasks)
   }, [quest])
 
+  useEffect(() => {
+    if (isExpired && !participantsLoaded) {
+      handleOpenParticipants()
+    }
+  }, [isExpired])
+
   const client = generateClient()
 
   if (isLoading) return <p>Loading quest...</p>
   if (error) return <p>Failed to fetch quest.</p>
   if (!quest) return <p>Quest not found.</p>
 
-  // const handleDelete = async () => {
-  //   if (!quest) return
-  //   if (!window.confirm('Are you sure you want to delete this quest?')) return
+  const pickRandomWinner = () => {
+    if (completedParticipants.length === 0) return
 
-  //   try {
-  //     // Delete quest image
-  //     console.log('quest image:', quest.quest_image)
-  //     if (quest.quest_image) {
-  //       console.log('quest image deleting?:')
-  //       await deleteS3Object(quest.quest_image)
-  //     }
-  //     // Delete all sponsor images
-  //     const sponsors = Array.isArray(quest.quest_sponsor)
-  //       ? quest.quest_sponsor
-  //       : JSON.parse(quest.quest_sponsor || '[]')
-  //     for (const sponsor of sponsors) {
-  //       if (sponsor.sponsorImage && sponsor.image) {
-  //         await deleteS3Object(sponsor.image)
-  //       }
-  //     }
+    const randomIndex = Math.floor(Math.random() * completedParticipants.length)
+    const selected = completedParticipants[randomIndex]
 
-  //     // Delete all prize images
-  //     const prizes = Array.isArray(quest.quest_prize_info)
-  //       ? quest.quest_prize_info
-  //       : JSON.parse(quest.quest_prize_info || '[]')
-  //     for (const prize of prizes) {
-  //       if (prize.prizeImage && prize.image) {
-  //         await deleteS3Object(prize.image)
-  //       }
-  //     }
-
-  //     // Delete quest record
-  //     await deleteQuestMutation.mutateAsync(quest.id)
-  //     window.alert('Quest and associated images deleted successfully!')
-  //     navigate(-1)
-  //   } catch (err) {
-  //     console.error('Failed to delete quest:', err)
-  //     window.alert('Failed to delete quest.')
-  //   }
-  // }
+    setWinner(selected)
+  }
 
   const handleJoinQuest = async () => {
     if (!quest?.id || !quest?.quest_tasks) return
@@ -225,6 +192,31 @@ export default function QuestDetailPage() {
       return []
     }
   })()
+
+  const completedParticipants = participantProfiles.filter((profile) => {
+    // Parse participant's my_quests
+    const myQuestsRaw = profile.my_quests ?? []
+    const myQuests: MyQuest[] =
+      typeof myQuestsRaw === 'string' ? JSON.parse(myQuestsRaw) : myQuestsRaw
+
+    // Find this quest's entry for this participant
+    const questEntry = myQuests.find((q) => q.quest_id === quest.id)
+    console.log('questEntry: ', questEntry)
+    if (!questEntry) return false
+
+    // ✅ 1) If the MyQuest-level completed flag is true, we’re done
+    if (questEntry.completed) return true
+
+    // ✅ 2) Fallback: require all tasks to be marked completed
+    const taskCount = questEntry.tasks?.length ?? 0
+    if (taskCount === 0) return false
+
+    const completedCount =
+      questEntry.tasks?.filter((t) => t.completed).length ?? 0
+
+    return completedCount === taskCount
+  })
+
   const displayedSponsors = sponsors.slice(0, 2)
 
   const handleOpenParticipants = async () => {
@@ -416,143 +408,275 @@ export default function QuestDetailPage() {
             )}
           </div>
 
-          {/* Quest details + Task list side by side */}
           <div className="flex flex-col lg:flex-row gap-6 mt-2 w-full">
+            {/* ---------------- LEFT SIDE ---------------- */}
             <div className="flex-1">
-              <p className="text-gray-700 mb-2">{quest.quest_details}</p>
-              <p className="text-sm text-gray-500 mb-1">
-                Region: <strong>{quest.region}</strong>
-              </p>
-              <div className="text-sm mb-1">
-                Organisation:{' '}
-                {questCreatorProfile?.data?.organization_name ? (
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <span className="text-blue-600 underline cursor-pointer">
-                        {questCreatorProfile.data.organization_name}
-                      </span>
-                    </DialogTrigger>
+              {isExpired ? (
+                /* ---------- EXPIRED VERSION: Show only the 4 fields ---------- */
+                <>
+                  <p className="text-gray-700 mb-2">{quest.quest_details}</p>
 
-                    <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
-                    <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[70vh] w-full max-w-md bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
-                      <RemoteImage
-                        path={questCreatorProfile.data.image || placeHold}
-                        fallback={placeHold}
-                        className="w-32 h-32 rounded-full object-cover"
-                      />
-                      <DialogTitle className="text-lg font-bold mb-4">
-                        {questCreatorProfile.data.organization_name}
-                      </DialogTitle>
+                  <p className="text-sm text-gray-500 mb-1">
+                    Region: <strong>{quest.region}</strong>
+                  </p>
 
-                      <div className="text-gray-700">
-                        <p>
-                          {questCreatorProfile.data.organization_description ||
-                            'N/A'}
-                        </p>
-                      </div>
-                      <DialogClose asChild>
-                        <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
-                          Close
-                        </button>
-                      </DialogClose>
-                    </DialogContent>
-                  </Dialog>
-                ) : (
-                  <span className="text-gray-500">N/A</span>
-                )}
-              </div>
+                  <div className="text-sm mb-1">
+                    Organisation:{' '}
+                    {questCreatorProfile?.data?.organization_name ? (
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <span className="text-blue-600 underline cursor-pointer">
+                            {questCreatorProfile.data.organization_name}
+                          </span>
+                        </DialogTrigger>
+                        <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
+                        <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[70vh] w-full max-w-md bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
+                          <RemoteImage
+                            path={questCreatorProfile.data.image || placeHold}
+                            fallback={placeHold}
+                            className="w-32 h-32 rounded-full object-cover"
+                          />
+                          <DialogTitle className="text-lg font-bold mb-4">
+                            {questCreatorProfile.data.organization_name}
+                          </DialogTitle>
+                          <p className="text-gray-700">
+                            {questCreatorProfile.data
+                              .organization_description || 'N/A'}
+                          </p>
+                          <DialogClose asChild>
+                            <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
+                              Close
+                            </button>
+                          </DialogClose>
+                        </DialogContent>
+                      </Dialog>
+                    ) : (
+                      <span className="text-gray-500">N/A</span>
+                    )}
+                  </div>
 
-              <p className="text-sm text-gray-500 mb-1">
-                Start: <strong>{quest.quest_start}</strong>
-              </p>
-              <p className="text-sm text-gray-500">
-                End: <strong>{quest.quest_end}</strong>
-              </p>
-              <p className="text-sm text-gray-500">
-                Number of tasks in this quest: <strong>{tasks.length}</strong>
-              </p>
-              <p className="text-sm text-gray-500">
-                Entry: <strong>${quest.quest_entry}</strong>
-              </p>
-              <p className="text-sm text-gray-500">
-                People joined:
-                {participantsArray.length > 0 && (
-                  <Dialog
-                    onOpenChange={(open) => open && handleOpenParticipants()}
-                  >
-                    <DialogTrigger asChild>
-                      <button className="text-blue-600 underline font-medium text-sm">
-                        {participantsArray.length} participant
-                        {participantsArray.length > 1 ? 's' : ''}
-                      </button>
-                    </DialogTrigger>
+                  <p className="text-sm text-gray-500">
+                    Ends on: <strong>{quest.quest_end}</strong>
+                  </p>
+                </>
+              ) : (
+                /* ---------- NORMAL VERSION (NOT EXPIRED) ---------- */
+                <>
+                  <p className="text-gray-700 mb-2">{quest.quest_details}</p>
 
-                    <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
-                    <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[70vh] w-full max-w-md bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
-                      <DialogTitle className="text-lg font-bold mb-4">
-                        Participants
-                      </DialogTitle>
+                  <p className="text-sm text-gray-500 mb-1">
+                    Region: <strong>{quest.region}</strong>
+                  </p>
 
-                      <div className="flex flex-col gap-3">
-                        {participantProfiles.map((profile) => (
-                          <div
-                            key={profile.id}
-                            className="flex items-center gap-3"
-                          >
-                            <RemoteImage
-                              path={profile.image_thumbnail || placeHold}
-                              fallback={placeHold}
-                              className="w-32 h-32 rounded-full object-cover"
-                            />
+                  <div className="text-sm mb-1">
+                    Organisation:{' '}
+                    {questCreatorProfile?.data?.organization_name ? (
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <span className="text-blue-600 underline cursor-pointer">
+                            {questCreatorProfile.data.organization_name}
+                          </span>
+                        </DialogTrigger>
 
-                            {/* Text stacked vertically */}
-                            <div className="flex flex-col">
-                              <span className="text-sm font-medium">
-                                <strong>
-                                  {profile.full_name || 'Unknown'}
-                                </strong>
-                              </span>
+                        <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
+                        <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[70vh] w-full max-w-md bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
+                          <RemoteImage
+                            path={questCreatorProfile.data.image || placeHold}
+                            fallback={placeHold}
+                            className="w-32 h-32 rounded-full object-cover"
+                          />
+                          <DialogTitle className="text-lg font-bold mb-4">
+                            {questCreatorProfile.data.organization_name}
+                          </DialogTitle>
+                          <p className="text-gray-700">
+                            {questCreatorProfile.data
+                              .organization_description || 'N/A'}
+                          </p>
+                          <DialogClose asChild>
+                            <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
+                              Close
+                            </button>
+                          </DialogClose>
+                        </DialogContent>
+                      </Dialog>
+                    ) : (
+                      <span className="text-gray-500">N/A</span>
+                    )}
+                  </div>
 
-                              <span className="text-xs text-gray-600">
-                                {profile.about_me || ''}
-                              </span>
-                            </div>
+                  <p className="text-sm text-gray-500 mb-1">
+                    Start: <strong>{quest.quest_start}</strong>
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    End: <strong>{quest.quest_end}</strong>
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Number of tasks in this quest:{' '}
+                    <strong>{tasks.length}</strong>
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Entry: <strong>${quest.quest_entry}</strong>
+                  </p>
+
+                  {/* Participant count block remains */}
+                  <p className="text-sm text-gray-500">
+                    People joined:
+                    {participantsArray.length > 0 && (
+                      <Dialog
+                        onOpenChange={(open) =>
+                          open && handleOpenParticipants()
+                        }
+                      >
+                        <DialogTrigger asChild>
+                          <button className="text-blue-600 underline font-medium text-sm">
+                            {participantsArray.length} participant
+                            {participantsArray.length > 1 ? 's' : ''}
+                          </button>
+                        </DialogTrigger>
+
+                        <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
+                        <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[70vh] w-full max-w-md bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
+                          <DialogTitle className="text-lg font-bold mb-4">
+                            Participants
+                          </DialogTitle>
+
+                          <div className="flex flex-col gap-3">
+                            {participantProfiles.map((profile) => (
+                              <div
+                                key={profile.id}
+                                className="flex items-center gap-3"
+                              >
+                                <RemoteImage
+                                  path={profile.image_thumbnail || placeHold}
+                                  fallback={placeHold}
+                                  className="w-32 h-32 rounded-full object-cover"
+                                />
+
+                                {/* Text stacked vertically */}
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-medium">
+                                    <strong>
+                                      {profile.full_name || 'Unknown'}
+                                    </strong>
+                                  </span>
+
+                                  <span className="text-xs text-gray-600">
+                                    {profile.about_me || ''}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+
+                            {participantProfiles.length === 0 && (
+                              <p className="text-gray-500">Loading...</p>
+                            )}
                           </div>
-                        ))}
 
-                        {participantProfiles.length === 0 && (
-                          <p className="text-gray-500">Loading...</p>
-                        )}
-                      </div>
-
-                      <DialogClose asChild>
-                        <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
-                          Close
-                        </button>
-                      </DialogClose>
-                    </DialogContent>
-                  </Dialog>
-                )}
-              </p>
+                          <DialogClose asChild>
+                            <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
+                              Close
+                            </button>
+                          </DialogClose>
+                        </DialogContent>
+                      </Dialog>
+                    )}
+                  </p>
+                </>
+              )}
             </div>
 
-            {(isOwner || hasJoined) && (
-              <div className="lg:w-[450px] w-full">
-                <TaskInformationWindow
-                  questId={quest.id}
-                  tasks={seekerTasks}
-                  userTasks={myQuestsArray}
-                  onTasksUpdated={async () => {
-                    await refetch()
-                    await refetchProfile()
-                  }}
-                  readOnly={isOwner} // <-- owner cannot answer tasks
-                />
-              </div>
-            )}
+            {/* ---------------- RIGHT SIDE ---------------- */}
 
-            {!isOwner && !hasJoined && <TaskPreview tasks={tasks} />}
+            {isExpired ? (
+              <div className="lg:w-[450px] w-full bg-white/70 p-4 rounded-xl shadow">
+                <h3 className="text-lg font-bold mb-3">
+                  Participants Who Completed This Quest
+                </h3>
+
+                {/* SHOW “loading” if profiles haven't loaded yet */}
+                {!participantsLoaded ? (
+                  <p className="text-gray-500">Loading participants...</p>
+                ) : completedParticipants.length === 0 ? (
+                  <p className="text-gray-500">
+                    No participants have completed all tasks for this quest.
+                  </p>
+                ) : (
+                  <>
+                    <div className="flex flex-col gap-3 mb-4">
+                      {completedParticipants.map((profile) => (
+                        <div
+                          key={profile.id}
+                          className="flex items-center gap-3 bg-white p-2 rounded-lg shadow-sm"
+                        >
+                          <RemoteImage
+                            path={profile.image_thumbnail || placeHold}
+                            fallback={placeHold}
+                            className="w-12 h-12 rounded-full object-cover"
+                          />
+
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-gray-800">
+                              {profile.full_name || 'Unknown User'}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {profile.about_me || ''}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* 🎯 Only quest creator sees this button */}
+                    {isOwner && completedParticipants.length > 0 && (
+                      <button
+                        onClick={pickRandomWinner}
+                        className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 rounded-lg shadow"
+                      >
+                        Pick Random Winner
+                      </button>
+                    )}
+
+                    {/* 🏆 WINNER DISPLAY */}
+                    {winner && (
+                      <div className="mt-4 p-3 bg-green-100 border border-green-300 rounded-lg flex items-center gap-3">
+                        <RemoteImage
+                          path={winner.image_thumbnail || placeHold}
+                          fallback={placeHold}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                        <div>
+                          <p className="font-bold text-green-800 text-lg">
+                            🎉 Winner!
+                          </p>
+                          <p className="font-semibold">{winner.full_name}</p>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            ) : (
+              <>
+                {(isOwner || hasJoined) && (
+                  <div className="lg:w-[450px] w-full">
+                    <TaskInformationWindow
+                      questId={quest.id}
+                      tasks={seekerTasks}
+                      userTasks={myQuestsArray}
+                      readOnly={isOwner}
+                      onTasksUpdated={async () => {
+                        await refetch()
+                        await refetchProfile()
+                      }}
+                    />
+                  </div>
+                )}
+
+                {!isOwner && !hasJoined && <TaskPreview tasks={tasks} />}
+              </>
+            )}
           </div>
+
           {/* Bottom action row: Delete/Join (left) + Back + Prize Info (right) */}
           <div className="mt-4 flex items-center justify-between w-full gap-4">
             {/* Left: Delete / Join */}
