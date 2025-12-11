@@ -1,6 +1,8 @@
 // amplify/functions/expiredQuests/handler.ts
 import { type Handler } from 'aws-lambda'
-import { env } from '$amplify/env/expiredQuests'
+// Add this line at the very top of your file:
+// @ts-ignore
+import { env } from '$amplify/env/expiredQuests';
 import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtime'
 import { Amplify } from 'aws-amplify'
 import { generateClient } from 'aws-amplify/data'
