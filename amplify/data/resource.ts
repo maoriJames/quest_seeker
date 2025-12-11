@@ -1,66 +1,76 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend'
 import { sayHello } from '../functions/say-hello/resource'
+import { expiredQuests } from '../functions/expiredQuests/resource'
 
-export const schema = a.schema({
-  sayHello: a
-    .query()
-    .arguments({
-      name: a.string(),
-    })
-    .returns(a.string())
-    .authorization((allow) => [allow.guest()])
-    .handler(a.handler.function(sayHello)),
+export const schema = a
+  .schema({
+    sayHello: a
+      .query()
+      .arguments({
+        name: a.string(),
+      })
+      .returns(a.string())
+      .authorization((allow) => [allow.guest()])
+      .handler(a.handler.function(sayHello)),
 
-  Quest: a
-    .model({
-      quest_name: a.string(),
-      quest_details: a.string(),
-      quest_image: a.string(),
-      quest_image_thumb: a.string(),
-      quest_start: a.date(),
-      quest_end: a.date(),
-      quest_prize: a.boolean(),
-      quest_prize_info: a.string(),
-      quest_sponsor: a.string(),
-      region: a.string(),
-      quest_entry: a.integer(),
-      quest_tasks: a.json(),
-      creator_id: a.string(),
-      status: a.enum([
-        'draft',
-        'published',
-        'expired',
-        'archived',
-        'upcoming',
-        'occurrring',
-        'completed',
+    Quest: a
+      .model({
+        quest_name: a.string(),
+        quest_details: a.string(),
+        quest_image: a.string(),
+        quest_image_thumb: a.string(),
+        quest_start: a.date(),
+        quest_end: a.date(),
+        quest_prize: a.boolean(),
+        quest_prize_info: a.string(),
+        quest_sponsor: a.string(),
+        region: a.string(),
+        quest_entry: a.integer(),
+        quest_tasks: a.json(),
+        creator_id: a.string(),
+        status: a.enum([
+          'draft',
+          'published',
+          'expired',
+          'archived',
+          'upcoming',
+          'occurrring',
+          'completed',
+        ]),
+        participants: a.json(),
+      })
+      .authorization((allow) => [
+        // Keep existing authenticated user access
+        allow.authenticated(),
       ]),
-      participants: a.json(),
-    })
-    .authorization((allow) => [allow.authenticated()]),
 
-  Profile: a
-    .model({
-      full_name: a.string(),
-      email: a.string(),
-      organization_name: a.string(),
-      registration_number: a.string(),
-      business_type: a.string(),
-      organization_description: a.string(),
-      primary_contact_name: a.string(),
-      primary_contact_position: a.string(),
-      primary_contact_phone: a.string(),
-      about_me: a.string(),
-      secondary_contact_name: a.string(),
-      secondary_contact_position: a.string(),
-      secondary_contact_phone: a.string(),
-      image: a.string(),
-      image_thumbnail: a.string(),
-      my_quests: a.json(),
-      role: a.enum(['seeker', 'creator']),
-    })
-    .authorization((allow) => [allow.authenticated()]),
-})
+    Profile: a
+      .model({
+        full_name: a.string(),
+        email: a.string(),
+        organization_name: a.string(),
+        registration_number: a.string(),
+        business_type: a.string(),
+        organization_description: a.string(),
+        primary_contact_name: a.string(),
+        primary_contact_position: a.string(),
+        primary_contact_phone: a.string(),
+        about_me: a.string(),
+        secondary_contact_name: a.string(),
+        secondary_contact_position: a.string(),
+        secondary_contact_phone: a.string(),
+        image: a.string(),
+        image_thumbnail: a.string(),
+        my_quests: a.json(),
+        role: a.enum(['seeker', 'creator']),
+      })
+      .authorization((allow) => [allow.authenticated()]),
+  })
+  // ADD the function resource permission here, at the schema level:
+  .authorization((allow) => [
+    // This grants global read/write access to the entire API for the function
+    allow.resource(expiredQuests).to(['query', 'mutate']),
+  ])
 
 export type Schema = ClientSchema<typeof schema>
 
