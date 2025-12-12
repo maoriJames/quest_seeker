@@ -135,3 +135,9 @@ export interface PrizeCreatorButtonProps {
 }
 
 export type OnNewPrizeFunction = (updatedPrizes: Prize[]) => void
+
+export type PdfUser = {
+  full_name?: string | null
+  email?: string | null
+  image_thumbnail?: string | null
+}

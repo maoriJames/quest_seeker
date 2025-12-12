@@ -35,6 +35,8 @@ import { GetProfileQuery, QuestStatus } from '@/graphql/API'
 import { getProfile } from '@/graphql/queries'
 import SignOutButton from './SignOutButton'
 import { useQuestDeletion } from '@/hooks/useQuestDeletion'
+import { PDFDownloadLink } from '@react-pdf/renderer'
+import SeekerTaskPdfButton from '@/components/SeekerTaskPdfButton'
 
 export default function QuestDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -624,6 +626,26 @@ export default function QuestDetailPage() {
                           </div>
                         </div>
                       ))}
+                      {hasJoined && !isOwner && currentUserProfile && (
+                        <PDFDownloadLink
+                          document={
+                            <SeekerTaskPdfButton
+                              quest={quest}
+                              seekerTasks={seekerTasks}
+                              user={currentUserProfile}
+                            />
+                          }
+                          fileName={`${quest.quest_name}-your-answers.pdf`}
+                        >
+                          {({ loading }) => (
+                            <button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                              {loading
+                                ? 'Preparing PDF...'
+                                : 'Download My Quest PDF'}
+                            </button>
+                          )}
+                        </PDFDownloadLink>
+                      )}
                     </div>
 
                     {/* 🎯 Only quest creator sees this button */}
