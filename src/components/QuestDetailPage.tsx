@@ -247,6 +247,7 @@ export default function QuestDetailPage() {
     } catch (err) {
       console.error('Failed to fetch participant profiles:', err)
     }
+    console.log('Participants Array: ', participantsArray.length)
   }
   return (
     <div
@@ -388,7 +389,7 @@ export default function QuestDetailPage() {
               </div>
             )}
             {/* Edit Button (top right of banner) */}
-            {isOwner && (
+            {isOwner && !isExpired && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -703,7 +704,7 @@ export default function QuestDetailPage() {
           <div className="mt-4 flex items-center justify-between w-full gap-4">
             {/* Left: Delete / Join */}
             <div className="flex items-center gap-2">
-              {isOwner && (
+              {isOwner && participantsArray.length < 1 && (
                 <Button
                   onClick={() => deleteQuest(quest)}
                   className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"

@@ -7,6 +7,7 @@ import logo from '@/assets/images/logo_trans.png'
 import bg from '@/assets/images/background_main.png'
 import { useCurrentUserProfile } from '@/hooks/userProfiles'
 import { signOut } from 'aws-amplify/auth'
+import { LogOut } from 'lucide-react'
 
 export default function RegionPage() {
   const [selectedRegion, setSelectedRegion] = useState('')
@@ -73,6 +74,7 @@ export default function RegionPage() {
             Update Account
           </Button>
           <Button className="w-full mt-6" onClick={handleSignOut}>
+            <LogOut />
             Sign Out
           </Button>
         </CardContent>
