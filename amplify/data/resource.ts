@@ -1,18 +1,8 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend'
-import { sayHello } from '../functions/say-hello/resource'
 import { expiredQuests } from '../functions/expiredQuests/resource'
 
 export const schema = a
   .schema({
-    sayHello: a
-      .query()
-      .arguments({
-        name: a.string(),
-      })
-      .returns(a.string())
-      .authorization((allow) => [allow.guest()])
-      .handler(a.handler.function(sayHello)),
-
     Quest: a
       .model({
         quest_name: a.string(),

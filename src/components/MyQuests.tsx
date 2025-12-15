@@ -7,7 +7,7 @@ import { Button } from './ui/button'
 import { useQuestList } from '@/hooks/userQuests'
 import RemoteImage from './RemoteImage'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
-import { CheckCircle, Trash2 } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 
 import { useQuestDeletion } from '@/hooks/useQuestDeletion'
 
@@ -22,6 +22,8 @@ export default function MyQuests({ profile }: MyQuestsProps) {
   const { deleteQuest } = useQuestDeletion()
   const navigate = useNavigate()
 
+  const now = new Date()
+
   const myCreatedQuests = allQuests.filter(
     (quest) => quest.creator_id === profile.id
   )
@@ -30,15 +32,35 @@ export default function MyQuests({ profile }: MyQuestsProps) {
   const normalizedQuests = (profile.my_quests ?? []).map((myQuest) => {
     const fullQuest = allQuests.find((q) => q.id === myQuest.quest_id)
 
-    const endDate = fullQuest?.quest_end ? new Date(fullQuest.quest_end) : null
-    const now = new Date()
+    const questStatus = fullQuest?.status ?? 'draft'
 
-    const isExpired = !!endDate && endDate < now && !myQuest.completed
+    const startDate = fullQuest?.quest_start
+      ? new Date(fullQuest.quest_start)
+      : null
+
+    const isUpcoming =
+      questStatus === 'published' && startDate && startDate > now
+
+    const isExpired = questStatus === 'expired'
+
+    const totalTasks = myQuest.tasks?.length ?? 0
+    const completedTasks = myQuest.tasks?.filter((t) => t.completed).length ?? 0
+
+    const progressPercent =
+      totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+
+    const isCompleted = progressPercent === 100
 
     return {
       ...myQuest,
       quest: fullQuest || null,
+      questStatus,
+      isUpcoming,
       expired: isExpired,
+      completed: isCompleted,
+      totalTasks,
+      completedTasks,
+      progressPercent,
     }
   })
 
@@ -54,38 +76,57 @@ export default function MyQuests({ profile }: MyQuestsProps) {
               className="text-blue-600 hover:underline font-medium"
               key={myQuest.quest_id}
             >
-              <div className="flex items-center gap-3 w-full">
+              <div className="flex items-start gap-3 w-full">
                 <RemoteImage
                   path={myQuest.quest?.quest_image_thumb || placeHold}
                   fallback={placeHold}
                   className="w-14 h-14 object-contain rounded-full border border-gray-300 shadow-sm bg-white"
                 />
 
-                {/* Quest title */}
-                <div className="flex flex-col">{myQuest.title}</div>
+                {/* Middle content */}
+                <div className="flex flex-col flex-1 gap-1">
+                  <span className="font-semibold text-gray-800">
+                    {myQuest.title}
+                  </span>
 
-                {/* Status badge */}
+                  {/* 🔵 Progress bar (only if not completed) */}
+                  {
+                    <>
+                      <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                        <div
+                          className="h-2 bg-green-500 transition-all duration-300"
+                          style={{ width: `${myQuest.progressPercent}%` }}
+                        />
+                      </div>
+
+                      <span className="text-xs text-gray-500">
+                        {myQuest.completedTasks} / {myQuest.totalTasks} tasks
+                        completed
+                      </span>
+                    </>
+                  }
+                </div>
+
                 <Button
                   variant="secondary"
                   className={`ml-auto pointer-events-none text-white ${
-                    myQuest.completed
-                      ? 'bg-red-600'
-                      : myQuest.expired
-                        ? 'bg-gray-500'
+                    myQuest.expired
+                      ? myQuest.completed
+                        ? 'bg-red-600'
+                        : 'bg-gray-500'
+                      : myQuest.isUpcoming
+                        ? 'bg-blue-500'
                         : 'bg-green-600'
                   }`}
                 >
-                  {myQuest.completed
-                    ? 'Completed'
-                    : myQuest.expired
-                      ? 'Unfinished'
+                  {myQuest.expired
+                    ? myQuest.completed
+                      ? 'Quest Ended'
+                      : 'Unfinished'
+                    : myQuest.isUpcoming
+                      ? 'Upcoming'
                       : 'In Progress'}
                 </Button>
-
-                {/* 🔥 Red tick for completed quests */}
-                {myQuest.completed && (
-                  <CheckCircle className="w-6 h-6 text-red-600 ml-2" />
-                )}
               </div>
             </Link>
           ))}
@@ -98,13 +139,12 @@ export default function MyQuests({ profile }: MyQuestsProps) {
           ) : (
             <ul className="list-disc pl-5 space-y-1">
               {myCreatedQuests.map((quest) => {
-                // Pick status color classes
-                const statusClasses =
-                  quest.status === 'published'
-                    ? 'bg-green-600 text-white'
-                    : quest.status === 'expired'
-                      ? 'bg-red-600 text-white'
-                      : 'bg-gray-400 text-white' // draft or unknown
+                const startDate = quest.quest_start
+                  ? new Date(quest.quest_start)
+                  : null
+
+                const isUpcoming =
+                  quest.status === 'published' && startDate && startDate > now
 
                 return (
                   <Link
@@ -130,13 +170,23 @@ export default function MyQuests({ profile }: MyQuestsProps) {
                       {/* Right-aligned status button */}
                       <Button
                         variant="secondary"
-                        className={`ml-auto pointer-events-none px-3 py-1 rounded ${statusClasses}`}
+                        className={`ml-auto pointer-events-none px-3 py-1 rounded text-white ${
+                          quest.status === 'expired'
+                            ? 'bg-red-600'
+                            : isUpcoming
+                              ? 'bg-blue-500'
+                              : quest.status === 'published'
+                                ? 'bg-green-600'
+                                : 'bg-gray-400'
+                        }`}
                       >
-                        {quest.status === 'published'
-                          ? 'Published'
-                          : quest.status === 'expired'
-                            ? 'Expired'
-                            : 'Draft'}
+                        {quest.status === 'expired'
+                          ? 'Quest Ended'
+                          : isUpcoming
+                            ? 'Upcoming'
+                            : quest.status === 'published'
+                              ? 'In Progress'
+                              : 'Draft'}
                       </Button>
 
                       {/* Decide when to show the bin */}

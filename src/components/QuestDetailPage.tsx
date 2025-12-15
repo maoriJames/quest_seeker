@@ -109,7 +109,7 @@ export default function QuestDetailPage() {
         tasks,
         progress: 0,
         completed: false,
-        quest_status: QuestStatus.published,
+        // quest_status: QuestStatus.published,
       }
 
       await addQuestToProfile(quest.id, [userQuestEntry])
@@ -162,6 +162,14 @@ export default function QuestDetailPage() {
   // console.log('myQuestArray: ', myQuestsArray)
   const hasJoined = myQuestsArray.some((q) => q.quest_id === quest.id)
   const joinedQuestEntry = myQuestsArray.find((q) => q.quest_id === quest.id)
+
+  const totalTasks = joinedQuestEntry?.tasks?.length ?? 0
+
+  const completedTasks =
+    joinedQuestEntry?.tasks?.filter((t) => t.completed).length ?? 0
+
+  const progressPercent =
+    totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
 
   const seekerTasks: Task[] = parseQuestTasks(quest?.quest_tasks).map(
     (task) => {
@@ -681,7 +689,33 @@ export default function QuestDetailPage() {
             ) : (
               <>
                 {(isOwner || hasJoined) && (
-                  <div className="lg:w-[450px] w-full">
+                  <div className="lg:w-[450px] w-full bg-white/80 p-4 rounded-xl shadow flex flex-col gap-4">
+                    {/* 🔵 Progress Bar (joined seekers only) */}
+                    {hasJoined && !isOwner && (
+                      <div>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm font-semibold text-gray-700">
+                            Quest Progress
+                          </span>
+                          <span className="text-sm text-gray-600">
+                            {completedTasks} / {totalTasks} tasks
+                          </span>
+                        </div>
+
+                        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                          <div
+                            className="h-3 bg-green-500 transition-all duration-300"
+                            style={{ width: `${progressPercent}%` }}
+                          />
+                        </div>
+
+                        <p className="text-xs text-gray-500 mt-1 text-right">
+                          {progressPercent}% complete
+                        </p>
+                      </div>
+                    )}
+
+                    {/* 🧩 Task Window */}
                     <TaskInformationWindow
                       questId={quest.id}
                       tasks={seekerTasks}

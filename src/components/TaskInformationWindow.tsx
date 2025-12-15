@@ -18,7 +18,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@radix-ui/react-tooltip'
-import { QuestStatus } from '@/graphql/API'
+// import { QuestStatus } from '@/graphql/API'
 
 interface TaskInformationWindowProps {
   questId: string
@@ -196,7 +196,7 @@ export default function TaskInformationWindow({
           tasks: updatedTasksForUser,
           title: '',
           completed: allCompleted,
-          quest_status: QuestStatus.published,
+          // quest_status: QuestStatus.published,
         },
       ])
 
