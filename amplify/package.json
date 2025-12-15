@@ -2,5 +2,8 @@
   "type": "module",
   "devDependencies": {
     "@aws-amplify/backend-cli": "^1.8.1"
+  },
+  "dependencies": {
+    "@aws-sdk/client-ses": "^3.948.0"
   }
 }

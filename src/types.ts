@@ -93,7 +93,7 @@ export type MyQuest = {
   tasks: Task[]
   progress?: number
   completed: boolean
-  quest_status: QuestStatus
+  // quest_status: QuestStatus
 
   quest?: Quest // 👈 NEW: linked full quest object
 }
