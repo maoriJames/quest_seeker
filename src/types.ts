@@ -54,6 +54,7 @@ export type Profile = {
   image_thumbnail: string
   role: Role
   my_quests?: MyQuest[]
+  points: number
 }
 
 // ---------------- Tasks ----------------
