@@ -37,6 +37,7 @@ export default function AccountPage() {
     image_thumbnail: '',
     role: 'seeker',
     my_quests: [],
+    points: 0,
   })
 
   const defaultTab = (
@@ -79,6 +80,7 @@ export default function AccountPage() {
       image_thumbnail: currentProfile.image_thumbnail ?? '',
       role: currentProfile.role ?? 'seeker',
       my_quests: quests,
+      points: currentProfile.points ?? 0,
     })
   }, [currentProfile])
 

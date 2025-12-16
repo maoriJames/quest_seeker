@@ -15,6 +15,7 @@ export type Profile = {
   my_quests?: string | null,
   organization_description?: string | null,
   organization_name?: string | null,
+  points?: number | null,
   primary_contact_name?: string | null,
   primary_contact_phone?: string | null,
   primary_contact_position?: string | null,
@@ -80,6 +81,7 @@ export type ModelProfileFilterInput = {
   or?: Array< ModelProfileFilterInput | null > | null,
   organization_description?: ModelStringInput | null,
   organization_name?: ModelStringInput | null,
+  points?: ModelIntInput | null,
   primary_contact_name?: ModelStringInput | null,
   primary_contact_phone?: ModelStringInput | null,
   primary_contact_position?: ModelStringInput | null,
@@ -147,6 +149,18 @@ export type ModelIDInput = {
   size?: ModelSizeInput | null,
 };
 
+export type ModelIntInput = {
+  attributeExists?: boolean | null,
+  attributeType?: ModelAttributeTypes | null,
+  between?: Array< number | null > | null,
+  eq?: number | null,
+  ge?: number | null,
+  gt?: number | null,
+  le?: number | null,
+  lt?: number | null,
+  ne?: number | null,
+};
+
 export type ModelProfileRoleInput = {
   eq?: ProfileRole | null,
   ne?: ProfileRole | null,
@@ -182,18 +196,6 @@ export type ModelQuestFilterInput = {
   updatedAt?: ModelStringInput | null,
 };
 
-export type ModelIntInput = {
-  attributeExists?: boolean | null,
-  attributeType?: ModelAttributeTypes | null,
-  between?: Array< number | null > | null,
-  eq?: number | null,
-  ge?: number | null,
-  gt?: number | null,
-  le?: number | null,
-  lt?: number | null,
-  ne?: number | null,
-};
-
 export type ModelBooleanInput = {
   attributeExists?: boolean | null,
   attributeType?: ModelAttributeTypes | null,
@@ -226,6 +228,7 @@ export type ModelProfileConditionInput = {
   or?: Array< ModelProfileConditionInput | null > | null,
   organization_description?: ModelStringInput | null,
   organization_name?: ModelStringInput | null,
+  points?: ModelIntInput | null,
   primary_contact_name?: ModelStringInput | null,
   primary_contact_phone?: ModelStringInput | null,
   primary_contact_position?: ModelStringInput | null,
@@ -248,6 +251,7 @@ export type CreateProfileInput = {
   my_quests?: string | null,
   organization_description?: string | null,
   organization_name?: string | null,
+  points?: number | null,
   primary_contact_name?: string | null,
   primary_contact_phone?: string | null,
   primary_contact_position?: string | null,
@@ -319,6 +323,7 @@ export type UpdateProfileInput = {
   my_quests?: string | null,
   organization_description?: string | null,
   organization_name?: string | null,
+  points?: number | null,
   primary_contact_name?: string | null,
   primary_contact_phone?: string | null,
   primary_contact_position?: string | null,
@@ -362,6 +367,7 @@ export type ModelSubscriptionProfileFilterInput = {
   or?: Array< ModelSubscriptionProfileFilterInput | null > | null,
   organization_description?: ModelSubscriptionStringInput | null,
   organization_name?: ModelSubscriptionStringInput | null,
+  points?: ModelSubscriptionIntInput | null,
   primary_contact_name?: ModelSubscriptionStringInput | null,
   primary_contact_phone?: ModelSubscriptionStringInput | null,
   primary_contact_position?: ModelSubscriptionStringInput | null,
@@ -403,6 +409,18 @@ export type ModelSubscriptionIDInput = {
   notIn?: Array< string | null > | null,
 };
 
+export type ModelSubscriptionIntInput = {
+  between?: Array< number | null > | null,
+  eq?: number | null,
+  ge?: number | null,
+  gt?: number | null,
+  in?: Array< number | null > | null,
+  le?: number | null,
+  lt?: number | null,
+  ne?: number | null,
+  notIn?: Array< number | null > | null,
+};
+
 export type ModelSubscriptionQuestFilterInput = {
   and?: Array< ModelSubscriptionQuestFilterInput | null > | null,
   createdAt?: ModelSubscriptionStringInput | null,
@@ -424,18 +442,6 @@ export type ModelSubscriptionQuestFilterInput = {
   region?: ModelSubscriptionStringInput | null,
   status?: ModelSubscriptionStringInput | null,
   updatedAt?: ModelSubscriptionStringInput | null,
-};
-
-export type ModelSubscriptionIntInput = {
-  between?: Array< number | null > | null,
-  eq?: number | null,
-  ge?: number | null,
-  gt?: number | null,
-  in?: Array< number | null > | null,
-  le?: number | null,
-  lt?: number | null,
-  ne?: number | null,
-  notIn?: Array< number | null > | null,
 };
 
 export type ModelSubscriptionBooleanInput = {
@@ -461,6 +467,7 @@ export type GetProfileQuery = {
     my_quests?: string | null,
     organization_description?: string | null,
     organization_name?: string | null,
+    points?: number | null,
     primary_contact_name?: string | null,
     primary_contact_phone?: string | null,
     primary_contact_position?: string | null,
@@ -523,6 +530,7 @@ export type ListProfilesQuery = {
       my_quests?: string | null,
       organization_description?: string | null,
       organization_name?: string | null,
+      points?: number | null,
       primary_contact_name?: string | null,
       primary_contact_phone?: string | null,
       primary_contact_position?: string | null,
@@ -590,6 +598,7 @@ export type CreateProfileMutation = {
     my_quests?: string | null,
     organization_description?: string | null,
     organization_name?: string | null,
+    points?: number | null,
     primary_contact_name?: string | null,
     primary_contact_phone?: string | null,
     primary_contact_position?: string | null,
@@ -650,6 +659,7 @@ export type DeleteProfileMutation = {
     my_quests?: string | null,
     organization_description?: string | null,
     organization_name?: string | null,
+    points?: number | null,
     primary_contact_name?: string | null,
     primary_contact_phone?: string | null,
     primary_contact_position?: string | null,
@@ -710,6 +720,7 @@ export type UpdateProfileMutation = {
     my_quests?: string | null,
     organization_description?: string | null,
     organization_name?: string | null,
+    points?: number | null,
     primary_contact_name?: string | null,
     primary_contact_phone?: string | null,
     primary_contact_position?: string | null,
@@ -769,6 +780,7 @@ export type OnCreateProfileSubscription = {
     my_quests?: string | null,
     organization_description?: string | null,
     organization_name?: string | null,
+    points?: number | null,
     primary_contact_name?: string | null,
     primary_contact_phone?: string | null,
     primary_contact_position?: string | null,
@@ -827,6 +839,7 @@ export type OnDeleteProfileSubscription = {
     my_quests?: string | null,
     organization_description?: string | null,
     organization_name?: string | null,
+    points?: number | null,
     primary_contact_name?: string | null,
     primary_contact_phone?: string | null,
     primary_contact_position?: string | null,
@@ -885,6 +898,7 @@ export type OnUpdateProfileSubscription = {
     my_quests?: string | null,
     organization_description?: string | null,
     organization_name?: string | null,
+    points?: number | null,
     primary_contact_name?: string | null,
     primary_contact_phone?: string | null,
     primary_contact_position?: string | null,

@@ -27,6 +27,7 @@ import { VisuallyHidden } from '@aws-amplify/ui-react'
 import { uploadData } from 'aws-amplify/storage'
 import imageCompression from 'browser-image-compression'
 import { QuestStatus } from '@/graphql/API'
+import { toZonedTime } from 'date-fns-tz'
 
 export default function CreateQuestPage() {
   const navigate = useNavigate()
@@ -39,10 +40,9 @@ export default function CreateQuestPage() {
   const [details, setDetails] = useState('')
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [previewImage, setPreviewImage] = useState<string>('')
-  const [startDate, setStartDate] = useState(
-    new Date().toISOString().split('T')[0]
-  )
-  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0])
+  const [startDateTime, setStartDateTime] = useState<string>('')
+  const [endDateTime, setEndDateTime] = useState<string>('')
+
   const [prizeEnabled, setPrizeEnabled] = useState(false)
   const [prizes, setPrizes] = useState<Prize[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
@@ -73,8 +73,8 @@ export default function CreateQuestPage() {
     setName(updatingQuest.quest_name ?? '')
     setDetails(updatingQuest.quest_details ?? '')
     setPreviewImage(updatingQuest.quest_image ?? '')
-    setStartDate(updatingQuest.quest_start ?? startDate)
-    setEndDate(updatingQuest.quest_end ?? endDate)
+    setStartDateTime(updatingQuest.quest_start ?? startDateTime)
+    setEndDateTime(updatingQuest.quest_end ?? endDateTime)
     setPrizeEnabled(!!updatingQuest.quest_prize)
     setPrizes(
       updatingQuest.quest_prize_info
@@ -102,6 +102,23 @@ export default function CreateQuestPage() {
   }
 
   // --- Helpers ---
+
+  const isDraftBeingPublished =
+    isUpdating && updatingQuest?.status === QuestStatus.draft
+
+  const NZ_TZ = 'Pacific/Auckland'
+
+  function nzDateTimeToUtc(dateTime: string) {
+    // dateTime: "2025-12-06T09:00"
+    return toZonedTime(dateTime, NZ_TZ).toISOString()
+  }
+
+  function getTodayInNZ() {
+    const nowNz = toZonedTime(new Date(), NZ_TZ)
+    nowNz.setHours(0, 0, 0, 0)
+    return nowNz
+  }
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -114,8 +131,8 @@ export default function CreateQuestPage() {
     setErrors('')
     if (!name) return (setErrors('Name is required'), false)
     if (!details) return (setErrors('Details are required'), false)
-    if (!startDate) return (setErrors('Start date required'), false)
-    if (!endDate) return (setErrors('End date required'), false)
+    if (!startDateTime) return (setErrors('Start date required'), false)
+    if (!endDateTime) return (setErrors('End date required'), false)
     return true
   }
 
@@ -148,19 +165,19 @@ export default function CreateQuestPage() {
 
   const saveQuest = async (status: QuestStatus) => {
     console.log('saveQuest called with status:', status)
-    console.log('Current form state:', {
-      name,
-      details,
-      startDate,
-      endDate,
-      previewImage,
-      prizeEnabled,
-      prizes,
-      sponsors,
-      selectedRegion,
-      currencyValue,
-      tasks,
-    })
+    // console.log('Current form state:', {
+    //   name,
+    //   details,
+    //   startDate,
+    //   endDate,
+    //   previewImage,
+    //   prizeEnabled,
+    //   prizes,
+    //   sponsors,
+    //   selectedRegion,
+    //   currencyValue,
+    //   tasks,
+    // })
 
     if (status === QuestStatus.published && !validateInput()) {
       console.log('Validation failed, not saving.')
@@ -178,8 +195,8 @@ export default function CreateQuestPage() {
       quest_details: details,
       quest_image: imagePaths.fullPath,
       quest_image_thumb: imagePaths.thumbPath,
-      quest_start: startDate,
-      quest_end: endDate,
+      quest_start: nzDateTimeToUtc(startDateTime),
+      quest_end: nzDateTimeToUtc(endDateTime),
       quest_prize: prizeEnabled,
       quest_prize_info: JSON.stringify(prizes),
       quest_sponsor: JSON.stringify(sponsors),
@@ -232,16 +249,21 @@ export default function CreateQuestPage() {
         {/* --- Multi-step UI --- */}
         {step === 0 && (
           <>
-            <h2 className="text-xl font-bold mb-4">Name of the quest</h2>
+            <div className="flex justify-between mt-4">
+              <h2 className="text-xl font-bold mb-4">Name of the quest</h2>
+              <Button variant="yellow" onClick={() => navigate(-1)}>
+                Back to Quests
+              </Button>
+            </div>
             <Input value={name} onChange={(e) => setName(e.target.value)} />
-            <div className="flex gap-2 mt-4">
-              <Button onClick={next}>Next</Button>
+            <div className="flex justify-between mt-4">
               <Button
                 variant="outline"
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
                 Save as Draft
               </Button>
+              <Button onClick={next}>Next</Button>
             </div>
           </>
         )}
@@ -249,7 +271,13 @@ export default function CreateQuestPage() {
         {/* Step 1: Image */}
         {step === 1 && (
           <>
-            <h2 className="text-xl font-bold mb-4">Quest Image</h2>
+            <div className="flex justify-between mt-4">
+              <h2 className="text-xl font-bold mb-4">Quest Image</h2>
+              <Button variant="yellow" onClick={() => navigate(-1)}>
+                Back to Quests
+              </Button>
+            </div>
+
             {previewImage ? (
               <RemoteImage
                 path={previewImage || updatingQuest?.quest_image}
@@ -280,7 +308,12 @@ export default function CreateQuestPage() {
         {/* Step 2: Region */}
         {step === 2 && (
           <>
-            <h2 className="text-xl font-bold mb-4">Select Region</h2>
+            <div className="flex justify-between mt-4">
+              <h2 className="text-xl font-bold mb-4">Select Region</h2>
+              <Button variant="yellow" onClick={() => navigate(-1)}>
+                Back to Quests
+              </Button>
+            </div>
             <PickRegion value={selectedRegion} onChange={setSelectedRegion} />
             <div className="flex justify-between mt-4">
               <Button onClick={prev}>Back</Button>
@@ -298,7 +331,12 @@ export default function CreateQuestPage() {
         {/* Step 3: Details */}
         {step === 3 && (
           <>
-            <h2 className="text-xl font-bold mb-4">Quest Details</h2>
+            <div className="flex justify-between mt-4">
+              <h2 className="text-xl font-bold mb-4">Quest Details</h2>
+              <Button variant="yellow" onClick={() => navigate(-1)}>
+                Back to Quests
+              </Button>
+            </div>
             <Textarea
               value={details}
               onChange={(e) => setDetails(e.target.value)}
@@ -320,7 +358,12 @@ export default function CreateQuestPage() {
         {/* Step 4: Entry Fee */}
         {step === 4 && (
           <>
-            <h2 className="text-xl font-bold mb-4">Entry Fee</h2>
+            <div className="flex justify-between mt-4">
+              <h2 className="text-xl font-bold mb-4">Entry Fee</h2>
+              <Button variant="yellow" onClick={() => navigate(-1)}>
+                Back to Quests
+              </Button>
+            </div>
             <Input
               inputMode="decimal"
               type="text"
@@ -349,15 +392,19 @@ export default function CreateQuestPage() {
 
         {step === 5 && (
           <>
-            <h2 className="text-xl font-bold mb-4">Quest Dates</h2>
-
+            <div className="flex justify-between mt-4">
+              <h2 className="text-xl font-bold mb-4">Quest Dates</h2>
+              <Button variant="yellow" onClick={() => navigate(-1)}>
+                Back to Quests
+              </Button>
+            </div>
             {/* --- Start Date Picker --- */}
             <Dialog open={openStart} onOpenChange={setOpenStart}>
               <DialogTrigger asChild>
                 <Button>
                   {`Start Date: ${
-                    startDate
-                      ? new Date(startDate).toLocaleDateString('en-NZ', {
+                    startDateTime
+                      ? new Date(startDateTime).toLocaleDateString('en-NZ', {
                           day: 'numeric',
                           month: 'long',
                           year: 'numeric',
@@ -372,26 +419,30 @@ export default function CreateQuestPage() {
                 </DialogTitle>
                 <Calendar
                   mode="single"
-                  selected={startDate ? new Date(startDate) : undefined}
+                  selected={startDateTime ? new Date(startDateTime) : undefined}
+                  disabled={(date) => date < getTodayInNZ()}
                   onSelect={(date) => {
-                    if (date) {
-                      const localDate = new Date(
-                        date.getTime() - date.getTimezoneOffset() * 60000
-                      )
-                      const newStart = localDate.toISOString().split('T')[0]
-                      setStartDate(newStart)
+                    if (!date) return
 
-                      // Ensure endDate is at least one day after startDate
-                      const currentEnd = new Date(endDate)
-                      const minEnd = new Date(localDate)
-                      minEnd.setDate(minEnd.getDate() + 1)
-
-                      if (!endDate || currentEnd <= localDate) {
-                        setEndDate(minEnd.toISOString().split('T')[0])
-                      }
-                    }
+                    const localDate = new Date(
+                      date.getTime() - date.getTimezoneOffset() * 60000
+                    )
+                    const datePart = localDate.toISOString().split('T')[0]
+                    setStartDateTime(`${datePart}T09:00`)
                   }}
                 />
+
+                <input
+                  type="time"
+                  value={startDateTime.split('T')[1] ?? '09:00'}
+                  onChange={(e) => {
+                    const time = e.target.value
+                    const date = startDateTime.split('T')[0]
+                    if (date) setStartDateTime(`${date}T${time}`)
+                  }}
+                  className="mt-2"
+                />
+
                 <DialogClose asChild>
                   <Button>Confirm</Button>
                 </DialogClose>
@@ -403,8 +454,8 @@ export default function CreateQuestPage() {
               <DialogTrigger asChild>
                 <Button>
                   {`End Date: ${
-                    endDate
-                      ? new Date(endDate).toLocaleDateString('en-NZ', {
+                    endDateTime
+                      ? new Date(endDateTime).toLocaleDateString('en-NZ', {
                           day: 'numeric',
                           month: 'long',
                           year: 'numeric',
@@ -419,23 +470,42 @@ export default function CreateQuestPage() {
                 </DialogTitle>
                 <Calendar
                   mode="single"
-                  selected={endDate ? new Date(endDate) : undefined}
+                  selected={endDateTime ? new Date(endDateTime) : undefined}
+                  disabled={(date) => {
+                    const todayNz = getTodayInNZ()
+                    const minEnd = startDateTime
+                      ? new Date(startDateTime)
+                      : todayNz
+                    minEnd.setDate(minEnd.getDate() + 1)
+
+                    return date < minEnd
+                  }}
                   onSelect={(date) => {
                     if (date) {
                       const localDate = new Date(
                         date.getTime() - date.getTimezoneOffset() * 60000
                       )
-                      const minEnd = new Date(startDate)
+                      const minEnd = new Date(startDateTime)
                       minEnd.setDate(minEnd.getDate() + 1)
 
                       if (localDate >= minEnd) {
-                        setEndDate(localDate.toISOString().split('T')[0])
+                        setEndDateTime(localDate.toISOString().split('T')[0])
                       } else {
                         // Optionally alert the user or auto-set it
-                        setEndDate(minEnd.toISOString().split('T')[0])
+                        setEndDateTime(minEnd.toISOString().split('T')[0])
                       }
                     }
                   }}
+                />
+                <input
+                  type="time"
+                  value={endDateTime.split('T')[1] ?? '17:00'}
+                  onChange={(e) => {
+                    const time = e.target.value
+                    const date = endDateTime.split('T')[0]
+                    if (date) setEndDateTime(`${date}T${time}`)
+                  }}
+                  className="mt-2"
                 />
                 <DialogClose asChild>
                   <Button>Confirm</Button>
@@ -458,8 +528,12 @@ export default function CreateQuestPage() {
 
         {step === 6 && (
           <>
-            <h2 className="text-xl font-bold">Any Sponsors?</h2>
-
+            <div className="flex justify-between mt-4">
+              <h2 className="text-xl font-bold">Any Sponsors?</h2>
+              <Button variant="yellow" onClick={() => navigate(-1)}>
+                Back to Quests
+              </Button>
+            </div>
             <div className="flex gap-4 mt-4">
               <Button
                 onClick={() => {
@@ -502,7 +576,12 @@ export default function CreateQuestPage() {
 
         {step === 8 && (
           <>
-            <h2 className="text-xl font-bold">Any Prizes?</h2>
+            <div className="flex justify-between mt-4">
+              <h2 className="text-xl font-bold">Any Prizes?</h2>
+              <Button variant="yellow" onClick={() => navigate(-1)}>
+                Back to Quests
+              </Button>
+            </div>
             <div className="flex gap-4 mt-4">
               <Button
                 onClick={() => {
@@ -537,7 +616,7 @@ export default function CreateQuestPage() {
                 variant="outline"
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
-                Save as Draft
+                {isDraftBeingPublished ? 'Save Draft' : 'Save as Draft'}
               </Button>
               <Button onClick={next}>Next</Button>
             </div>
@@ -553,7 +632,11 @@ export default function CreateQuestPage() {
                 variant="yellow"
                 onClick={() => saveQuest(QuestStatus.published)}
               >
-                {isUpdating ? 'Save Changes' : 'Finish & Create Quest'}
+                {isDraftBeingPublished
+                  ? 'Save and Publish Quest'
+                  : isUpdating
+                    ? 'Save Changes'
+                    : 'Finish & Create Quest'}
               </Button>
             </div>
           </>

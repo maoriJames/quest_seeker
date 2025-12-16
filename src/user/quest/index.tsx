@@ -63,6 +63,7 @@ export default function QuestPage() {
           }
           return p.my_quests // if it's already an array
         })(),
+        points: p.points ?? 0,
       }
     })
 

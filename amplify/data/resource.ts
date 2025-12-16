@@ -49,6 +49,7 @@ export const schema = a
         image: a.string(),
         image_thumbnail: a.string(),
         my_quests: a.json(),
+        points: a.integer(),
         role: a.enum(['seeker', 'creator']),
       })
       .authorization((allow) => [allow.authenticated()]),

@@ -1,4 +1,3 @@
-// import { useCurrentUserProfile } from '@/hooks/userProfiles'
 import { Card } from '@aws-amplify/ui-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { CardContent } from './ui/card'
@@ -8,7 +7,7 @@ import { useQuestList } from '@/hooks/userQuests'
 import RemoteImage from './RemoteImage'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
 import { Trash2 } from 'lucide-react'
-
+import { toZonedTime } from 'date-fns-tz'
 import { useQuestDeletion } from '@/hooks/useQuestDeletion'
 
 type MyQuestsProps = {
@@ -27,17 +26,18 @@ export default function MyQuests({ profile }: MyQuestsProps) {
   const myCreatedQuests = allQuests.filter(
     (quest) => quest.creator_id === profile.id
   )
-  console.log('myCreatedQuests: ', myCreatedQuests)
+  // console.log('myCreatedQuests: ', myCreatedQuests)
 
   const normalizedQuests = (profile.my_quests ?? []).map((myQuest) => {
     const fullQuest = allQuests.find((q) => q.id === myQuest.quest_id)
 
     const questStatus = fullQuest?.status ?? 'draft'
 
+    // const nzNow = toZonedTime(new Date(), 'Pacific/Auckland')
     const startDate = fullQuest?.quest_start
-      ? new Date(fullQuest.quest_start)
+      ? toZonedTime(new Date(fullQuest.quest_start), 'Pacific/Auckland')
       : null
-
+    console.log('Start date', startDate)
     const isUpcoming =
       questStatus === 'published' && startDate && startDate > now
 
@@ -64,7 +64,7 @@ export default function MyQuests({ profile }: MyQuestsProps) {
     }
   })
 
-  console.log('normalizedQuests: ', normalizedQuests)
+  // console.log('normalizedQuests: ', normalizedQuests)
   return (
     <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl p-8 max-w-md w-full">
       <CardContent className="flex flex-col gap-4">
@@ -122,7 +122,7 @@ export default function MyQuests({ profile }: MyQuestsProps) {
                   {myQuest.expired
                     ? myQuest.completed
                       ? 'Quest Ended'
-                      : 'Unfinished'
+                      : 'Incomplete'
                     : myQuest.isUpcoming
                       ? 'Upcoming'
                       : 'In Progress'}
@@ -140,8 +140,17 @@ export default function MyQuests({ profile }: MyQuestsProps) {
             <ul className="list-disc pl-5 space-y-1">
               {myCreatedQuests.map((quest) => {
                 const startDate = quest.quest_start
-                  ? new Date(quest.quest_start)
+                  ? toZonedTime(new Date(quest.quest_start), 'Pacific/Auckland')
                   : null
+                //                   const startDate = fullQuest?.quest_start
+                //   ? toZonedTime(new Date(fullQuest.quest_start), 'Pacific/Auckland')
+                //   : null
+                // console.log(
+                //   'Start date for: ',
+                //   quest.quest_name,
+                //   ' is ',
+                //   startDate
+                // )
 
                 const isUpcoming =
                   quest.status === 'published' && startDate && startDate > now
@@ -201,7 +210,7 @@ export default function MyQuests({ profile }: MyQuestsProps) {
                             onClick={(e) => {
                               e.preventDefault()
                               e.stopPropagation()
-                              console.log('Delete quest:', quest.id)
+                              // console.log('Delete quest:', quest.id)
                               deleteQuest(quest, { stayHere: true })
                             }}
                           >
