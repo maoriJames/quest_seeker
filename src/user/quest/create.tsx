@@ -27,7 +27,7 @@ import { VisuallyHidden } from '@aws-amplify/ui-react'
 import { uploadData } from 'aws-amplify/storage'
 import imageCompression from 'browser-image-compression'
 import { QuestStatus } from '@/graphql/API'
-import { format, toZonedTime } from 'date-fns-tz'
+import { toZonedTime } from 'date-fns-tz'
 
 export default function CreateQuestPage() {
   const navigate = useNavigate()
@@ -111,11 +111,24 @@ export default function CreateQuestPage() {
 
   const NZ_TZ = 'Pacific/Auckland'
 
-  // function nzDateStringToDate(dateStr: string) {
-  //   // dateStr = "2025-12-18"
-  //   const [y, m, d] = dateStr.split('-').map(Number)
-  //   return new Date(y, m - 1, d)
-  // }
+  // UI (NZT) → UTC ISO (for state / payload)
+  const nzToUtcIso = (date: Date) => {
+    const nzDate = toZonedTime(date, NZ_TZ)
+    return nzDate.toISOString()
+  }
+
+  // UTC ISO → NZ Date (for UI)
+  const utcIsoToNzDate = (iso: string) => {
+    return toZonedTime(new Date(iso), NZ_TZ)
+  }
+
+  // UTC ISO → HH:mm (NZT, for <input type="time">)
+  const utcIsoToNzTime = (iso: string) =>
+    utcIsoToNzDate(iso).toLocaleTimeString('en-NZ', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    })
 
   function getTodayInNZ() {
     const nowNz = toZonedTime(new Date(), NZ_TZ)
@@ -123,9 +136,11 @@ export default function CreateQuestPage() {
     return nowNz
   }
 
-  function dateToNzDateString(date: Date) {
-    const nzDate = toZonedTime(date, NZ_TZ)
-    return format(nzDate, 'yyyy-MM-dd', { timeZone: NZ_TZ })
+  const getMinEndNzDate = (startUtcIso: string) => {
+    const startNz = utcIsoToNzDate(startUtcIso)
+    const minEnd = new Date(startNz)
+    minEnd.setHours(minEnd.getHours() + 1)
+    return minEnd
   }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -173,7 +188,7 @@ export default function CreateQuestPage() {
   }
 
   const saveQuest = async (status: QuestStatus) => {
-    console.log('saveQuest called with status:', status)
+    // console.log('saveQuest called with status:', status)
     // console.log('Current form state:', {
     //   name,
     //   details,
@@ -197,7 +212,8 @@ export default function CreateQuestPage() {
       ? await uploadImage(imageFile)
       : { fullPath: previewImage, thumbPath: '' }
 
-    console.log('Image paths:', imagePaths)
+    console.log('startDateTime BEFORE save:', startDateTime)
+    console.log('endDateTime BEFORE save:', endDateTime)
     const payload = {
       quest_name: name,
       quest_details: details,
@@ -218,11 +234,11 @@ export default function CreateQuestPage() {
       status,
     }
 
-    console.log('Payload to send:', payload)
-    console.log('FINAL payload:', JSON.stringify(payload, null, 2))
+    // console.log('Payload to send:', payload)
+    // console.log('FINAL payload:', JSON.stringify(payload, null, 2))
 
     if (isUpdating) {
-      console.log('Updating quest with id:', questId)
+      // console.log('Updating quest with id:', questId)
       updateQuest(
         { id: questId!, ...payload },
         {
@@ -250,8 +266,8 @@ export default function CreateQuestPage() {
 
     setImageFile(null)
   }
-  console.log('startDateTime: ', startDateTime)
-  console.log('typeof: ', typeof startDateTime)
+  // console.log('startDateTime: ', startDateTime)
+  // console.log('typeof: ', typeof startDateTime)
   // --- Render ---
   return (
     <div
@@ -503,25 +519,34 @@ export default function CreateQuestPage() {
                 </DialogTitle>
                 <Calendar
                   mode="single"
-                  selected={startDateTime ? new Date(startDateTime) : undefined}
+                  selected={
+                    startDateTime ? utcIsoToNzDate(startDateTime) : undefined
+                  }
                   disabled={(date) => date < getTodayInNZ()}
                   onSelect={(date) => {
                     if (!date) return
 
-                    const datePart = dateToNzDateString(date)
-                    setStartDateTime(`${datePart}T09:00`)
+                    // user picked a NZ date → force 9am NZT
+                    date.setHours(9, 0, 0, 0)
+
+                    setStartDateTime(nzToUtcIso(date))
                   }}
                 />
-
                 <input
                   type="time"
-                  value={startDateTime.split('T')[1] ?? '09:00'}
+                  value={
+                    startDateTime ? utcIsoToNzTime(startDateTime) : '09:00'
+                  }
                   onChange={(e) => {
-                    const time = e.target.value
-                    const date = startDateTime.split('T')[0]
-                    if (date) setStartDateTime(`${date}T${time}`)
+                    if (!startDateTime) return
+
+                    const [h, m] = e.target.value.split(':').map(Number)
+
+                    const nzDate = utcIsoToNzDate(startDateTime)
+                    nzDate.setHours(h, m, 0, 0)
+
+                    setStartDateTime(nzToUtcIso(nzDate))
                   }}
-                  className="mt-2"
                 />
 
                 <DialogClose asChild>
@@ -551,37 +576,63 @@ export default function CreateQuestPage() {
                 </DialogTitle>
                 <Calendar
                   mode="single"
-                  selected={endDateTime ? new Date(endDateTime) : undefined}
+                  selected={
+                    endDateTime ? utcIsoToNzDate(endDateTime) : undefined
+                  }
                   disabled={(date) => {
                     if (!startDateTime) {
                       return date < getTodayInNZ()
                     }
 
-                    const [startDate] = startDateTime.split('T')
+                    const minEndNz = getMinEndNzDate(startDateTime)
 
-                    // Start-of-day (no time component)
-                    const minEnd = new Date(`${startDate}T00:00`)
-                    minEnd.setDate(minEnd.getDate() + 1)
+                    // Disable any date before start + 1 hour
+                    const minEndDay = new Date(minEndNz)
+                    minEndDay.setHours(0, 0, 0, 0)
 
-                    return date < minEnd
+                    return date < minEndDay
                   }}
                   onSelect={(date) => {
-                    if (!date) return
+                    if (!date || !startDateTime) return
 
-                    const datePart = dateToNzDateString(date)
-                    setEndDateTime(`${datePart}T17:00`)
+                    const minEndNz = getMinEndNzDate(startDateTime)
+
+                    // Default to max(17:00, start + 1 hour)
+                    const endNz = new Date(date)
+                    endNz.setHours(17, 0, 0, 0)
+
+                    if (endNz < minEndNz) {
+                      endNz.setTime(minEndNz.getTime())
+                    }
+
+                    setEndDateTime(nzToUtcIso(endNz))
                   }}
                 />
+
                 <input
                   type="time"
-                  value={endDateTime.split('T')[1] ?? '17:00'}
+                  value={endDateTime ? utcIsoToNzTime(endDateTime) : '17:00'}
                   onChange={(e) => {
-                    const time = e.target.value
-                    const date = endDateTime.split('T')[0]
-                    if (date) setEndDateTime(`${date}T${time}`)
+                    if (!startDateTime || !endDateTime) return
+
+                    const [h, m] = e.target.value.split(':').map(Number)
+
+                    const endNz = utcIsoToNzDate(endDateTime)
+                    endNz.setHours(h, m, 0, 0)
+
+                    const minEndNz = getMinEndNzDate(startDateTime)
+
+                    if (endNz < minEndNz) {
+                      // snap to minimum allowed
+                      setEndDateTime(nzToUtcIso(minEndNz))
+                      return
+                    }
+
+                    setEndDateTime(nzToUtcIso(endNz))
                   }}
                   className="mt-2"
                 />
+
                 <DialogClose asChild>
                   <Button>Confirm</Button>
                 </DialogClose>
