@@ -1,6 +1,8 @@
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
 import { Task, PdfUser } from '@/types'
 import { Quest } from '@/graphql/API'
+import RemoteImage from './RemoteImage'
+import placeHold from '@/assets/images/placeholder_view_vector.svg'
 const styles = StyleSheet.create({
   page: {
     padding: 24,
@@ -74,9 +76,11 @@ export default function SeekerTaskPdfButton({
             )}
 
             <Text style={styles.answerLabel}>Answer:</Text>
-            <Text style={styles.answerText}>
-              {task.answer || 'No answer provided'}
-            </Text>
+            <RemoteImage
+              path={task.answer || placeHold}
+              fallback={placeHold}
+              className="w-12 h-12 rounded-full object-cover"
+            />
           </View>
         ))}
       </Page>
