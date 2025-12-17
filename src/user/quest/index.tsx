@@ -26,8 +26,6 @@ export default function QuestPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [sortOption, setSortOption] = useState('title')
 
-  const today = new Date().toISOString().split('T')[0]
-
   const profileMap: Record<string, Profile> = useMemo(() => {
     const map: Record<string, Profile> = {}
 
@@ -71,13 +69,19 @@ export default function QuestPage() {
   }, [profiles])
 
   const validQuests = useMemo(() => {
+    const now = new Date() // current moment
+
     return allQuests.filter((quest) => {
-      const questEndDate = quest.quest_end?.split('T')[0] ?? ''
+      if (!quest.quest_end_at) return false
+
+      const questEnd = new Date(quest.quest_end_at)
+
       const matchesRegion =
         selectedRegion === 'Browse all' || quest.region === selectedRegion
-      return matchesRegion && questEndDate >= today
+
+      return matchesRegion && questEnd >= now
     })
-  }, [allQuests, selectedRegion, today])
+  }, [allQuests, selectedRegion])
 
   // 🔍 Filter quests by search term (name, region, organisation)
   const filteredQuests = useMemo(() => {
@@ -108,15 +112,15 @@ export default function QuestPage() {
       case 'newest':
         sorted.sort(
           (a, b) =>
-            new Date(b.quest_start || '').getTime() -
-            new Date(a.quest_start || '').getTime()
+            new Date(b.quest_start_at || '').getTime() -
+            new Date(a.quest_start_at || '').getTime()
         )
         break
       case 'oldest':
         sorted.sort(
           (a, b) =>
-            new Date(a.quest_start || '').getTime() -
-            new Date(b.quest_start || '').getTime()
+            new Date(a.quest_start_at || '').getTime() -
+            new Date(b.quest_start_at || '').getTime()
         )
         break
       case 'recently-added':
@@ -125,15 +129,15 @@ export default function QuestPage() {
       case 'expiry-soonest':
         sorted.sort(
           (a, b) =>
-            new Date(a.quest_end || '').getTime() -
-            new Date(b.quest_end || '').getTime()
+            new Date(a.quest_end_at || '').getTime() -
+            new Date(b.quest_end_at || '').getTime()
         )
         break
       case 'expiry-furthest':
         sorted.sort(
           (a, b) =>
-            new Date(b.quest_end || '').getTime() -
-            new Date(a.quest_end || '').getTime()
+            new Date(b.quest_end_at || '').getTime() -
+            new Date(a.quest_end_at || '').getTime()
         )
         break
       default:
@@ -243,8 +247,8 @@ export default function QuestPage() {
                     ...quest,
                     quest_name: quest.quest_name ?? 'Untitled Quest',
                     quest_image: quest.quest_image ?? undefined,
-                    quest_start: quest.quest_start ?? undefined,
-                    quest_end: quest.quest_end ?? undefined,
+                    quest_start_at: quest.quest_start_at ?? undefined,
+                    quest_end_at: quest.quest_end_at ?? undefined,
                     region: quest.region ?? 'Unknown',
                   }}
                   currentUserProfile={currentProfile as Profile | undefined}

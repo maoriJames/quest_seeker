@@ -9,8 +9,8 @@ export const schema = a
         quest_details: a.string(),
         quest_image: a.string(),
         quest_image_thumb: a.string(),
-        quest_start: a.date(),
-        quest_end: a.date(),
+        quest_start_at: a.datetime(),
+        quest_end_at: a.datetime(),
         quest_prize: a.boolean(),
         quest_prize_info: a.string(),
         quest_sponsor: a.string(),
@@ -62,6 +62,6 @@ export type Schema = ClientSchema<typeof schema>
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: 'identityPool',
+    defaultAuthorizationMode: 'userPool',
   },
 })

@@ -45,7 +45,7 @@ export const onCreateQuest = /* GraphQL */ `subscription OnCreateQuest($filter: 
     id
     participants
     quest_details
-    quest_end
+    quest_end_at
     quest_entry
     quest_image
     quest_image_thumb
@@ -53,7 +53,7 @@ export const onCreateQuest = /* GraphQL */ `subscription OnCreateQuest($filter: 
     quest_prize
     quest_prize_info
     quest_sponsor
-    quest_start
+    quest_start_at
     quest_tasks
     region
     status
@@ -102,7 +102,7 @@ export const onDeleteQuest = /* GraphQL */ `subscription OnDeleteQuest($filter: 
     id
     participants
     quest_details
-    quest_end
+    quest_end_at
     quest_entry
     quest_image
     quest_image_thumb
@@ -110,7 +110,7 @@ export const onDeleteQuest = /* GraphQL */ `subscription OnDeleteQuest($filter: 
     quest_prize
     quest_prize_info
     quest_sponsor
-    quest_start
+    quest_start_at
     quest_tasks
     region
     status
@@ -159,7 +159,7 @@ export const onUpdateQuest = /* GraphQL */ `subscription OnUpdateQuest($filter: 
     id
     participants
     quest_details
-    quest_end
+    quest_end_at
     quest_entry
     quest_image
     quest_image_thumb
@@ -167,7 +167,7 @@ export const onUpdateQuest = /* GraphQL */ `subscription OnUpdateQuest($filter: 
     quest_prize
     quest_prize_info
     quest_sponsor
-    quest_start
+    quest_start_at
     quest_tasks
     region
     status

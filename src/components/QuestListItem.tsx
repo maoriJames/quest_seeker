@@ -17,8 +17,8 @@ const QuestListItem = React.memo(function QuestListItem({
   const [loaded, setLoaded] = useState(false)
 
   const now = new Date()
-  const startDate = new Date(quest.quest_start ?? '')
-  const endDate = new Date(quest.quest_end ?? '')
+  const startDate = new Date(quest.quest_start_at ?? '')
+  const endDate = new Date(quest.quest_end_at ?? '')
 
   // Convert my_quests to an array safely
   const myQuestsArray: MyQuest[] = (() => {
@@ -93,7 +93,7 @@ const QuestListItem = React.memo(function QuestListItem({
           {quest.region || 'Unknown region'}
         </p>
         <p className="text-xs text-gray-500">
-          Ends: {quest.quest_end ? quest.quest_end.split('T')[0] : 'N/A'}
+          Ends: {quest.quest_end_at ? quest.quest_end_at.split('T')[0] : 'N/A'}
         </p>
         {hasJoined && (
           <span className="absolute top-2 right-2 text-green-500 text-lg">

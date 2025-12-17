@@ -19,7 +19,7 @@ export const handler: Handler = async () => {
 
   const { data: quests } = await client.models.Quest.list({
     filter: {
-      quest_end: { lt: now },
+      quest_end_at: { lt: now },
       status: { ne: 'expired' },
     },
   })
