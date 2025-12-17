@@ -27,7 +27,7 @@ import { VisuallyHidden } from '@aws-amplify/ui-react'
 import { uploadData } from 'aws-amplify/storage'
 import imageCompression from 'browser-image-compression'
 import { QuestStatus } from '@/graphql/API'
-import { toZonedTime } from 'date-fns-tz'
+import { format, toZonedTime } from 'date-fns-tz'
 
 export default function CreateQuestPage() {
   const navigate = useNavigate()
@@ -42,7 +42,7 @@ export default function CreateQuestPage() {
   const [previewImage, setPreviewImage] = useState<string>('')
   const [startDateTime, setStartDateTime] = useState<string>('')
   const [endDateTime, setEndDateTime] = useState<string>('')
-
+  const [sponsorsEnabled, setSponsorsEnabled] = useState(false)
   const [prizeEnabled, setPrizeEnabled] = useState(false)
   const [prizes, setPrizes] = useState<Prize[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
@@ -73,8 +73,8 @@ export default function CreateQuestPage() {
     setName(updatingQuest.quest_name ?? '')
     setDetails(updatingQuest.quest_details ?? '')
     setPreviewImage(updatingQuest.quest_image ?? '')
-    setStartDateTime(updatingQuest.quest_start ?? startDateTime)
-    setEndDateTime(updatingQuest.quest_end ?? endDateTime)
+    setStartDateTime(updatingQuest.quest_start_at ?? startDateTime)
+    setEndDateTime(updatingQuest.quest_end_at ?? endDateTime)
     setPrizeEnabled(!!updatingQuest.quest_prize)
     setPrizes(
       updatingQuest.quest_prize_info
@@ -103,20 +103,29 @@ export default function CreateQuestPage() {
 
   // --- Helpers ---
 
+  const isPublishedQuest =
+    isUpdating && updatingQuest?.status === QuestStatus.published
+
   const isDraftBeingPublished =
     isUpdating && updatingQuest?.status === QuestStatus.draft
 
   const NZ_TZ = 'Pacific/Auckland'
 
-  function nzDateTimeToUtc(dateTime: string) {
-    // dateTime: "2025-12-06T09:00"
-    return toZonedTime(dateTime, NZ_TZ).toISOString()
-  }
+  // function nzDateStringToDate(dateStr: string) {
+  //   // dateStr = "2025-12-18"
+  //   const [y, m, d] = dateStr.split('-').map(Number)
+  //   return new Date(y, m - 1, d)
+  // }
 
   function getTodayInNZ() {
     const nowNz = toZonedTime(new Date(), NZ_TZ)
     nowNz.setHours(0, 0, 0, 0)
     return nowNz
+  }
+
+  function dateToNzDateString(date: Date) {
+    const nzDate = toZonedTime(date, NZ_TZ)
+    return format(nzDate, 'yyyy-MM-dd', { timeZone: NZ_TZ })
   }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -189,14 +198,16 @@ export default function CreateQuestPage() {
       : { fullPath: previewImage, thumbPath: '' }
 
     console.log('Image paths:', imagePaths)
-
     const payload = {
       quest_name: name,
       quest_details: details,
       quest_image: imagePaths.fullPath,
       quest_image_thumb: imagePaths.thumbPath,
-      quest_start: nzDateTimeToUtc(startDateTime),
-      quest_end: nzDateTimeToUtc(endDateTime),
+
+      // ✅ allow null for drafts
+      quest_start_at: startDateTime,
+      quest_end_at: endDateTime,
+
       quest_prize: prizeEnabled,
       quest_prize_info: JSON.stringify(prizes),
       quest_sponsor: JSON.stringify(sponsors),
@@ -208,6 +219,7 @@ export default function CreateQuestPage() {
     }
 
     console.log('Payload to send:', payload)
+    console.log('FINAL payload:', JSON.stringify(payload, null, 2))
 
     if (isUpdating) {
       console.log('Updating quest with id:', questId)
@@ -238,7 +250,8 @@ export default function CreateQuestPage() {
 
     setImageFile(null)
   }
-
+  console.log('startDateTime: ', startDateTime)
+  console.log('typeof: ', typeof startDateTime)
   // --- Render ---
   return (
     <div
@@ -251,7 +264,18 @@ export default function CreateQuestPage() {
           <>
             <div className="flex justify-between mt-4">
               <h2 className="text-xl font-bold mb-4">Name of the quest</h2>
-              <Button variant="yellow" onClick={() => navigate(-1)}>
+              <Button
+                variant="yellow"
+                onClick={() => {
+                  const confirmLeave = window.confirm(
+                    'Are you sure you want to leave this page? Any unsaved changes will be lost.'
+                  )
+
+                  if (confirmLeave) {
+                    navigate(-1)
+                  }
+                }}
+              >
                 Back to Quests
               </Button>
             </div>
@@ -259,6 +283,7 @@ export default function CreateQuestPage() {
             <div className="flex justify-between mt-4">
               <Button
                 variant="outline"
+                disabled={isPublishedQuest}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
                 Save as Draft
@@ -273,7 +298,18 @@ export default function CreateQuestPage() {
           <>
             <div className="flex justify-between mt-4">
               <h2 className="text-xl font-bold mb-4">Quest Image</h2>
-              <Button variant="yellow" onClick={() => navigate(-1)}>
+              <Button
+                variant="yellow"
+                onClick={() => {
+                  const confirmLeave = window.confirm(
+                    'Are you sure you want to leave this page? Any unsaved changes will be lost.'
+                  )
+
+                  if (confirmLeave) {
+                    navigate(-1)
+                  }
+                }}
+              >
                 Back to Quests
               </Button>
             </div>
@@ -296,6 +332,7 @@ export default function CreateQuestPage() {
               <Button onClick={prev}>Back</Button>
               <Button
                 variant="outline"
+                disabled={isPublishedQuest}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
                 Save as Draft
@@ -310,7 +347,18 @@ export default function CreateQuestPage() {
           <>
             <div className="flex justify-between mt-4">
               <h2 className="text-xl font-bold mb-4">Select Region</h2>
-              <Button variant="yellow" onClick={() => navigate(-1)}>
+              <Button
+                variant="yellow"
+                onClick={() => {
+                  const confirmLeave = window.confirm(
+                    'Are you sure you want to leave this page? Any unsaved changes will be lost.'
+                  )
+
+                  if (confirmLeave) {
+                    navigate(-1)
+                  }
+                }}
+              >
                 Back to Quests
               </Button>
             </div>
@@ -319,6 +367,7 @@ export default function CreateQuestPage() {
               <Button onClick={prev}>Back</Button>
               <Button
                 variant="outline"
+                disabled={isPublishedQuest}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
                 Save as Draft
@@ -333,7 +382,18 @@ export default function CreateQuestPage() {
           <>
             <div className="flex justify-between mt-4">
               <h2 className="text-xl font-bold mb-4">Quest Details</h2>
-              <Button variant="yellow" onClick={() => navigate(-1)}>
+              <Button
+                variant="yellow"
+                onClick={() => {
+                  const confirmLeave = window.confirm(
+                    'Are you sure you want to leave this page? Any unsaved changes will be lost.'
+                  )
+
+                  if (confirmLeave) {
+                    navigate(-1)
+                  }
+                }}
+              >
                 Back to Quests
               </Button>
             </div>
@@ -346,6 +406,7 @@ export default function CreateQuestPage() {
               <Button onClick={prev}>Back</Button>
               <Button
                 variant="outline"
+                disabled={isPublishedQuest}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
                 Save as Draft
@@ -360,7 +421,18 @@ export default function CreateQuestPage() {
           <>
             <div className="flex justify-between mt-4">
               <h2 className="text-xl font-bold mb-4">Entry Fee</h2>
-              <Button variant="yellow" onClick={() => navigate(-1)}>
+              <Button
+                variant="yellow"
+                onClick={() => {
+                  const confirmLeave = window.confirm(
+                    'Are you sure you want to leave this page? Any unsaved changes will be lost.'
+                  )
+
+                  if (confirmLeave) {
+                    navigate(-1)
+                  }
+                }}
+              >
                 Back to Quests
               </Button>
             </div>
@@ -381,6 +453,7 @@ export default function CreateQuestPage() {
               <Button onClick={prev}>Back</Button>
               <Button
                 variant="outline"
+                disabled={isPublishedQuest}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
                 Save as Draft
@@ -394,7 +467,18 @@ export default function CreateQuestPage() {
           <>
             <div className="flex justify-between mt-4">
               <h2 className="text-xl font-bold mb-4">Quest Dates</h2>
-              <Button variant="yellow" onClick={() => navigate(-1)}>
+              <Button
+                variant="yellow"
+                onClick={() => {
+                  const confirmLeave = window.confirm(
+                    'Are you sure you want to leave this page? Any unsaved changes will be lost.'
+                  )
+
+                  if (confirmLeave) {
+                    navigate(-1)
+                  }
+                }}
+              >
                 Back to Quests
               </Button>
             </div>
@@ -424,10 +508,7 @@ export default function CreateQuestPage() {
                   onSelect={(date) => {
                     if (!date) return
 
-                    const localDate = new Date(
-                      date.getTime() - date.getTimezoneOffset() * 60000
-                    )
-                    const datePart = localDate.toISOString().split('T')[0]
+                    const datePart = dateToNzDateString(date)
                     setStartDateTime(`${datePart}T09:00`)
                   }}
                 />
@@ -472,29 +553,23 @@ export default function CreateQuestPage() {
                   mode="single"
                   selected={endDateTime ? new Date(endDateTime) : undefined}
                   disabled={(date) => {
-                    const todayNz = getTodayInNZ()
-                    const minEnd = startDateTime
-                      ? new Date(startDateTime)
-                      : todayNz
+                    if (!startDateTime) {
+                      return date < getTodayInNZ()
+                    }
+
+                    const [startDate] = startDateTime.split('T')
+
+                    // Start-of-day (no time component)
+                    const minEnd = new Date(`${startDate}T00:00`)
                     minEnd.setDate(minEnd.getDate() + 1)
 
                     return date < minEnd
                   }}
                   onSelect={(date) => {
-                    if (date) {
-                      const localDate = new Date(
-                        date.getTime() - date.getTimezoneOffset() * 60000
-                      )
-                      const minEnd = new Date(startDateTime)
-                      minEnd.setDate(minEnd.getDate() + 1)
+                    if (!date) return
 
-                      if (localDate >= minEnd) {
-                        setEndDateTime(localDate.toISOString().split('T')[0])
-                      } else {
-                        // Optionally alert the user or auto-set it
-                        setEndDateTime(minEnd.toISOString().split('T')[0])
-                      }
-                    }
+                    const datePart = dateToNzDateString(date)
+                    setEndDateTime(`${datePart}T17:00`)
                   }}
                 />
                 <input
@@ -517,6 +592,7 @@ export default function CreateQuestPage() {
               <Button onClick={prev}>Back</Button>
               <Button
                 variant="outline"
+                disabled={isPublishedQuest}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
                 Save as Draft
@@ -530,27 +606,51 @@ export default function CreateQuestPage() {
           <>
             <div className="flex justify-between mt-4">
               <h2 className="text-xl font-bold">Any Sponsors?</h2>
-              <Button variant="yellow" onClick={() => navigate(-1)}>
+              <Button
+                variant="yellow"
+                onClick={() => {
+                  const confirmLeave = window.confirm(
+                    'Are you sure you want to leave this page? Any unsaved changes will be lost.'
+                  )
+
+                  if (confirmLeave) {
+                    navigate(-1)
+                  }
+                }}
+              >
                 Back to Quests
               </Button>
             </div>
-            <div className="flex gap-4 mt-4">
-              <Button
-                onClick={() => {
-                  setSponsors([])
-                  setStep(8)
-                }}
-              >
-                No
-              </Button>
 
+            <div className="flex justify-between items-center mt-6">
+              <Button onClick={prev}>Back</Button>
               <Button
-                onClick={() => {
-                  setStep(7)
-                }}
+                variant="outline"
+                disabled={isPublishedQuest}
+                onClick={() => saveQuest(QuestStatus.draft)}
               >
-                Yes
+                Save as Draft
               </Button>
+              <div className="flex gap-4">
+                <Button
+                  onClick={() => {
+                    setSponsorsEnabled(false)
+                    setSponsors([])
+                    setStep(8) // skip sponsor creator
+                  }}
+                >
+                  No
+                </Button>
+
+                <Button
+                  onClick={() => {
+                    setSponsorsEnabled(true)
+                    setStep(7)
+                  }}
+                >
+                  Yes
+                </Button>
+              </div>
             </div>
           </>
         )}
@@ -561,14 +661,18 @@ export default function CreateQuestPage() {
               sponsorUpdates={sponsors}
               onNewSponsor={setSponsors}
             />
+
             <div className="flex justify-between mt-4">
-              <Button onClick={prev}>Back</Button>
+              <Button onClick={() => setStep(6)}>Back</Button>
+
               <Button
                 variant="outline"
+                disabled={isPublishedQuest}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
                 Save as Draft
               </Button>
+
               <Button onClick={next}>Next</Button>
             </div>
           </>
@@ -578,27 +682,64 @@ export default function CreateQuestPage() {
           <>
             <div className="flex justify-between mt-4">
               <h2 className="text-xl font-bold">Any Prizes?</h2>
-              <Button variant="yellow" onClick={() => navigate(-1)}>
+              <Button
+                variant="yellow"
+                onClick={() => {
+                  const confirmLeave = window.confirm(
+                    'Are you sure you want to leave this page? Any unsaved changes will be lost.'
+                  )
+
+                  if (confirmLeave) {
+                    navigate(-1)
+                  }
+                }}
+              >
                 Back to Quests
               </Button>
             </div>
-            <div className="flex gap-4 mt-4">
-              <Button
-                onClick={() => {
-                  setPrizes([])
-                  setStep(10)
-                }}
-              >
-                No
-              </Button>
 
+            {/* Button row */}
+            <div className="flex justify-between items-center mt-6">
+              {/* Back button – far left */}
               <Button
                 onClick={() => {
-                  setStep(9)
+                  if (sponsorsEnabled) {
+                    setStep(7)
+                  } else {
+                    setStep(6)
+                  }
                 }}
               >
-                Yes
+                Back
               </Button>
+              <Button
+                variant="outline"
+                disabled={isPublishedQuest}
+                onClick={() => saveQuest(QuestStatus.draft)}
+              >
+                Save as Draft
+              </Button>
+              {/* Yes / No buttons – grouped on right */}
+              <div className="flex gap-4">
+                <Button
+                  onClick={() => {
+                    setPrizeEnabled(false)
+                    setPrizes([])
+                    setStep(10)
+                  }}
+                >
+                  No
+                </Button>
+
+                <Button
+                  onClick={() => {
+                    setPrizeEnabled(true)
+                    setStep(9)
+                  }}
+                >
+                  Yes
+                </Button>
+              </div>
             </div>
           </>
         )}
@@ -614,6 +755,7 @@ export default function CreateQuestPage() {
               <Button onClick={prev}>Back</Button>
               <Button
                 variant="outline"
+                disabled={isPublishedQuest}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
                 {isDraftBeingPublished ? 'Save Draft' : 'Save as Draft'}
@@ -627,7 +769,24 @@ export default function CreateQuestPage() {
           <>
             <TaskCreatorButton questUpdates={tasks} onNewTask={setTasks} />
             <div className="flex justify-between mt-4">
-              <Button onClick={prev}>Back</Button>
+              <Button
+                onClick={() => {
+                  if (prizeEnabled) {
+                    setStep(9)
+                  } else {
+                    setStep(8)
+                  }
+                }}
+              >
+                Back
+              </Button>
+              <Button
+                variant="outline"
+                disabled={isPublishedQuest}
+                onClick={() => saveQuest(QuestStatus.draft)}
+              >
+                Save as Draft
+              </Button>
               <Button
                 variant="yellow"
                 onClick={() => saveQuest(QuestStatus.published)}

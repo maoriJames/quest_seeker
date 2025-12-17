@@ -37,6 +37,7 @@ import SignOutButton from './SignOutButton'
 import { useQuestDeletion } from '@/hooks/useQuestDeletion'
 import { PDFDownloadLink } from '@react-pdf/renderer'
 import SeekerTaskPdfButton from '@/components/SeekerTaskPdfButton'
+import { format, toZonedTime } from 'date-fns-tz'
 
 export default function QuestDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -60,7 +61,7 @@ export default function QuestDetailPage() {
   const [winner, setWinner] = useState<Profile | null>(null)
 
   const isExpired = quest?.status === QuestStatus.expired
-
+  const NZ_TZ = 'Pacific/Auckland'
   // Update edit fields when quest data is fetched
   useEffect(() => {
     if (!quest) return
@@ -83,6 +84,16 @@ export default function QuestDetailPage() {
   if (isLoading) return <p>Loading quest...</p>
   if (error) return <p>Failed to fetch quest.</p>
   if (!quest) return <p>Quest not found.</p>
+
+  function formatNzDateTime(iso?: string | null) {
+    if (!iso) return '—'
+
+    const nzDate = toZonedTime(new Date(iso), NZ_TZ)
+
+    return format(nzDate, 'd MMM yyyy, h:mm a', {
+      timeZone: 'Pacific/Auckland',
+    })
+  }
 
   const pickRandomWinner = () => {
     if (completedParticipants.length === 0) return
@@ -467,7 +478,8 @@ export default function QuestDetailPage() {
                   </div>
 
                   <p className="text-sm text-gray-500">
-                    Ends on: <strong>{quest.quest_end}</strong>
+                    Ends on:{' '}
+                    <strong>{formatNzDateTime(quest.quest_end_at)}</strong>
                   </p>
                 </>
               ) : (
@@ -516,10 +528,11 @@ export default function QuestDetailPage() {
                   </div>
 
                   <p className="text-sm text-gray-500 mb-1">
-                    Start: <strong>{quest.quest_start}</strong>
+                    Start:{' '}
+                    <strong>{formatNzDateTime(quest.quest_start_at)}</strong>
                   </p>
                   <p className="text-sm text-gray-500">
-                    End: <strong>{quest.quest_end}</strong>
+                    End: <strong>{formatNzDateTime(quest.quest_end_at)}</strong>
                   </p>
                   <p className="text-sm text-gray-500">
                     Number of tasks in this quest:{' '}

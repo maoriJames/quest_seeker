@@ -34,10 +34,10 @@ export default function MyQuests({ profile }: MyQuestsProps) {
     const questStatus = fullQuest?.status ?? 'draft'
 
     // const nzNow = toZonedTime(new Date(), 'Pacific/Auckland')
-    const startDate = fullQuest?.quest_start
-      ? toZonedTime(new Date(fullQuest.quest_start), 'Pacific/Auckland')
+    const startDate = fullQuest?.quest_start_at
+      ? toZonedTime(new Date(fullQuest.quest_start_at), 'Pacific/Auckland')
       : null
-    console.log('Start date', startDate)
+    // console.log('Start date', startDate)
     const isUpcoming =
       questStatus === 'published' && startDate && startDate > now
 
@@ -65,6 +65,9 @@ export default function MyQuests({ profile }: MyQuestsProps) {
   })
 
   // console.log('normalizedQuests: ', normalizedQuests)
+  console.log('profile.my_quests:', profile.my_quests)
+  console.log('allQuests:', allQuests)
+
   return (
     <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl p-8 max-w-md w-full">
       <CardContent className="flex flex-col gap-4">
@@ -139,11 +142,14 @@ export default function MyQuests({ profile }: MyQuestsProps) {
           ) : (
             <ul className="list-disc pl-5 space-y-1">
               {myCreatedQuests.map((quest) => {
-                const startDate = quest.quest_start
-                  ? toZonedTime(new Date(quest.quest_start), 'Pacific/Auckland')
+                const startDate = quest.quest_start_at
+                  ? toZonedTime(
+                      new Date(quest.quest_start_at),
+                      'Pacific/Auckland'
+                    )
                   : null
-                //                   const startDate = fullQuest?.quest_start
-                //   ? toZonedTime(new Date(fullQuest.quest_start), 'Pacific/Auckland')
+                //                   const startDate = fullQuest?.quest_start_at
+                //   ? toZonedTime(new Date(fullQuest.quest_start_at), 'Pacific/Auckland')
                 //   : null
                 // console.log(
                 //   'Start date for: ',

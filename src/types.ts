@@ -16,8 +16,8 @@ export type Quest = {
   id: string
   quest_name?: string | null
   quest_details?: string | null
-  quest_start?: string | null
-  quest_end?: string | null
+  quest_start_at?: string | null
+  quest_end_at?: string | null
   quest_image?: string | null
   quest_image_thumb?: string | null
   quest_entry?: number | null

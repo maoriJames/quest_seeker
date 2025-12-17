@@ -51,7 +51,7 @@ export const createQuest = /* GraphQL */ `mutation CreateQuest(
     id
     participants
     quest_details
-    quest_end
+    quest_end_at
     quest_entry
     quest_image
     quest_image_thumb
@@ -59,7 +59,7 @@ export const createQuest = /* GraphQL */ `mutation CreateQuest(
     quest_prize
     quest_prize_info
     quest_sponsor
-    quest_start
+    quest_start_at
     quest_tasks
     region
     status
@@ -114,7 +114,7 @@ export const deleteQuest = /* GraphQL */ `mutation DeleteQuest(
     id
     participants
     quest_details
-    quest_end
+    quest_end_at
     quest_entry
     quest_image
     quest_image_thumb
@@ -122,7 +122,7 @@ export const deleteQuest = /* GraphQL */ `mutation DeleteQuest(
     quest_prize
     quest_prize_info
     quest_sponsor
-    quest_start
+    quest_start_at
     quest_tasks
     region
     status
@@ -177,7 +177,7 @@ export const updateQuest = /* GraphQL */ `mutation UpdateQuest(
     id
     participants
     quest_details
-    quest_end
+    quest_end_at
     quest_entry
     quest_image
     quest_image_thumb
@@ -185,7 +185,7 @@ export const updateQuest = /* GraphQL */ `mutation UpdateQuest(
     quest_prize
     quest_prize_info
     quest_sponsor
-    quest_start
+    quest_start_at
     quest_tasks
     region
     status
