@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from '@radix-ui/react-dialog'
 import { uploadData } from 'aws-amplify/storage'
-import { useCurrentUserProfile } from '@/hooks/userProfiles'
+import { useCurrentUserProfile, useUpdateProfile } from '@/hooks/userProfiles'
 import { addQuestToProfile } from '@/hooks/addQuestToProfile'
 import RemoteImage from './RemoteImage'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
@@ -36,6 +36,7 @@ export default function TaskInformationWindow({
   onTasksUpdated,
 }: TaskInformationWindowProps) {
   const { data: currentUserProfile } = useCurrentUserProfile()
+  const { mutate: updateProfile } = useUpdateProfile()
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [editableTasks, setEditableTasks] = useState<Task[]>([])
   const [caption, setCaption] = useState('')
@@ -68,16 +69,17 @@ export default function TaskInformationWindow({
 
   // Prefill when a task is selected
   useEffect(() => {
-    // Initialize editableTasks from tasks + userTasks
     setEditableTasks(
       tasks.map((task) => {
         const userEntry = userTasks?.find((q) => q.quest_id === questId)
         const existingAnswer = userEntry?.tasks?.find((t) => t.id === task.id)
+
         return {
           ...task,
           caption: existingAnswer?.caption || '',
           answer: existingAnswer?.answer || '',
           location: existingAnswer?.location || '',
+          completed: existingAnswer?.completed ?? false,
         }
       })
     )
@@ -85,15 +87,12 @@ export default function TaskInformationWindow({
 
   useEffect(() => {
     if (!selectedTask) return
+
     const task = editableTasks.find((t) => t.id === selectedTask.id)
+
     setCaption(task?.caption || '')
     setPreviewUrl(task?.answer || '')
     setLocation(task?.location || '')
-    setEditableTasks((prev) =>
-      prev.map((t) =>
-        t.id === selectedTask.id ? { ...t, completed: true } : t
-      )
-    )
   }, [selectedTask, editableTasks])
 
   const handleCaptionChange = (taskId: string, value: string) => {
@@ -161,6 +160,21 @@ export default function TaskInformationWindow({
         return true
       })()
 
+      const previousTask = editableTasks.find((t) => t.id === selectedTask.id)
+
+      const wasCompletedBefore = !!previousTask?.completed
+      const shouldAwardPoints = !wasCompletedBefore && taskIsCompleted
+      const pointsDelta = shouldAwardPoints ? 1 : 0
+
+      if (pointsDelta > 0 && currentUserProfile) {
+        await updateProfile({
+          input: {
+            id: currentUserProfile.id,
+            points: (currentUserProfile.points ?? 0) + pointsDelta,
+          },
+        })
+      }
+
       // 🔥 2. Build updated task entry for DB
       const updatedTasksForUser = editableTasks.map((t) =>
         t.id === selectedTask.id
@@ -196,7 +210,6 @@ export default function TaskInformationWindow({
           tasks: updatedTasksForUser,
           title: '',
           completed: allCompleted,
-          // quest_status: QuestStatus.published,
         },
       ])
 

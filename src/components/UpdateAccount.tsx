@@ -118,7 +118,7 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
       return { fullPath: '', thumbPath: '' }
     }
   }
-
+  // console.log('Current Profile: ', profile)
   return (
     <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl p-8 max-w-md w-full text-center">
       <CardContent className="flex flex-col gap-4">
