@@ -38,6 +38,7 @@ import { useQuestDeletion } from '@/hooks/useQuestDeletion'
 import { PDFDownloadLink } from '@react-pdf/renderer'
 import SeekerTaskPdfButton from '@/components/SeekerTaskPdfButton'
 import { format, toZonedTime } from 'date-fns-tz'
+import { getUrl } from 'aws-amplify/storage'
 
 export default function QuestDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -59,6 +60,9 @@ export default function QuestDetailPage() {
   const [participantsLoaded, setParticipantsLoaded] = useState(false)
   const [tasks, setTasks] = useState<Task[]>([])
   const [winner, setWinner] = useState<Profile | null>(null)
+
+  const [pdfTasks, setPdfTasks] = useState<Task[]>([])
+  const [pdfLoading, setPdfLoading] = useState(false)
 
   const isExpired = quest?.status === QuestStatus.expired
   const NZ_TZ = 'Pacific/Auckland'
@@ -93,6 +97,33 @@ export default function QuestDetailPage() {
     return format(nzDate, 'd MMM yyyy, h:mm a', {
       timeZone: 'Pacific/Auckland',
     })
+  }
+
+  const preparePdfTasks = async () => {
+    setPdfLoading(true)
+
+    const resolved = await Promise.all(
+      seekerTasks.map(async (task) => {
+        if (!task.isImage || !task.answer) return task
+
+        try {
+          const { url } = await getUrl({
+            path: task.answer, // ✅ path ONLY
+          })
+
+          return {
+            ...task,
+            answer: url.toString(), // full HTTPS URL
+          }
+        } catch (err) {
+          console.error('Failed to resolve image URL:', err)
+          return task
+        }
+      })
+    )
+
+    setPdfTasks(resolved)
+    setPdfLoading(false)
   }
 
   const pickRandomWinner = () => {
@@ -649,24 +680,35 @@ export default function QuestDetailPage() {
                         </div>
                       ))}
                       {hasJoined && !isOwner && currentUserProfile && (
-                        <PDFDownloadLink
-                          document={
-                            <SeekerTaskPdfButton
-                              quest={quest}
-                              seekerTasks={seekerTasks}
-                              user={currentUserProfile}
-                            />
-                          }
-                          fileName={`${quest.quest_name}-your-answers.pdf`}
-                        >
-                          {({ loading }) => (
-                            <button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
-                              {loading
-                                ? 'Preparing PDF...'
-                                : 'Download My Quest PDF'}
-                            </button>
+                        <div className="mt-4">
+                          <button
+                            onClick={preparePdfTasks}
+                            className="mb-2 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg"
+                          >
+                            Prepare PDF
+                          </button>
+
+                          {pdfTasks.length > 0 && (
+                            <PDFDownloadLink
+                              document={
+                                <SeekerTaskPdfButton
+                                  quest={quest}
+                                  seekerTasks={pdfTasks} // 👈 RESOLVED URLs
+                                  user={currentUserProfile}
+                                />
+                              }
+                              fileName={`${quest.quest_name}-your-answers.pdf`}
+                            >
+                              {({ loading }) => (
+                                <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                                  {loading
+                                    ? 'Preparing PDF...'
+                                    : 'Download My Quest PDF'}
+                                </button>
+                              )}
+                            </PDFDownloadLink>
                           )}
-                        </PDFDownloadLink>
+                        </div>
                       )}
                     </div>
 
