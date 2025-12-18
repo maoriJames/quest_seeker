@@ -688,12 +688,12 @@ export default function QuestDetailPage() {
                             Prepare PDF
                           </button>
 
-                          {pdfTasks.length > 0 && (
+                          {!pdfLoading && pdfTasks.length > 0 && (
                             <PDFDownloadLink
                               document={
                                 <SeekerTaskPdfButton
                                   quest={quest}
-                                  seekerTasks={pdfTasks} // 👈 RESOLVED URLs
+                                  seekerTasks={pdfTasks}
                                   user={currentUserProfile}
                                 />
                               }
@@ -702,7 +702,7 @@ export default function QuestDetailPage() {
                               {({ loading }) => (
                                 <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
                                   {loading
-                                    ? 'Preparing PDF...'
+                                    ? 'Generating PDF…'
                                     : 'Download My Quest PDF'}
                                 </button>
                               )}
