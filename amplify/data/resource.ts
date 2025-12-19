@@ -52,6 +52,9 @@ export const schema = a
         points: a.integer(),
         role: a.enum(['seeker', 'creator']),
       })
+      .secondaryIndexes((index) => [
+        index('role').sortKeys(['points']).queryField('listProfilesByPoints'),
+      ])
       .authorization((allow) => [allow.authenticated()]),
   })
   .authorization((allow) => [

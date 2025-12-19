@@ -100,6 +100,54 @@ export const listProfiles = /* GraphQL */ `query ListProfiles(
   APITypes.ListProfilesQueryVariables,
   APITypes.ListProfilesQuery
 >;
+export const listProfilesByPoints = /* GraphQL */ `query ListProfilesByPoints(
+  $filter: ModelProfileFilterInput
+  $limit: Int
+  $nextToken: String
+  $points: ModelIntKeyConditionInput
+  $role: ProfileRole!
+  $sortDirection: ModelSortDirection
+) {
+  listProfilesByPoints(
+    filter: $filter
+    limit: $limit
+    nextToken: $nextToken
+    points: $points
+    role: $role
+    sortDirection: $sortDirection
+  ) {
+    items {
+      about_me
+      business_type
+      createdAt
+      email
+      full_name
+      id
+      image
+      image_thumbnail
+      my_quests
+      organization_description
+      organization_name
+      points
+      primary_contact_name
+      primary_contact_phone
+      primary_contact_position
+      registration_number
+      role
+      secondary_contact_name
+      secondary_contact_phone
+      secondary_contact_position
+      updatedAt
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.ListProfilesByPointsQueryVariables,
+  APITypes.ListProfilesByPointsQuery
+>;
 export const listQuests = /* GraphQL */ `query ListQuests(
   $filter: ModelQuestFilterInput
   $limit: Int
