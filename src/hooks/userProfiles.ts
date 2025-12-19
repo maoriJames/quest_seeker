@@ -122,7 +122,11 @@ export const useUpdateProfile = (
         authMode: 'userPool',
       })) as { data: UpdateProfileMutation }
 
-      return result.data.updateProfile
+      const updated = result.data.updateProfile
+
+      console.log('🟢 useUpdateProfile returned profile:', updated)
+
+      return updated
     },
     onSuccess: (data, variables, context) => {
       if (variables?.input?.id) {
