@@ -10,10 +10,22 @@ import {
 import bg from '@/assets/images/background_main.png'
 import { useCurrentUserProfile } from '@/hooks/userProfiles'
 import { useLeaderboardProfiles } from '@/hooks/useLeaderboardProfiles'
+import { Button } from '@/components/ui/button'
+import { useNavigate } from 'react-router-dom'
 
 export default function Leader() {
   const { currentProfile } = useCurrentUserProfile()
-  const { profiles, loading } = useLeaderboardProfiles()
+
+  const navigate = useNavigate()
+  const role =
+    currentProfile?.role === 'seeker' || currentProfile?.role === 'creator'
+      ? currentProfile.role
+      : undefined
+
+  const { topTen, userRank, loading, error } = useLeaderboardProfiles(
+    role,
+    currentProfile?.id
+  )
 
   const profilePoints = currentProfile?.points ?? 0
 
@@ -35,38 +47,61 @@ export default function Leader() {
             </p>
           </div>
 
-          {/* Table */}
+          {/* Content */}
           {loading ? (
             <p className="text-center text-muted-foreground">Loading…</p>
+          ) : error ? (
+            <p className="text-center text-destructive">{error}</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-16">Rank</TableHead>
-                  <TableHead>User</TableHead>
-                  <TableHead className="text-right">Points</TableHead>
-                </TableRow>
-              </TableHeader>
-
-              <TableBody>
-                {profiles.slice(0, 10).map((profile, index) => (
-                  <TableRow
-                    key={profile.id}
-                    className={
-                      profile.id === currentProfile?.id
-                        ? 'bg-primary/10'
-                        : undefined
-                    }
-                  >
-                    <TableCell className="font-medium">{index + 1}</TableCell>
-                    <TableCell>{profile.display_name}</TableCell>
-                    <TableCell className="text-right font-semibold">
-                      {profile.points}
-                    </TableCell>
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-16">Rank</TableHead>
+                    <TableHead>User</TableHead>
+                    <TableHead className="text-right">Points</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+
+                <TableBody>
+                  {topTen.map((profile, index) => (
+                    <TableRow
+                      key={profile.id}
+                      className={
+                        profile.id === currentProfile?.id
+                          ? 'bg-primary/10'
+                          : undefined
+                      }
+                    >
+                      <TableCell className="font-medium">{index + 1}</TableCell>
+                      <TableCell>
+                        {profile.full_name}
+                        {profile.id === currentProfile?.id && (
+                          <span className="ml-2 text-xs text-primary">
+                            (You)
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right font-semibold">
+                        {profile.points}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {userRank && userRank > 10 && (
+                <div className="mt-4 text-center text-sm text-muted-foreground">
+                  You are currently ranked{' '}
+                  <span className="font-semibold text-foreground">
+                    #{userRank}
+                  </span>
+                </div>
+              )}
+              <Button variant="yellow" onClick={() => navigate(-1)}>
+                Back to Quests
+              </Button>
+            </>
           )}
         </CardContent>
       </Card>

@@ -252,7 +252,7 @@ export default function TaskInformationWindow({
             <p className="text-sm font-medium text-gray-700">
               {task.description || `Task ${index + 1}`}
             </p>
-            {task.answer || task.caption ? (
+            {task.answer || task.caption || task.location ? (
               <p className="flex items-center text-sm text-green-600 mt-1">
                 <span className="mr-1">✅</span> Task Answered
               </p>

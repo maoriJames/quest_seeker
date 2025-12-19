@@ -172,6 +172,21 @@ export type ModelProfileConnection = {
   nextToken?: string | null,
 };
 
+export type ModelIntKeyConditionInput = {
+  between?: Array< number | null > | null,
+  eq?: number | null,
+  ge?: number | null,
+  gt?: number | null,
+  le?: number | null,
+  lt?: number | null,
+};
+
+export enum ModelSortDirection {
+  ASC = "ASC",
+  DESC = "DESC",
+}
+
+
 export type ModelQuestFilterInput = {
   and?: Array< ModelQuestFilterInput | null > | null,
   createdAt?: ModelStringInput | null,
@@ -516,6 +531,46 @@ export type ListProfilesQueryVariables = {
 
 export type ListProfilesQuery = {
   listProfiles?:  {
+    __typename: "ModelProfileConnection",
+    items:  Array< {
+      __typename: "Profile",
+      about_me?: string | null,
+      business_type?: string | null,
+      createdAt: string,
+      email?: string | null,
+      full_name?: string | null,
+      id: string,
+      image?: string | null,
+      image_thumbnail?: string | null,
+      my_quests?: string | null,
+      organization_description?: string | null,
+      organization_name?: string | null,
+      points?: number | null,
+      primary_contact_name?: string | null,
+      primary_contact_phone?: string | null,
+      primary_contact_position?: string | null,
+      registration_number?: string | null,
+      role?: ProfileRole | null,
+      secondary_contact_name?: string | null,
+      secondary_contact_phone?: string | null,
+      secondary_contact_position?: string | null,
+      updatedAt: string,
+    } | null >,
+    nextToken?: string | null,
+  } | null,
+};
+
+export type ListProfilesByPointsQueryVariables = {
+  filter?: ModelProfileFilterInput | null,
+  limit?: number | null,
+  nextToken?: string | null,
+  points?: ModelIntKeyConditionInput | null,
+  role: ProfileRole,
+  sortDirection?: ModelSortDirection | null,
+};
+
+export type ListProfilesByPointsQuery = {
+  listProfilesByPoints?:  {
     __typename: "ModelProfileConnection",
     items:  Array< {
       __typename: "Profile",
