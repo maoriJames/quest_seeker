@@ -27,12 +27,9 @@ export async function addQuestToProfile(questId: string, MyQuests: MyQuest[]) {
 
     const existingQuest = existingQuests.find((q) => q.quest_id === questId)
 
-    // ✅ Current points (default to 0)
-    let updatedPoints = profile.points ?? 0
-
     // 🟢 FIRST TIME joining this quest
     if (!existingQuest) {
-      console.log('🆕 Adding new quest + 10 points')
+      console.log('✅ Join bonus awarded (+10 points)')
 
       existingQuests.push({
         quest_id: questId,
@@ -41,8 +38,16 @@ export async function addQuestToProfile(questId: string, MyQuests: MyQuest[]) {
         completed: false,
       })
 
-      // 🎉 Award points
-      updatedPoints += 10
+      await client.graphql({
+        query: updateProfile,
+        variables: {
+          input: {
+            id: profile.id,
+            points: (profile.points ?? 0) + 10,
+          },
+        },
+        authMode: 'userPool',
+      })
     } else {
       // 🔄 Update existing quest
       MyQuests.forEach((newMyQuest) => {
@@ -72,13 +77,13 @@ export async function addQuestToProfile(questId: string, MyQuests: MyQuest[]) {
         input: {
           id: profile.id,
           my_quests: JSON.stringify(existingQuests),
-          points: updatedPoints,
+          // 🚫 NO points here
         },
       },
       authMode: 'userPool',
     })
 
-    console.log('✅ Profile updated with points:', updatedPoints)
+    console.log('✅ Profile updated with points:', (profile.points ?? 0) + 10)
   } catch (err) {
     console.error('❌ Failed to add/update quest in profile:', err)
   }

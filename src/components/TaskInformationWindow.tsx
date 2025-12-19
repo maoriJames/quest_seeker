@@ -167,6 +167,7 @@ export default function TaskInformationWindow({
       const pointsDelta = shouldAwardPoints ? 1 : 0
 
       if (pointsDelta > 0 && currentUserProfile) {
+        console.log('1 is true')
         await updateProfile({
           input: {
             id: currentUserProfile.id,
@@ -191,17 +192,17 @@ export default function TaskInformationWindow({
       // 🔥 3. Compute quest-wide `completed` state AFTER updating this task
       const allCompleted = updatedTasksForUser.every((t) => t.completed)
 
-      console.log('📌 Selected task completed:', taskIsCompleted)
+      // console.log('📌 Selected task completed:', taskIsCompleted)
 
-      console.log('📌 Updated tasks for user:', updatedTasksForUser)
+      // console.log('📌 Updated tasks for user:', updatedTasksForUser)
 
-      console.log('📌 allCompleted:', allCompleted)
+      // console.log('📌 allCompleted:', allCompleted)
 
-      console.log('📌 Payload sending to addQuestToProfile:', {
-        quest_id: questId,
-        tasks: updatedTasksForUser,
-        completed: allCompleted,
-      })
+      // console.log('📌 Payload sending to addQuestToProfile:', {
+      //   quest_id: questId,
+      //   tasks: updatedTasksForUser,
+      //   completed: allCompleted,
+      // })
 
       // 🔥 4. Save everything to the profile
       await addQuestToProfile(questId, [

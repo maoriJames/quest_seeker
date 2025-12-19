@@ -72,7 +72,14 @@ export default function MyQuests({ profile }: MyQuestsProps) {
     <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl p-8 max-w-md w-full">
       <CardContent className="flex flex-col gap-4">
         <div className="space-y-3">
-          <h2 className="font-semibold text-lg mb-2">Joined Quests</h2>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-1">
+            <h2 className="font-semibold text-lg">Joined Quests</h2>
+
+            <h2 className="font-semibold text-lg text-yellow-600">
+              ⭐ {profile.points} points
+            </h2>
+          </div>
+
           {normalizedQuests.map((myQuest) => (
             <Link
               to={`/user/quest/${myQuest.quest_id}`}
