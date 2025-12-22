@@ -69,16 +69,14 @@ export default function AddQuestButton({ to }: AddQuestButtonProps) {
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              size="icon"
-              variant="ghost"
-              className="flex items-center justify-center h-auto w-auto p-0 bg-transparent hover:bg-transparent"
+              // size="icon"
+              variant="yellow"
+              // className="flex items-center justify-center h-auto w-auto p-0 bg-transparent hover:bg-transparent"
               onClick={handleClick}
             >
               {/* Replace the icon with text */}
               <Plus />
-              <span className="text-black text-sm font-medium">
-                Create a Quest
-              </span>
+              <span>Create a Quest</span>
             </Button>
           </TooltipTrigger>
           <TooltipContent

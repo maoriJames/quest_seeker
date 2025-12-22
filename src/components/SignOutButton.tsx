@@ -16,9 +16,9 @@ export default function SignOutButton() {
     <>
       <Button
         size="icon"
-        variant="ghost"
-        className="flex items-center justify-center h-auto w-auto p-0 bg-transparent hover:bg-transparent"
+        variant="yellow"
         onClick={handleSignOut}
+        aria-label="Sign out"
       >
         <LogOut />
       </Button>
