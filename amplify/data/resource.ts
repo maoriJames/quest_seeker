@@ -50,11 +50,13 @@ export const schema = a
         image_thumbnail: a.string(),
         my_quests: a.json(),
         points: a.integer(),
+        leaderboard: a.string().default('GLOBAL'),
         role: a.enum(['seeker', 'creator']),
       })
       .secondaryIndexes((index) => [
-        index('role').sortKeys(['points']).queryField('listProfilesByPoints'),
+        index('leaderboard').sortKeys(['points']).queryField('listLeaderboard'),
       ])
+
       .authorization((allow) => [allow.authenticated()]),
   })
   .authorization((allow) => [

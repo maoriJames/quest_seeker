@@ -14,21 +14,22 @@ type UseLeaderboardResult = {
   error: string | null
 }
 
-type ListResponse<T> = {
-  data?: T[]
-  nextToken?: string | null
-}
+type ListLeaderboardResponse = Awaited<
+  ReturnType<typeof client.models.Profile.listLeaderboard>
+>
 
-async function fetchAllProfilesByPoints(
-  role: 'seeker' | 'creator'
-): Promise<LeaderboardProfile[]> {
+/**
+ * Fetch ALL profiles ordered by points DESC
+ * Used only to compute the current user's rank
+ */
+async function fetchAllProfilesByPoints(): Promise<LeaderboardProfile[]> {
   const all: LeaderboardProfile[] = []
   let nextToken: string | null | undefined = undefined
 
   do {
-    const res: ListResponse<LeaderboardProfile> =
-      await client.models.Profile.listProfilesByPoints(
-        { role },
+    const res: ListLeaderboardResponse =
+      await client.models.Profile.listLeaderboard(
+        { leaderboard: 'GLOBAL' },
         { sortDirection: 'DESC', nextToken }
       )
 
@@ -40,7 +41,6 @@ async function fetchAllProfilesByPoints(
 }
 
 export function useLeaderboardProfiles(
-  role?: 'seeker' | 'creator',
   currentUserId?: string
 ): UseLeaderboardResult {
   const [topTen, setTopTen] = useState<LeaderboardProfile[]>([])
@@ -49,47 +49,51 @@ export function useLeaderboardProfiles(
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!role || !currentUserId) return
-
-    const safeRole: 'seeker' | 'creator' = role
-    const safeUserId = currentUserId
+    if (!currentUserId) return
 
     let cancelled = false
+    const safeUserId = currentUserId
 
     async function run() {
       setLoading(true)
       setError(null)
 
       try {
-        // 1) Top 10
-        const topRes = await client.models.Profile.listProfilesByPoints(
-          { role: safeRole },
-          { sortDirection: 'DESC', limit: 10 }
-        )
+        // 1) Global Top 10
+        const topRes: ListLeaderboardResponse =
+          await client.models.Profile.listLeaderboard(
+            { leaderboard: 'GLOBAL' },
+            { sortDirection: 'DESC', limit: 10 }
+          )
 
         if (cancelled) return
         setTopTen(topRes.data ?? [])
 
-        // 2) All for rank
-        const allProfiles = await fetchAllProfilesByPoints(safeRole)
+        // 2) Compute global rank
+        const allProfiles = await fetchAllProfilesByPoints()
 
         if (cancelled) return
         const rankIndex = allProfiles.findIndex((p) => p.id === safeUserId)
 
         setUserRank(rankIndex >= 0 ? rankIndex + 1 : null)
-      } catch (e) {
-        console.error(e)
-        if (!cancelled) setError('Failed to load leaderboard')
+      } catch (err) {
+        console.error(err)
+        if (!cancelled) {
+          setError('Failed to load leaderboard')
+        }
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) {
+          setLoading(false)
+        }
       }
     }
 
     run()
+
     return () => {
       cancelled = true
     }
-  }, [role, currentUserId])
+  }, [currentUserId])
 
   return { topTen, userRank, loading, error }
 }
