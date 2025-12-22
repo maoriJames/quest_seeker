@@ -1,48 +1,34 @@
-import React, { useState } from 'react'
-import { Button } from '@/components/ui/button'
+import React, { useState, ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 import { HiMenu, HiX } from 'react-icons/hi'
 
-interface ToolbarButton {
-  label: React.ReactNode
-  onClick: () => void
-  icon?: React.ReactNode
-  variant?: 'default' | 'outline' | 'destructive' | 'ghost'
-}
-
 interface ToolbarProps {
-  buttons: ToolbarButton[]
+  children: ReactNode
   className?: string
 }
 
-export const Toolbar: React.FC<ToolbarProps> = ({ buttons, className }) => {
+export const Toolbar: React.FC<ToolbarProps> = ({ children, className }) => {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
     <div className={cn('w-full', className)}>
+      {/* Desktop */}
       <div className="hidden md:flex justify-evenly items-center w-full p-2 border rounded-md bg-black shadow-sm">
-        {buttons.map((btn, i) => (
-          <Button
-            key={i}
-            onClick={btn.onClick}
-            variant={btn.variant || 'default'}
-            className="flex items-center gap-2 bg-yellow-500 text-black hover:bg-yellow-600 transition"
-          >
-            {btn.icon}
-            {btn.label}
-          </Button>
-        ))}
+        {children}
       </div>
 
+      {/* Mobile header */}
       <div className="md:hidden relative z-50 bg-black p-2 shadow-sm flex justify-between items-center">
         <button
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => setIsOpen((o) => !o)}
           className="text-yellow-500 focus:outline-none"
+          aria-label="Toggle menu"
         >
           {isOpen ? <HiX size={24} /> : <HiMenu size={24} />}
         </button>
       </div>
 
+      {/* Mobile overlay */}
       <div
         className={cn(
           'fixed inset-0 z-40 md:hidden transition-all',
@@ -65,21 +51,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({ buttons, className }) => {
             isOpen ? 'translate-x-0' : '-translate-x-[120%]'
           )}
         >
-          <div className="flex flex-col gap-2">
-            {buttons.map((btn, i) => (
-              <Button
-                key={i}
-                onClick={() => {
-                  btn.onClick()
-                  setIsOpen(false)
-                }}
-                variant={btn.variant || 'default'}
-                className="flex items-center gap-2 bg-yellow-500 text-black hover:bg-yellow-600 transition justify-center"
-              >
-                {btn.icon}
-                {btn.label}
-              </Button>
-            ))}
+          <div className="flex flex-col gap-2" onClick={() => setIsOpen(false)}>
+            {children}
           </div>
         </div>
       </div>

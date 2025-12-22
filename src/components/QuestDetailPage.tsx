@@ -307,34 +307,43 @@ export default function QuestDetailPage() {
       <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl max-w-5xl w-full flex flex-col">
         <CardContent className="flex flex-col gap-4">
           <div className="flex items-center justify-between w-full sticky top-0 z-50 bg-white/80 backdrop-blur-md p-2 rounded-md shadow-md">
-            <Toolbar
-              buttons={[
-                {
-                  label: <Home className="w-5 h-5" />,
-                  onClick: () => navigate('/user/region'),
-                },
-                {
-                  label: 'My Account',
-                  onClick: () => navigate('/user/account'),
-                },
-                {
-                  label: 'My Quests',
-                  onClick: () =>
-                    navigate('/user/account', {
-                      state: { defaultTab: 'my-quests' },
-                    }),
-                },
-                {
-                  label: 'Leader Board',
-                  onClick: () => navigate('/user/leader'),
-                },
-                { label: 'Help', onClick: () => navigate('/user/help') },
-                {
-                  label: <SignOutButton />,
-                  onClick: () => {},
-                },
-              ]}
-            />
+            <Toolbar>
+              <Button
+                variant="yellow"
+                onClick={() => navigate('/user/region')}
+                size="icon"
+                aria-label="Home"
+              >
+                <Home />
+              </Button>
+
+              <Button
+                variant="yellow"
+                onClick={() => navigate('/user/account')}
+              >
+                My Account
+              </Button>
+
+              <Button
+                variant="yellow"
+                onClick={() =>
+                  navigate('/user/account', {
+                    state: { defaultTab: 'my-quests' },
+                  })
+                }
+              >
+                My Quests
+              </Button>
+
+              <Button variant="yellow" onClick={() => navigate('/user/leader')}>
+                Leader Board
+              </Button>
+
+              <Button variant="yellow" onClick={() => navigate('/user/help')}>
+                Help
+              </Button>
+              <SignOutButton />
+            </Toolbar>
           </div>
 
           {/* Banner Image with overlayed quest title + floating sponsors card */}
