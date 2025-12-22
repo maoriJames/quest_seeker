@@ -14,9 +14,10 @@ type UseLeaderboardResult = {
   error: string | null
 }
 
-type ListLeaderboardResponse = Awaited<
-  ReturnType<typeof client.models.Profile.listLeaderboard>
->
+type LeaderboardListResult = {
+  data?: LeaderboardProfile[]
+  nextToken?: string | null
+}
 
 /**
  * Fetch ALL profiles ordered by points DESC
@@ -27,7 +28,7 @@ async function fetchAllProfilesByPoints(): Promise<LeaderboardProfile[]> {
   let nextToken: string | null | undefined = undefined
 
   do {
-    const res: ListLeaderboardResponse =
+    const res: LeaderboardListResult =
       await client.models.Profile.listLeaderboard(
         { leaderboard: 'GLOBAL' },
         { sortDirection: 'DESC', nextToken }
@@ -60,7 +61,7 @@ export function useLeaderboardProfiles(
 
       try {
         // 1) Global Top 10
-        const topRes: ListLeaderboardResponse =
+        const topRes: LeaderboardListResult =
           await client.models.Profile.listLeaderboard(
             { leaderboard: 'GLOBAL' },
             { sortDirection: 'DESC', limit: 10 }
