@@ -1,5 +1,6 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend'
 import { expiredQuests } from '../functions/expiredQuests/resource'
+import { postRegistration } from '../functions/postRegistration/resource'
 
 export const schema = a
   .schema({
@@ -61,6 +62,7 @@ export const schema = a
   })
   .authorization((allow) => [
     allow.resource(expiredQuests).to(['query', 'mutate']),
+    allow.resource(postRegistration).to(['mutate']),
   ])
 export type Schema = ClientSchema<typeof schema>
 
