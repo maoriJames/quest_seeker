@@ -9,45 +9,53 @@ export const handler: DynamoDBStreamHandler = async (event) => {
   console.log('Lambda invoked with event:', JSON.stringify(event))
 
   for (const record of event.Records) {
-    if (record.eventName === 'MODIFY') {
-      const newImage = record.dynamodb?.NewImage
-      const oldImage = record.dynamodb?.OldImage
+    if (record.eventName !== 'MODIFY') continue
 
-      // Detect if participants list changed
-      if (newImage?.participants?.S !== oldImage?.participants?.S) {
-        const creatorId = newImage?.creator_id?.S
-        const questName = newImage?.quest_name?.S
+    const newImage = record.dynamodb?.NewImage
+    const oldImage = record.dynamodb?.OldImage
+    if (!newImage || !oldImage) continue
 
-        if (creatorId) {
-          // 1. Look up creator's profile
-          const profileResult = await ddb.send(
-            new GetItemCommand({
-              TableName: process.env.PROFILE_TABLE_NAME,
-              Key: { id: { S: creatorId } },
-            })
-          )
+    const newParticipants = newImage.participants?.L ?? []
+    const oldParticipants = oldImage.participants?.L ?? []
 
-          const creatorEmail = profileResult.Item?.email?.S
+    // 🔔 someone joined
+    if (newParticipants.length <= oldParticipants.length) continue
 
-          // 2. Send email if email found
-          if (creatorEmail) {
-            await ses.send(
-              new SendEmailCommand({
-                Source: 'webdev@maorilandinfo.co.nz',
-                Destination: { ToAddresses: [creatorEmail] },
-                Message: {
-                  Subject: { Data: `New Member in ${questName}!` },
-                  Body: {
-                    Text: {
-                      Data: `A user has joined your quest: ${questName}.`,
-                    },
-                  },
-                },
-              })
-            )
-          }
-        }
-      }
+    const creatorId = newImage.creator_id?.S
+    const questName = newImage.quest_name?.S ?? 'your quest'
+
+    if (!creatorId) continue
+
+    // 1. Look up creator's profile
+    const profileResult = await ddb.send(
+      new GetItemCommand({
+        TableName: process.env.PROFILE_TABLE_NAME,
+        Key: { id: { S: creatorId } },
+      })
+    )
+
+    const creatorEmail = profileResult.Item?.email?.S
+    if (!creatorEmail) {
+      console.warn('Creator email not found for', creatorId)
+      continue
     }
+
+    // 2. Send email
+    await ses.send(
+      new SendEmailCommand({
+        Source: 'webdev@maorilandinfo.co.nz',
+        Destination: { ToAddresses: [creatorEmail] },
+        Message: {
+          Subject: { Data: `New Member in ${questName}!` },
+          Body: {
+            Text: {
+              Data: `A new participant has joined your quest: ${questName}.`,
+            },
+          },
+        },
+      })
+    )
+
+    console.log('Notification email sent to:', creatorEmail)
   }
 }
