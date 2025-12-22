@@ -104,8 +104,7 @@ export const listProfilesByPoints = /* GraphQL */ `query ListProfilesByPoints(
   $filter: ModelProfileFilterInput
   $limit: Int
   $nextToken: String
-  $points: ModelIntKeyConditionInput
-  $role: ProfileRole!
+  $points: Int!
   $sortDirection: ModelSortDirection
 ) {
   listProfilesByPoints(
@@ -113,7 +112,6 @@ export const listProfilesByPoints = /* GraphQL */ `query ListProfilesByPoints(
     limit: $limit
     nextToken: $nextToken
     points: $points
-    role: $role
     sortDirection: $sortDirection
   ) {
     items {

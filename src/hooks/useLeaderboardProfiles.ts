@@ -19,16 +19,18 @@ type ListResponse<T> = {
   nextToken?: string | null
 }
 
-async function fetchAllProfilesByPoints(
-  role: 'seeker' | 'creator'
-): Promise<LeaderboardProfile[]> {
+/**
+ * Fetch all profiles ordered by points DESC
+ * (used only to compute the current user's rank)
+ */
+async function fetchAllProfilesByPoints(): Promise<LeaderboardProfile[]> {
   const all: LeaderboardProfile[] = []
   let nextToken: string | null | undefined = undefined
 
   do {
     const res: ListResponse<LeaderboardProfile> =
       await client.models.Profile.listProfilesByPoints(
-        { role },
+        {},
         { sortDirection: 'DESC', nextToken }
       )
 
@@ -40,7 +42,6 @@ async function fetchAllProfilesByPoints(
 }
 
 export function useLeaderboardProfiles(
-  role?: 'seeker' | 'creator',
   currentUserId?: string
 ): UseLeaderboardResult {
   const [topTen, setTopTen] = useState<LeaderboardProfile[]>([])
@@ -49,11 +50,9 @@ export function useLeaderboardProfiles(
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!role || !currentUserId) return
+    if (!currentUserId) return
 
-    const safeRole: 'seeker' | 'creator' = role
     const safeUserId = currentUserId
-
     let cancelled = false
 
     async function run() {
@@ -61,17 +60,17 @@ export function useLeaderboardProfiles(
       setError(null)
 
       try {
-        // 1) Top 10
+        // 1) Global top 10
         const topRes = await client.models.Profile.listProfilesByPoints(
-          { role: safeRole },
+          {},
           { sortDirection: 'DESC', limit: 10 }
         )
 
         if (cancelled) return
         setTopTen(topRes.data ?? [])
 
-        // 2) All for rank
-        const allProfiles = await fetchAllProfilesByPoints(safeRole)
+        // 2) Compute global rank
+        const allProfiles = await fetchAllProfilesByPoints()
 
         if (cancelled) return
         const rankIndex = allProfiles.findIndex((p) => p.id === safeUserId)
@@ -89,7 +88,7 @@ export function useLeaderboardProfiles(
     return () => {
       cancelled = true
     }
-  }, [role, currentUserId])
+  }, [currentUserId])
 
   return { topTen, userRank, loading, error }
 }

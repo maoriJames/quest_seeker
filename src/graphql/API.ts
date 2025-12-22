@@ -172,15 +172,6 @@ export type ModelProfileConnection = {
   nextToken?: string | null,
 };
 
-export type ModelIntKeyConditionInput = {
-  between?: Array< number | null > | null,
-  eq?: number | null,
-  ge?: number | null,
-  gt?: number | null,
-  le?: number | null,
-  lt?: number | null,
-};
-
 export enum ModelSortDirection {
   ASC = "ASC",
   DESC = "DESC",
@@ -564,8 +555,7 @@ export type ListProfilesByPointsQueryVariables = {
   filter?: ModelProfileFilterInput | null,
   limit?: number | null,
   nextToken?: string | null,
-  points?: ModelIntKeyConditionInput | null,
-  role: ProfileRole,
+  points: number,
   sortDirection?: ModelSortDirection | null,
 };
 
