@@ -18,6 +18,7 @@ export const getProfile = /* GraphQL */ `query GetProfile($id: ID!) {
     id
     image
     image_thumbnail
+    leaderboard
     my_quests
     organization_description
     organization_name
@@ -62,6 +63,55 @@ export const getQuest = /* GraphQL */ `query GetQuest($id: ID!) {
   }
 }
 ` as GeneratedQuery<APITypes.GetQuestQueryVariables, APITypes.GetQuestQuery>;
+export const listLeaderboard = /* GraphQL */ `query ListLeaderboard(
+  $filter: ModelProfileFilterInput
+  $leaderboard: String!
+  $limit: Int
+  $nextToken: String
+  $points: ModelIntKeyConditionInput
+  $sortDirection: ModelSortDirection
+) {
+  listLeaderboard(
+    filter: $filter
+    leaderboard: $leaderboard
+    limit: $limit
+    nextToken: $nextToken
+    points: $points
+    sortDirection: $sortDirection
+  ) {
+    items {
+      about_me
+      business_type
+      createdAt
+      email
+      full_name
+      id
+      image
+      image_thumbnail
+      leaderboard
+      my_quests
+      organization_description
+      organization_name
+      points
+      primary_contact_name
+      primary_contact_phone
+      primary_contact_position
+      registration_number
+      role
+      secondary_contact_name
+      secondary_contact_phone
+      secondary_contact_position
+      updatedAt
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.ListLeaderboardQueryVariables,
+  APITypes.ListLeaderboardQuery
+>;
 export const listProfiles = /* GraphQL */ `query ListProfiles(
   $filter: ModelProfileFilterInput
   $limit: Int
@@ -77,6 +127,7 @@ export const listProfiles = /* GraphQL */ `query ListProfiles(
       id
       image
       image_thumbnail
+      leaderboard
       my_quests
       organization_description
       organization_name
@@ -99,52 +150,6 @@ export const listProfiles = /* GraphQL */ `query ListProfiles(
 ` as GeneratedQuery<
   APITypes.ListProfilesQueryVariables,
   APITypes.ListProfilesQuery
->;
-export const listProfilesByPoints = /* GraphQL */ `query ListProfilesByPoints(
-  $filter: ModelProfileFilterInput
-  $limit: Int
-  $nextToken: String
-  $points: Int!
-  $sortDirection: ModelSortDirection
-) {
-  listProfilesByPoints(
-    filter: $filter
-    limit: $limit
-    nextToken: $nextToken
-    points: $points
-    sortDirection: $sortDirection
-  ) {
-    items {
-      about_me
-      business_type
-      createdAt
-      email
-      full_name
-      id
-      image
-      image_thumbnail
-      my_quests
-      organization_description
-      organization_name
-      points
-      primary_contact_name
-      primary_contact_phone
-      primary_contact_position
-      registration_number
-      role
-      secondary_contact_name
-      secondary_contact_phone
-      secondary_contact_position
-      updatedAt
-      __typename
-    }
-    nextToken
-    __typename
-  }
-}
-` as GeneratedQuery<
-  APITypes.ListProfilesByPointsQueryVariables,
-  APITypes.ListProfilesByPointsQuery
 >;
 export const listQuests = /* GraphQL */ `query ListQuests(
   $filter: ModelQuestFilterInput

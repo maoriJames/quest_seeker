@@ -14,23 +14,22 @@ type UseLeaderboardResult = {
   error: string | null
 }
 
-type ListResponse<T> = {
-  data?: T[]
-  nextToken?: string | null
-}
+type ListLeaderboardResponse = Awaited<
+  ReturnType<typeof client.models.Profile.listLeaderboard>
+>
 
 /**
- * Fetch all profiles ordered by points DESC
- * (used only to compute the current user's rank)
+ * Fetch ALL profiles ordered by points DESC
+ * Used only to compute the current user's rank
  */
 async function fetchAllProfilesByPoints(): Promise<LeaderboardProfile[]> {
   const all: LeaderboardProfile[] = []
   let nextToken: string | null | undefined = undefined
 
   do {
-    const res: ListResponse<LeaderboardProfile> =
-      await client.models.Profile.listProfilesByPoints(
-        {},
+    const res: ListLeaderboardResponse =
+      await client.models.Profile.listLeaderboard(
+        { leaderboard: 'GLOBAL' },
         { sortDirection: 'DESC', nextToken }
       )
 
@@ -52,19 +51,20 @@ export function useLeaderboardProfiles(
   useEffect(() => {
     if (!currentUserId) return
 
-    const safeUserId = currentUserId
     let cancelled = false
+    const safeUserId = currentUserId
 
     async function run() {
       setLoading(true)
       setError(null)
 
       try {
-        // 1) Global top 10
-        const topRes = await client.models.Profile.listProfilesByPoints(
-          {},
-          { sortDirection: 'DESC', limit: 10 }
-        )
+        // 1) Global Top 10
+        const topRes: ListLeaderboardResponse =
+          await client.models.Profile.listLeaderboard(
+            { leaderboard: 'GLOBAL' },
+            { sortDirection: 'DESC', limit: 10 }
+          )
 
         if (cancelled) return
         setTopTen(topRes.data ?? [])
@@ -76,15 +76,20 @@ export function useLeaderboardProfiles(
         const rankIndex = allProfiles.findIndex((p) => p.id === safeUserId)
 
         setUserRank(rankIndex >= 0 ? rankIndex + 1 : null)
-      } catch (e) {
-        console.error(e)
-        if (!cancelled) setError('Failed to load leaderboard')
+      } catch (err) {
+        console.error(err)
+        if (!cancelled) {
+          setError('Failed to load leaderboard')
+        }
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) {
+          setLoading(false)
+        }
       }
     }
 
     run()
+
     return () => {
       cancelled = true
     }

@@ -17,13 +17,12 @@ export default function Leader() {
   const { currentProfile } = useCurrentUserProfile()
 
   const navigate = useNavigate()
-  const role =
-    currentProfile?.role === 'seeker' || currentProfile?.role === 'creator'
-      ? currentProfile.role
-      : undefined
+  // const role =
+  //   currentProfile?.role === 'seeker' || currentProfile?.role === 'creator'
+  //     ? currentProfile.role
+  //     : undefined
 
   const { topTen, userRank, loading, error } = useLeaderboardProfiles(
-    role,
     currentProfile?.id
   )
 

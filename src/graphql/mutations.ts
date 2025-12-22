@@ -21,6 +21,7 @@ export const createProfile = /* GraphQL */ `mutation CreateProfile(
     id
     image
     image_thumbnail
+    leaderboard
     my_quests
     organization_description
     organization_name
@@ -84,6 +85,7 @@ export const deleteProfile = /* GraphQL */ `mutation DeleteProfile(
     id
     image
     image_thumbnail
+    leaderboard
     my_quests
     organization_description
     organization_name
@@ -147,6 +149,7 @@ export const updateProfile = /* GraphQL */ `mutation UpdateProfile(
     id
     image
     image_thumbnail
+    leaderboard
     my_quests
     organization_description
     organization_name
