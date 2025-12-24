@@ -41,20 +41,32 @@ export const handler: DynamoDBStreamHandler = async (event) => {
     }
 
     // 2. Send email
-    await ses.send(
-      new SendEmailCommand({
-        Source: 'webdev@maorilandinfo.co.nz',
-        Destination: { ToAddresses: [creatorEmail] },
-        Message: {
-          Subject: { Data: `New Member in ${questName}!` },
-          Body: {
-            Text: {
-              Data: `A new participant has joined your quest: ${questName}.`,
+    try {
+      await ses.send(
+        new SendEmailCommand({
+          Source: 'webdev@maorilandinfo.co.nz',
+          Destination: { ToAddresses: [creatorEmail] },
+          Message: {
+            Subject: { Data: `New Member in ${questName}!` },
+            Body: {
+              Text: {
+                Data: `A new participant has joined your quest: ${questName}.`,
+              },
             },
           },
-        },
-      })
-    )
+        })
+      )
+
+      console.log('Notification email sent to:', creatorEmail)
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'MessageRejected') {
+        console.warn('SES rejected email (sandbox):', creatorEmail)
+        // IMPORTANT: do NOT rethrow
+      } else {
+        console.error('Unexpected email error:', err)
+        // optional: rethrow only for real infra issues
+      }
+    }
 
     console.log('Notification email sent to:', creatorEmail)
   }
