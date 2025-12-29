@@ -21,9 +21,14 @@ import { Button } from './ui/button'
 type ProfileProps = {
   profile: Profile
   onUpdate: (updates: Partial<Profile>) => void
+  isProfileComplete: boolean
 }
 
-export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
+export default function UpdateAccount({
+  profile,
+  onUpdate,
+  isProfileComplete,
+}: ProfileProps) {
   const navigate = useNavigate()
 
   const [previewImage, setPreviewImage] = useState(profile.image || '')
@@ -148,7 +153,7 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
         {profile.full_name && (
           <InlineEditField
             label="Name"
-            value={profile.full_name}
+            value={profile.full_name || ''}
             onSave={(newValue) => onUpdate({ full_name: newValue })}
             required
           />
@@ -251,8 +256,29 @@ export default function UpdateAccount({ profile, onUpdate }: ProfileProps) {
             />
           </>
         )}
+        {!isProfileComplete && (
+          <div className="mb-3 rounded bg-red-100 p-2 text-sm text-red-700">
+            Please complete:
+            <ul className="list-disc ml-5">
+              {!profile.full_name && <li>Name</li>}
+              {!profile.primary_contact_phone && <li>Phone</li>}
+              {profile.role === 'creator' && !profile.organization_name && (
+                <li>Organisation Name</li>
+              )}
+              {profile.role === 'creator' && !profile.business_type && (
+                <li>Business Type</li>
+              )}
+            </ul>
+          </div>
+        )}
 
-        <Button variant="yellow" onClick={() => navigate('/user/region')}>
+        <Button
+          type="button"
+          variant="yellow"
+          disabled={!isProfileComplete}
+          className={!isProfileComplete ? 'opacity-50 cursor-not-allowed' : ''}
+          onClick={() => navigate('/user/region')}
+        >
           Back to Home
         </Button>
       </CardContent>

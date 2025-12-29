@@ -94,8 +94,8 @@ export default function AddQuestButton({ to }: AddQuestButtonProps) {
           <DialogHeader>
             <DialogTitle>Become a Creator</DialogTitle>
             <DialogDescription>
-              You need to be a creator to publish quests. Would you like to
-              upgrade your account?
+              You are currently a Seeker. Only Creators may create quests. Would
+              you like to upgrade your account?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex gap-2 justify-end">

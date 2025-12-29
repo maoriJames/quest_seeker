@@ -11,6 +11,7 @@ import { getQuest } from '@/graphql/queries'
 import { useLocation } from 'react-router-dom'
 import ExpiredQuests from '@/components/ExpiredQuests'
 import { cn } from '@/lib/utils'
+import { isProfileComplete } from '@/tools/profileValidation'
 
 const client = generateClient()
 
@@ -49,6 +50,17 @@ export default function AccountPage() {
   const [activeTab, setActiveTab] = useState<
     'account' | 'my-quests' | 'expired-quests'
   >(defaultTab || 'account')
+
+  const isComplete = isProfileComplete(profileData)
+
+  const confirmLeaveIfIncomplete = () => {
+    if (!isComplete) {
+      return window.confirm(
+        'Your profile is incomplete. Please fill in all required fields before leaving this page.'
+      )
+    }
+    return true
+  }
 
   // 🧠 Load current profile into local state
   useEffect(() => {
@@ -182,7 +194,10 @@ export default function AccountPage() {
               ? 'bg-yellow-500 text-black hover:bg-yellow-600'
               : 'bg-gray-800 text-gray-300 hover:bg-yellow-500 hover:text-black'
           )}
-          onClick={() => setActiveTab('my-quests')}
+          onClick={() => {
+            if (!confirmLeaveIfIncomplete()) return
+            setActiveTab('my-quests')
+          }}
         >
           My Quests
         </button>
@@ -191,7 +206,11 @@ export default function AccountPage() {
       {/* Tab content */}
       <div className="w-full max-w-3xl">
         {activeTab === 'account' && (
-          <UpdateAccount profile={profileData} onUpdate={handleUpdate} />
+          <UpdateAccount
+            profile={profileData}
+            onUpdate={handleUpdate}
+            isProfileComplete={isComplete}
+          />
         )}
         {activeTab === 'my-quests' && <MyQuests profile={profileData} />}
         {activeTab === 'expired-quests' && (
