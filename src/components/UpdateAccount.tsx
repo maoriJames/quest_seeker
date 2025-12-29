@@ -137,7 +137,7 @@ export default function UpdateAccount({
             />
           ) : (
             <RemoteImage
-              path={profile.image || placeHold}
+              path={profile.image_thumbnail || placeHold}
               fallback={placeHold}
               className="w-32 h-32 rounded-full object-cover"
             />

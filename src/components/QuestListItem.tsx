@@ -65,7 +65,7 @@ const QuestListItem = React.memo(function QuestListItem({
           <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-t-xl" />
         )}
         <RemoteImage
-          path={imageSrc || quest.quest_image || ''}
+          path={imageSrc || quest.quest_image_thumb || ''}
           fallback={placeHold}
           className={`object-cover w-full h-40 transition-opacity duration-500 ${
             loaded ? 'opacity-100' : 'opacity-0'
