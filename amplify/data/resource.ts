@@ -6,6 +6,7 @@ export const schema = a
   .schema({
     Quest: a
       .model({
+        owner: a.string(),
         quest_name: a.string(),
         quest_details: a.string(),
         quest_image: a.string(),
@@ -30,7 +31,16 @@ export const schema = a
         ]),
         participants: a.json(),
       })
-      .authorization((allow) => [allow.authenticated()]),
+      .authorization((allow) => [
+        // 👤 Quest creator (owner)
+        allow.owner().to(['update', 'delete']),
+
+        // 🔑 Admin override (Cognito group)
+        allow.groups(['Admins']).to(['update', 'delete']),
+
+        // 👀 Any authenticated user can read
+        allow.authenticated().to(['read']),
+      ]),
 
     Profile: a
       .model({
@@ -38,6 +48,7 @@ export const schema = a
         email: a.string(),
         organization_name: a.string(),
         registration_number: a.string(),
+        charity_number: a.string(),
         business_type: a.string(),
         organization_description: a.string(),
         primary_contact_name: a.string(),
@@ -52,7 +63,7 @@ export const schema = a
         my_quests: a.json(),
         points: a.integer(),
         leaderboard: a.string().default('GLOBAL'),
-        role: a.enum(['seeker', 'creator']),
+        role: a.enum(['seeker', 'creator', 'admin']),
       })
       .secondaryIndexes((index) => [
         index('leaderboard').sortKeys(['points']).queryField('listLeaderboard'),

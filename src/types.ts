@@ -33,7 +33,7 @@ export type Quest = {
 }
 
 // ---------------- Profiles ----------------
-export type Role = 'seeker' | 'creator'
+export type Role = 'seeker' | 'creator' | 'admin'
 
 export type Profile = {
   id: string
@@ -41,6 +41,7 @@ export type Profile = {
   email: string
   organization_name: string
   registration_number: string
+  charity_number: string
   business_type: string
   organization_description: string
   primary_contact_name: string

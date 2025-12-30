@@ -12,6 +12,7 @@ export const getProfile = /* GraphQL */ `query GetProfile($id: ID!) {
   getProfile(id: $id) {
     about_me
     business_type
+    charity_number
     createdAt
     email
     full_name
@@ -44,6 +45,7 @@ export const getQuest = /* GraphQL */ `query GetQuest($id: ID!) {
     createdAt
     creator_id
     id
+    owner
     participants
     quest_details
     quest_end_at
@@ -82,6 +84,7 @@ export const listLeaderboard = /* GraphQL */ `query ListLeaderboard(
     items {
       about_me
       business_type
+      charity_number
       createdAt
       email
       full_name
@@ -121,6 +124,7 @@ export const listProfiles = /* GraphQL */ `query ListProfiles(
     items {
       about_me
       business_type
+      charity_number
       createdAt
       email
       full_name
@@ -161,6 +165,7 @@ export const listQuests = /* GraphQL */ `query ListQuests(
       createdAt
       creator_id
       id
+      owner
       participants
       quest_details
       quest_end_at

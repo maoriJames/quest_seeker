@@ -12,6 +12,7 @@ export const onCreateProfile = /* GraphQL */ `subscription OnCreateProfile($filt
   onCreateProfile(filter: $filter) {
     about_me
     business_type
+    charity_number
     createdAt
     email
     full_name
@@ -44,6 +45,7 @@ export const onCreateQuest = /* GraphQL */ `subscription OnCreateQuest($filter: 
     createdAt
     creator_id
     id
+    owner
     participants
     quest_details
     quest_end_at
@@ -70,6 +72,7 @@ export const onDeleteProfile = /* GraphQL */ `subscription OnDeleteProfile($filt
   onDeleteProfile(filter: $filter) {
     about_me
     business_type
+    charity_number
     createdAt
     email
     full_name
@@ -102,6 +105,7 @@ export const onDeleteQuest = /* GraphQL */ `subscription OnDeleteQuest($filter: 
     createdAt
     creator_id
     id
+    owner
     participants
     quest_details
     quest_end_at
@@ -128,6 +132,7 @@ export const onUpdateProfile = /* GraphQL */ `subscription OnUpdateProfile($filt
   onUpdateProfile(filter: $filter) {
     about_me
     business_type
+    charity_number
     createdAt
     email
     full_name
@@ -160,6 +165,7 @@ export const onUpdateQuest = /* GraphQL */ `subscription OnUpdateQuest($filter: 
     createdAt
     creator_id
     id
+    owner
     participants
     quest_details
     quest_end_at

@@ -23,6 +23,17 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
       ? 'What is the first task for your seeker?'
       : 'Next task?'
 
+  const resetForm = () => {
+    setTask('')
+    setEditIndex(-1)
+    setIsImageTask(false)
+    setRequiresCaption(false)
+    setIsLocation(false)
+    setAnswer('')
+    setCaption('')
+    setLocation('')
+  }
+
   useEffect(() => {
     setTasks(questUpdates)
   }, [questUpdates])
@@ -59,13 +70,7 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
       }
 
       onNewTask(updatedTasks)
-
-      setTask('')
-      setEditIndex(-1)
-      setRequiresCaption(false)
-      setAnswer('')
-      setCaption('')
-      setLocation('')
+      resetForm()
     }
   }
 

@@ -494,7 +494,10 @@ export default function QuestDetailPage() {
                         <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
                         <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[70vh] w-full max-w-md bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
                           <RemoteImage
-                            path={questCreatorProfile.data.image || placeHold}
+                            path={
+                              questCreatorProfile.data.image_thumbnail ||
+                              placeHold
+                            }
                             fallback={placeHold}
                             className="w-32 h-32 rounded-full object-cover"
                           />
@@ -544,7 +547,10 @@ export default function QuestDetailPage() {
                         <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
                         <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[70vh] w-full max-w-md bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
                           <RemoteImage
-                            path={questCreatorProfile.data.image || placeHold}
+                            path={
+                              questCreatorProfile.data.image_thumbnail ||
+                              placeHold
+                            }
                             fallback={placeHold}
                             className="w-32 h-32 rounded-full object-cover"
                           />
