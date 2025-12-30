@@ -15,6 +15,7 @@ export const createProfile = /* GraphQL */ `mutation CreateProfile(
   createProfile(condition: $condition, input: $input) {
     about_me
     business_type
+    charity_number
     createdAt
     email
     full_name
@@ -50,6 +51,7 @@ export const createQuest = /* GraphQL */ `mutation CreateQuest(
     createdAt
     creator_id
     id
+    owner
     participants
     quest_details
     quest_end_at
@@ -79,6 +81,7 @@ export const deleteProfile = /* GraphQL */ `mutation DeleteProfile(
   deleteProfile(condition: $condition, input: $input) {
     about_me
     business_type
+    charity_number
     createdAt
     email
     full_name
@@ -114,6 +117,7 @@ export const deleteQuest = /* GraphQL */ `mutation DeleteQuest(
     createdAt
     creator_id
     id
+    owner
     participants
     quest_details
     quest_end_at
@@ -143,6 +147,7 @@ export const updateProfile = /* GraphQL */ `mutation UpdateProfile(
   updateProfile(condition: $condition, input: $input) {
     about_me
     business_type
+    charity_number
     createdAt
     email
     full_name
@@ -178,6 +183,7 @@ export const updateQuest = /* GraphQL */ `mutation UpdateQuest(
     createdAt
     creator_id
     id
+    owner
     participants
     quest_details
     quest_end_at

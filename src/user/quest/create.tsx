@@ -22,6 +22,7 @@ import bg from '@/assets/images/background_main.png'
 import { useInsertQuest, useUpdateQuest, useQuest } from '@/hooks/userQuests'
 import { Prize, Sponsor, Task } from '@/types'
 import { useCurrentUserProfile } from '@/hooks/userProfiles'
+import { getCurrentUser } from 'aws-amplify/auth'
 import { DialogTitle } from '@radix-ui/react-dialog'
 import { VisuallyHidden } from '@aws-amplify/ui-react'
 import { uploadData } from 'aws-amplify/storage'
@@ -36,6 +37,7 @@ export default function CreateQuestPage() {
   const isUpdating = !!questId
   const currencyExp = /^\d*\.?\d{0,2}$/
 
+  const [authUserId, setAuthUserId] = useState<string>('')
   const [name, setName] = useState('')
   const [details, setDetails] = useState('')
   const [imageFile, setImageFile] = useState<File | null>(null)
@@ -60,6 +62,7 @@ export default function CreateQuestPage() {
 
   const { mutate: insertQuest } = useInsertQuest()
   const { mutate: updateQuest } = useUpdateQuest()
+
   const { data: currentUser } = useCurrentUserProfile()
   const creatorId = currentUser?.id ?? ''
 
@@ -92,6 +95,14 @@ export default function CreateQuestPage() {
 
     setLoading(false)
   }, [updatingQuest])
+
+  useEffect(() => {
+    getCurrentUser()
+      .then((user) => {
+        setAuthUserId(user.userId) // 👈 Cognito sub
+      })
+      .catch(console.error)
+  }, [])
 
   if (isUpdating && loading) {
     return (
@@ -165,20 +176,35 @@ export default function CreateQuestPage() {
     const thumbPath = `public/thumbnails/${crypto.randomUUID()}-${file.name}`
 
     try {
-      await uploadData({
-        path: fullPath,
-        data: file,
-        options: { contentType: file.type },
-      })
-      const compressedFile = await imageCompression(file, {
-        maxWidthOrHeight: 300,
-        maxSizeMB: 0.25,
+      const compressedFullFile = await imageCompression(file, {
+        maxWidthOrHeight: 1400, // good balance for quality
+        maxSizeMB: 1, // ~1MB max
+        fileType: 'image/webp',
         useWebWorker: true,
       })
+
+      await uploadData({
+        path: fullPath,
+        data: compressedFullFile,
+        options: {
+          contentType: 'image/webp',
+        },
+      })
+
+      // 2️⃣ Convert + upload THUMBNAIL (WebP)
+      const compressedThumbFile = await imageCompression(file, {
+        maxWidthOrHeight: 300,
+        maxSizeMB: 0.2,
+        fileType: 'image/webp',
+        useWebWorker: true,
+      })
+
       await uploadData({
         path: thumbPath,
-        data: compressedFile,
-        options: { contentType: file.type },
+        data: compressedThumbFile,
+        options: {
+          contentType: 'image/webp',
+        },
       })
       return { fullPath, thumbPath }
     } catch (err) {
@@ -188,20 +214,10 @@ export default function CreateQuestPage() {
   }
 
   const saveQuest = async (status: QuestStatus) => {
-    // console.log('saveQuest called with status:', status)
-    // console.log('Current form state:', {
-    //   name,
-    //   details,
-    //   startDate,
-    //   endDate,
-    //   previewImage,
-    //   prizeEnabled,
-    //   prizes,
-    //   sponsors,
-    //   selectedRegion,
-    //   currencyValue,
-    //   tasks,
-    // })
+    if (!isUpdating && !authUserId) {
+      console.error('Missing auth user id; cannot create quest')
+      return
+    }
 
     if (status === QuestStatus.published && !validateInput()) {
       console.log('Validation failed, not saving.')
@@ -212,48 +228,50 @@ export default function CreateQuestPage() {
       ? await uploadImage(imageFile)
       : { fullPath: previewImage, thumbPath: '' }
 
-    console.log('startDateTime BEFORE save:', startDateTime)
-    console.log('endDateTime BEFORE save:', endDateTime)
     const payload = {
       quest_name: name,
       quest_details: details,
       quest_image: imagePaths.fullPath,
       quest_image_thumb: imagePaths.thumbPath,
-
-      // ✅ allow null for drafts
       quest_start_at: startDateTime,
       quest_end_at: endDateTime,
-
       quest_prize: prizeEnabled,
       quest_prize_info: JSON.stringify(prizes),
       quest_sponsor: JSON.stringify(sponsors),
       region: selectedRegion,
       quest_entry: currencyValue ? Number(currencyValue) : null,
       quest_tasks: JSON.stringify(tasks),
+
+      // 🧩 BUSINESS LOGIC
       creator_id: creatorId,
+
       status,
     }
 
-    // console.log('Payload to send:', payload)
-    // console.log('FINAL payload:', JSON.stringify(payload, null, 2))
+    const createPayload = {
+      ...payload,
+      owner: authUserId,
+    }
+
+    const updatePayload = {
+      ...payload,
+      id: questId!,
+    }
 
     if (isUpdating) {
       // console.log('Updating quest with id:', questId)
-      updateQuest(
-        { id: questId!, ...payload },
-        {
-          onSuccess: (data) => {
-            console.log('Update successful:', data)
-            navigate(-1)
-          },
-          onError: (err) => {
-            console.error('Update failed:', err)
-          },
-        }
-      )
+      updateQuest(updatePayload, {
+        onSuccess: (data) => {
+          console.log('Update successful:', data)
+          navigate(-1)
+        },
+        onError: (err) => {
+          console.error('Update failed:', err)
+        },
+      })
     } else {
       console.log('Inserting new quest')
-      insertQuest(payload, {
+      insertQuest(createPayload, {
         onSuccess: (data) => {
           console.log('Insert successful:', data)
           navigate(-1)
@@ -266,8 +284,7 @@ export default function CreateQuestPage() {
 
     setImageFile(null)
   }
-  // console.log('startDateTime: ', startDateTime)
-  // console.log('typeof: ', typeof startDateTime)
+
   // --- Render ---
   return (
     <div

@@ -96,25 +96,36 @@ export default function UpdateAccount({
     const thumbPath = `public/thumbnails/${crypto.randomUUID()}-${file.name}`
 
     try {
-      // Upload full image
-      await uploadData({
-        path: fullPath,
-        data: file,
-        options: { contentType: file.type },
-      })
-
-      // Create thumbnail (~200-300px)
-      const compressedFile = await imageCompression(file, {
-        maxWidthOrHeight: 300,
-        maxSizeMB: 0.25,
+      // 1️⃣ Convert + upload FULL image (WebP)
+      const compressedFullFile = await imageCompression(file, {
+        maxWidthOrHeight: 1400, // good balance for quality
+        maxSizeMB: 1, // ~1MB max
+        fileType: 'image/webp',
         useWebWorker: true,
       })
 
-      // Upload thumbnail
+      await uploadData({
+        path: fullPath,
+        data: compressedFullFile,
+        options: {
+          contentType: 'image/webp',
+        },
+      })
+
+      // 2️⃣ Convert + upload THUMBNAIL (WebP)
+      const compressedThumbFile = await imageCompression(file, {
+        maxWidthOrHeight: 300,
+        maxSizeMB: 0.2,
+        fileType: 'image/webp',
+        useWebWorker: true,
+      })
+
       await uploadData({
         path: thumbPath,
-        data: compressedFile,
-        options: { contentType: file.type },
+        data: compressedThumbFile,
+        options: {
+          contentType: 'image/webp',
+        },
       })
 
       return { fullPath, thumbPath }
@@ -163,6 +174,7 @@ export default function UpdateAccount({
           label="Phone"
           value={profile.primary_contact_phone || ''}
           onSave={(newValue) => onUpdate({ primary_contact_phone: newValue })}
+          required
         />
 
         <InlineEditTextarea
@@ -172,6 +184,7 @@ export default function UpdateAccount({
             console.log('ABOUT ME SAVING:', newValue)
             onUpdate({ about_me: newValue })
           }}
+          required
         />
 
         {/* Creator-only fields */}
@@ -183,17 +196,14 @@ export default function UpdateAccount({
               onSave={(newValue) => onUpdate({ organization_name: newValue })}
               required
             />
-            <InlineEditField
-              label="Registration Number"
-              value={profile.registration_number || ''}
-              onSave={(newValue) => onUpdate({ registration_number: newValue })}
-            />
+
             <label className="text-base font-bold">Business Type</label>
             <Select
               value={profile.business_type || ''}
               onValueChange={(newValue) =>
                 onUpdate({ business_type: newValue })
               }
+              required
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select Business Type" />
@@ -207,9 +217,34 @@ export default function UpdateAccount({
                   Charitable Trust
                 </SelectItem>
                 <SelectItem value="Not for Profit">Not for Profit</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
+                <SelectItem value="Whanau Fund Raising">
+                  Whanau Fund Raising
+                </SelectItem>
+                <SelectItem value="Registered Charity">
+                  Registered Charity
+                </SelectItem>
               </SelectContent>
             </Select>
+
+            {profile.business_type === 'Registered Company' && (
+              <InlineEditField
+                label="Registration Number"
+                value={profile.registration_number || ''}
+                onSave={(newValue) =>
+                  onUpdate({ registration_number: newValue })
+                }
+                required
+              />
+            )}
+
+            {profile.business_type === 'Registered Charity' && (
+              <InlineEditField
+                label="Registered Charity Number"
+                value={profile.charity_number || ''}
+                onSave={(newValue) => onUpdate({ charity_number: newValue })}
+                required
+              />
+            )}
 
             <InlineEditTextarea
               label="Organisation Description"
@@ -217,6 +252,7 @@ export default function UpdateAccount({
               onSave={(newValue) =>
                 onUpdate({ organization_description: newValue })
               }
+              required
             />
 
             <InlineEditField
@@ -225,6 +261,7 @@ export default function UpdateAccount({
               onSave={(newValue) =>
                 onUpdate({ primary_contact_name: newValue })
               }
+              required
             />
             <InlineEditField
               label="Primary Contact Position"
@@ -232,6 +269,7 @@ export default function UpdateAccount({
               onSave={(newValue) =>
                 onUpdate({ primary_contact_position: newValue })
               }
+              required
             />
             <InlineEditField
               label="Secondary Contact Name"
