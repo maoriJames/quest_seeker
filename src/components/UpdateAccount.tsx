@@ -300,12 +300,20 @@ export default function UpdateAccount({
             <ul className="list-disc ml-5">
               {!profile.full_name && <li>Name</li>}
               {!profile.primary_contact_phone && <li>Phone</li>}
+              {!profile.about_me && <li>About Me</li>}
               {profile.role === 'creator' && !profile.organization_name && (
                 <li>Organisation Name</li>
               )}
               {profile.role === 'creator' && !profile.business_type && (
                 <li>Business Type</li>
               )}
+              {profile.role === 'creator' &&
+                profile.business_type === 'Registered Company' &&
+                !profile.registration_number && <li>Registration Number</li>}
+
+              {profile.role === 'creator' &&
+                profile.business_type === 'Registered Charity' &&
+                !profile.charity_number && <li>Registered Charity Number</li>}
             </ul>
           </div>
         )}
