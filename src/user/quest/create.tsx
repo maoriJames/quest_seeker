@@ -250,7 +250,6 @@ export default function CreateQuestPage() {
 
     const createPayload = {
       ...payload,
-      owner: authUserId,
     }
 
     const updatePayload = {

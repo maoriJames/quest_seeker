@@ -32,16 +32,10 @@ export const schema = a
         participants: a.json(),
       })
       .authorization((allow) => [
-        // 👤 Quest creator (owner)
         allow.owner().to(['update', 'delete']),
-
-        // 🔑 Admin override (Cognito group)
         allow.groups(['Admins']).to(['update', 'delete']),
-
-        // 👀 Any authenticated user can read
-        allow.authenticated().to(['read']),
+        allow.authenticated().to(['read', 'create']), // 👈 ADD create
       ]),
-
     Profile: a
       .model({
         full_name: a.string(),
