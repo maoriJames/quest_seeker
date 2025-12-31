@@ -161,14 +161,12 @@ export default function UpdateAccount({
           />
         </div>
 
-        {profile.full_name && (
-          <InlineEditField
-            label="Name"
-            value={profile.full_name || ''}
-            onSave={(newValue) => onUpdate({ full_name: newValue })}
-            required
-          />
-        )}
+        <InlineEditField
+          label="Name"
+          value={profile.full_name || ''}
+          onSave={(newValue) => onUpdate({ full_name: newValue })}
+          required
+        />
 
         <InlineEditField
           label="Phone"
