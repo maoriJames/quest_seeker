@@ -17,7 +17,6 @@ import { generateClient } from 'aws-amplify/api'
 import { listProfiles, getProfile } from '@/graphql/queries'
 import { updateProfile, createProfile } from '@/graphql/mutations'
 import { getCurrentUser } from 'aws-amplify/auth'
-// import { Profile } from '../types'
 
 const client = generateClient()
 
@@ -65,39 +64,42 @@ export const useCurrentUserProfile = () => {
     queryFn: async () => {
       const { userId, signInDetails } = await getCurrentUser()
 
-      // 1. Try to fetch existing profile
-      const result = (await client.graphql<GetProfileQuery>({
+      // 1️⃣ Fetch profile
+      const res = await client.graphql<GetProfileQuery>({
         query: getProfile,
         variables: { id: userId },
         authMode: 'userPool',
-      })) as GraphQLResult<GetProfileQuery>
+      })
 
-      let profile = result.data?.getProfile ?? null
+      let profile = 'data' in res ? (res.data?.getProfile ?? null) : null
 
-      // 2. If profile doesn't exist, create one
+      // 2️⃣ Create profile if missing
       if (!profile) {
-        const createResult = (await client.graphql<CreateProfileMutation>({
+        const createRes = await client.graphql<CreateProfileMutation>({
           query: createProfile,
           variables: {
             input: {
               id: userId,
               full_name: signInDetails?.loginId ?? 'New User',
+              role: 'seeker',
             },
           },
           authMode: 'userPool',
-        })) as GraphQLResult<CreateProfileMutation>
+        })
 
-        profile = createResult.data?.createProfile ?? null
+        profile =
+          'data' in createRes ? (createRes.data?.createProfile ?? null) : null
       }
 
       return profile
     },
+    staleTime: 1000 * 60 * 5,
   })
 
   return {
     currentProfile: query.data,
     currentError: query.error,
-    ...query, // already contains isLoading, error, data, etc.
+    ...query,
   }
 }
 

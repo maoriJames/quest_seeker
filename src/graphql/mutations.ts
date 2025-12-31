@@ -26,6 +26,7 @@ export const createProfile = /* GraphQL */ `mutation CreateProfile(
     my_quests
     organization_description
     organization_name
+    owner
     points
     primary_contact_name
     primary_contact_phone
@@ -92,6 +93,7 @@ export const deleteProfile = /* GraphQL */ `mutation DeleteProfile(
     my_quests
     organization_description
     organization_name
+    owner
     points
     primary_contact_name
     primary_contact_phone
@@ -140,6 +142,13 @@ export const deleteQuest = /* GraphQL */ `mutation DeleteQuest(
   APITypes.DeleteQuestMutationVariables,
   APITypes.DeleteQuestMutation
 >;
+export const joinQuest = /* GraphQL */ `mutation JoinQuest($profileId: String!, $questId: String!) {
+  joinQuest(profileId: $profileId, questId: $questId)
+}
+` as GeneratedMutation<
+  APITypes.JoinQuestMutationVariables,
+  APITypes.JoinQuestMutation
+>;
 export const updateProfile = /* GraphQL */ `mutation UpdateProfile(
   $condition: ModelProfileConditionInput
   $input: UpdateProfileInput!
@@ -158,6 +167,7 @@ export const updateProfile = /* GraphQL */ `mutation UpdateProfile(
     my_quests
     organization_description
     organization_name
+    owner
     points
     primary_contact_name
     primary_contact_phone

@@ -17,6 +17,7 @@ export type Profile = {
   my_quests?: string | null,
   organization_description?: string | null,
   organization_name?: string | null,
+  owner?: string | null,
   points?: number | null,
   primary_contact_name?: string | null,
   primary_contact_phone?: string | null,
@@ -86,6 +87,7 @@ export type ModelProfileFilterInput = {
   or?: Array< ModelProfileFilterInput | null > | null,
   organization_description?: ModelStringInput | null,
   organization_name?: ModelStringInput | null,
+  owner?: ModelStringInput | null,
   points?: ModelIntInput | null,
   primary_contact_name?: ModelStringInput | null,
   primary_contact_phone?: ModelStringInput | null,
@@ -251,6 +253,7 @@ export type ModelProfileConditionInput = {
   or?: Array< ModelProfileConditionInput | null > | null,
   organization_description?: ModelStringInput | null,
   organization_name?: ModelStringInput | null,
+  owner?: ModelStringInput | null,
   points?: ModelIntInput | null,
   primary_contact_name?: ModelStringInput | null,
   primary_contact_phone?: ModelStringInput | null,
@@ -399,6 +402,7 @@ export type ModelSubscriptionProfileFilterInput = {
   or?: Array< ModelSubscriptionProfileFilterInput | null > | null,
   organization_description?: ModelSubscriptionStringInput | null,
   organization_name?: ModelSubscriptionStringInput | null,
+  owner?: ModelStringInput | null,
   points?: ModelSubscriptionIntInput | null,
   primary_contact_name?: ModelSubscriptionStringInput | null,
   primary_contact_phone?: ModelSubscriptionStringInput | null,
@@ -502,6 +506,7 @@ export type GetProfileQuery = {
     my_quests?: string | null,
     organization_description?: string | null,
     organization_name?: string | null,
+    owner?: string | null,
     points?: number | null,
     primary_contact_name?: string | null,
     primary_contact_phone?: string | null,
@@ -571,6 +576,7 @@ export type ListLeaderboardQuery = {
       my_quests?: string | null,
       organization_description?: string | null,
       organization_name?: string | null,
+      owner?: string | null,
       points?: number | null,
       primary_contact_name?: string | null,
       primary_contact_phone?: string | null,
@@ -610,6 +616,7 @@ export type ListProfilesQuery = {
       my_quests?: string | null,
       organization_description?: string | null,
       organization_name?: string | null,
+      owner?: string | null,
       points?: number | null,
       primary_contact_name?: string | null,
       primary_contact_phone?: string | null,
@@ -681,6 +688,7 @@ export type CreateProfileMutation = {
     my_quests?: string | null,
     organization_description?: string | null,
     organization_name?: string | null,
+    owner?: string | null,
     points?: number | null,
     primary_contact_name?: string | null,
     primary_contact_phone?: string | null,
@@ -745,6 +753,7 @@ export type DeleteProfileMutation = {
     my_quests?: string | null,
     organization_description?: string | null,
     organization_name?: string | null,
+    owner?: string | null,
     points?: number | null,
     primary_contact_name?: string | null,
     primary_contact_phone?: string | null,
@@ -788,6 +797,15 @@ export type DeleteQuestMutation = {
   } | null,
 };
 
+export type JoinQuestMutationVariables = {
+  profileId: string,
+  questId: string,
+};
+
+export type JoinQuestMutation = {
+  joinQuest?: boolean | null,
+};
+
 export type UpdateProfileMutationVariables = {
   condition?: ModelProfileConditionInput | null,
   input: UpdateProfileInput,
@@ -809,6 +827,7 @@ export type UpdateProfileMutation = {
     my_quests?: string | null,
     organization_description?: string | null,
     organization_name?: string | null,
+    owner?: string | null,
     points?: number | null,
     primary_contact_name?: string | null,
     primary_contact_phone?: string | null,
@@ -854,6 +873,7 @@ export type UpdateQuestMutation = {
 
 export type OnCreateProfileSubscriptionVariables = {
   filter?: ModelSubscriptionProfileFilterInput | null,
+  owner?: string | null,
 };
 
 export type OnCreateProfileSubscription = {
@@ -872,6 +892,7 @@ export type OnCreateProfileSubscription = {
     my_quests?: string | null,
     organization_description?: string | null,
     organization_name?: string | null,
+    owner?: string | null,
     points?: number | null,
     primary_contact_name?: string | null,
     primary_contact_phone?: string | null,
@@ -916,6 +937,7 @@ export type OnCreateQuestSubscription = {
 
 export type OnDeleteProfileSubscriptionVariables = {
   filter?: ModelSubscriptionProfileFilterInput | null,
+  owner?: string | null,
 };
 
 export type OnDeleteProfileSubscription = {
@@ -934,6 +956,7 @@ export type OnDeleteProfileSubscription = {
     my_quests?: string | null,
     organization_description?: string | null,
     organization_name?: string | null,
+    owner?: string | null,
     points?: number | null,
     primary_contact_name?: string | null,
     primary_contact_phone?: string | null,
@@ -978,6 +1001,7 @@ export type OnDeleteQuestSubscription = {
 
 export type OnUpdateProfileSubscriptionVariables = {
   filter?: ModelSubscriptionProfileFilterInput | null,
+  owner?: string | null,
 };
 
 export type OnUpdateProfileSubscription = {
@@ -996,6 +1020,7 @@ export type OnUpdateProfileSubscription = {
     my_quests?: string | null,
     organization_description?: string | null,
     organization_name?: string | null,
+    owner?: string | null,
     points?: number | null,
     primary_contact_name?: string | null,
     primary_contact_phone?: string | null,

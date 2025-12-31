@@ -1,5 +1,5 @@
 import { generateClient, GraphQLResult } from 'aws-amplify/data'
-import * as mutations from '@/graphql/mutations'
+// import * as mutations from '@/graphql/mutations'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuest } from '@/hooks/userQuests'
 import { useProfile, useCurrentUserProfile } from '@/hooks/userProfiles'
@@ -39,6 +39,7 @@ import { PDFDownloadLink } from '@react-pdf/renderer'
 import SeekerTaskPdfButton from '@/components/SeekerTaskPdfButton'
 import { format, toZonedTime } from 'date-fns-tz'
 import { getUrl } from 'aws-amplify/storage'
+import { joinQuest } from '@/graphql/mutations'
 
 export default function QuestDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -136,54 +137,37 @@ export default function QuestDetailPage() {
   }
 
   const handleJoinQuest = async () => {
-    if (!quest?.id || !quest?.quest_tasks) return
+    if (!quest?.id || !currentUserProfile?.id) return
 
     setJoining(true)
 
     try {
-      const tasks: Task[] = Array.isArray(quest.quest_tasks)
-        ? (quest.quest_tasks as Task[])
-        : []
+      // 1️⃣ BACKEND: join quest (Quest.participants)
+      await client.graphql({
+        query: joinQuest,
+        variables: {
+          questId: quest.id,
+          profileId: currentUserProfile.id,
+        },
+      })
 
+      // 2️⃣ CLIENT: update profile (my_quests, points, tasks)
       const userQuestEntry: MyQuest = {
         quest_id: quest.id,
         title: quest.quest_name ?? 'Untitled Quest',
-        tasks,
-        progress: 0,
+        tasks: tasks,
         completed: false,
-        // quest_status: QuestStatus.published,
       }
 
       await addQuestToProfile(quest.id, [userQuestEntry])
 
-      // --- Update Quest participants safely ---
-      const currentParticipants: string[] = quest.participants
-        ? JSON.parse(quest.participants)
-        : []
-
-      // Only add if not already in the array
-      if (!currentParticipants.includes(currentUserProfile!.id)) {
-        currentParticipants.push(currentUserProfile!.id)
-      }
-
-      await client.graphql({
-        query: mutations.updateQuest,
-        variables: {
-          input: {
-            id: quest.id,
-            participants: JSON.stringify(currentParticipants),
-          },
-        },
-        authMode: 'userPool',
-      })
-
       alert('✅ Quest added to your profile!')
 
-      await await refetch()
+      await refetch()
       await refetchProfile()
     } catch (err) {
-      console.error(err)
-      alert('❌ Failed to join quest.')
+      console.error('❌ Failed to join quest:', err)
+      alert('Failed to join quest.')
     } finally {
       setJoining(false)
     }
