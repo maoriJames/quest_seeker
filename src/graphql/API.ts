@@ -30,7 +30,6 @@ export type Profile = {
 };
 
 export enum ProfileRole {
-  admin = "admin",
   creator = "creator",
   seeker = "seeker",
 }
