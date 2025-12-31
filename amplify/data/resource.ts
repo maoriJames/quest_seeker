@@ -47,7 +47,7 @@ export const schema = a
       .authorization((allow) => [
         allow.owner().to(['update', 'delete']),
         allow.groups(['Admin']).to(['create', 'update', 'delete']),
-        allow.authenticated().to(['read']),
+        allow.authenticated().to(['read', 'create']),
       ]),
 
     /* ------------------ PROFILE MODEL ------------------ */
@@ -79,7 +79,7 @@ export const schema = a
       ])
       .authorization((allow) => [
         allow.owner().to(['read', 'create', 'update']),
-        allow.authenticated().to(['read']),
+        allow.authenticated().to(['read', 'update', 'create']),
         allow.groups(['Admin']).to(['read', 'update', 'delete']),
       ]),
   })
