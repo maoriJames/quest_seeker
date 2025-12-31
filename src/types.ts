@@ -33,7 +33,7 @@ export type Quest = {
 }
 
 // ---------------- Profiles ----------------
-export type Role = 'seeker' | 'creator' | 'admin'
+export type Role = 'seeker' | 'creator'
 
 export type Profile = {
   id: string

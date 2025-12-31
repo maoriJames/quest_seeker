@@ -33,7 +33,7 @@ export const schema = a
       })
       .authorization((allow) => [
         allow.owner().to(['update', 'delete']),
-        allow.groups(['Admins']).to(['update', 'delete']),
+        allow.groups(['Admin']).to(['create', 'update', 'delete']),
         allow.authenticated().to(['read', 'create']), // 👈 ADD create
       ]),
     Profile: a
@@ -57,7 +57,7 @@ export const schema = a
         my_quests: a.json(),
         points: a.integer(),
         leaderboard: a.string().default('GLOBAL'),
-        role: a.enum(['seeker', 'creator', 'admin']),
+        role: a.enum(['seeker', 'creator']),
       })
       .secondaryIndexes((index) => [
         index('leaderboard').sortKeys(['points']).queryField('listLeaderboard'),
