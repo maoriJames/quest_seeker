@@ -7,8 +7,6 @@ export function toProfileRole(role: Role | undefined): ProfileRole | null {
       return ProfileRole.seeker
     case 'creator':
       return ProfileRole.creator
-    case 'admin':
-      return ProfileRole.admin
     default:
       return null
   }
