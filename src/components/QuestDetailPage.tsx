@@ -64,8 +64,6 @@ export default function QuestDetailPage() {
   const [pdfTasks, setPdfTasks] = useState<Task[]>([])
   const [pdfLoading, setPdfLoading] = useState(false)
 
-  const isAdmin = currentUserProfile?.role === 'admin'
-
   const isExpired = quest?.status === QuestStatus.expired
   const NZ_TZ = 'Pacific/Auckland'
   // Update edit fields when quest data is fetched
@@ -198,8 +196,6 @@ export default function QuestDetailPage() {
   const isOwner =
     currentUserProfile?.id === quest.creator_id &&
     currentUserProfile?.role === 'creator'
-
-  const canEditQuest = !isExpired && (isOwner || isAdmin)
 
   const myQuestsArray: MyQuest[] =
     typeof currentUserProfile?.my_quests === 'string'
@@ -452,7 +448,7 @@ export default function QuestDetailPage() {
               </div>
             )}
             {/* Edit Button (top right of banner) */}
-            {canEditQuest && (
+            {isOwner && !isExpired && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -812,7 +808,7 @@ export default function QuestDetailPage() {
           <div className="mt-4 flex items-center justify-between w-full gap-4">
             {/* Left: Delete / Join */}
             <div className="flex items-center gap-2">
-              {(isOwner || isAdmin) && participantsArray.length < 1 && (
+              {isOwner && participantsArray.length < 1 && (
                 <Button
                   onClick={() => deleteQuest(quest)}
                   className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
