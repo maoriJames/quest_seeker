@@ -55,7 +55,6 @@ export const useQuest = (id?: string | number) => {
 
 export const useInsertQuest = () => {
   const queryClient = useQueryClient()
-  console.log('prize fire 1?')
   return useMutation({
     mutationFn: async (questInput: CreateQuestInput) => {
       const { data } = await client.graphql({
@@ -66,8 +65,37 @@ export const useInsertQuest = () => {
       return data.createQuest
     },
     onSuccess: () => {
-      console.log('prize fire success?')
       queryClient.invalidateQueries({ queryKey: ['quests'] })
+    },
+    onError: (err: unknown) => {
+      console.error('❌ createQuest failed')
+
+      if (
+        typeof err === 'object' &&
+        err !== null &&
+        'errors' in err &&
+        Array.isArray((err as { errors?: unknown }).errors)
+      ) {
+        const gqlErrors = (
+          err as {
+            errors: {
+              message?: string
+              errorType?: string
+              path?: readonly (string | number)[]
+            }[]
+          }
+        ).errors
+
+        console.error(
+          gqlErrors.map((e) => ({
+            message: e.message,
+            errorType: e.errorType,
+            path: e.path,
+          }))
+        )
+      } else {
+        console.error('Non-GraphQL error:', err)
+      }
     },
   })
 }
