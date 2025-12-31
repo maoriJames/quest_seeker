@@ -1,8 +1,14 @@
 import { Navigate } from 'react-router-dom'
 import { useCurrentUserProfile } from '@/hooks/userProfiles'
+import { useEffect } from 'react'
+import { checkProfile } from '@/debug/checkProfile'
 
 export default function UserPage() {
   const { currentProfile, isLoading } = useCurrentUserProfile()
+
+  useEffect(() => {
+    checkProfile()
+  }, [])
 
   // 🔹 While loading, don’t navigate yet
   if (isLoading || !currentProfile) {

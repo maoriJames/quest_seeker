@@ -8,8 +8,11 @@ type GeneratedSubscription<InputType, OutputType> = string & {
   __generatedSubscriptionOutput: OutputType;
 };
 
-export const onCreateProfile = /* GraphQL */ `subscription OnCreateProfile($filter: ModelSubscriptionProfileFilterInput) {
-  onCreateProfile(filter: $filter) {
+export const onCreateProfile = /* GraphQL */ `subscription OnCreateProfile(
+  $filter: ModelSubscriptionProfileFilterInput
+  $owner: String
+) {
+  onCreateProfile(filter: $filter, owner: $owner) {
     about_me
     business_type
     charity_number
@@ -23,6 +26,7 @@ export const onCreateProfile = /* GraphQL */ `subscription OnCreateProfile($filt
     my_quests
     organization_description
     organization_name
+    owner
     points
     primary_contact_name
     primary_contact_phone
@@ -68,8 +72,11 @@ export const onCreateQuest = /* GraphQL */ `subscription OnCreateQuest($filter: 
   APITypes.OnCreateQuestSubscriptionVariables,
   APITypes.OnCreateQuestSubscription
 >;
-export const onDeleteProfile = /* GraphQL */ `subscription OnDeleteProfile($filter: ModelSubscriptionProfileFilterInput) {
-  onDeleteProfile(filter: $filter) {
+export const onDeleteProfile = /* GraphQL */ `subscription OnDeleteProfile(
+  $filter: ModelSubscriptionProfileFilterInput
+  $owner: String
+) {
+  onDeleteProfile(filter: $filter, owner: $owner) {
     about_me
     business_type
     charity_number
@@ -83,6 +90,7 @@ export const onDeleteProfile = /* GraphQL */ `subscription OnDeleteProfile($filt
     my_quests
     organization_description
     organization_name
+    owner
     points
     primary_contact_name
     primary_contact_phone
@@ -128,8 +136,11 @@ export const onDeleteQuest = /* GraphQL */ `subscription OnDeleteQuest($filter: 
   APITypes.OnDeleteQuestSubscriptionVariables,
   APITypes.OnDeleteQuestSubscription
 >;
-export const onUpdateProfile = /* GraphQL */ `subscription OnUpdateProfile($filter: ModelSubscriptionProfileFilterInput) {
-  onUpdateProfile(filter: $filter) {
+export const onUpdateProfile = /* GraphQL */ `subscription OnUpdateProfile(
+  $filter: ModelSubscriptionProfileFilterInput
+  $owner: String
+) {
+  onUpdateProfile(filter: $filter, owner: $owner) {
     about_me
     business_type
     charity_number
@@ -143,6 +154,7 @@ export const onUpdateProfile = /* GraphQL */ `subscription OnUpdateProfile($filt
     my_quests
     organization_description
     organization_name
+    owner
     points
     primary_contact_name
     primary_contact_phone

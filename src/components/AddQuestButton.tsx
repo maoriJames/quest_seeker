@@ -27,7 +27,8 @@ type AddQuestButtonProps = {
 
 export default function AddQuestButton({ to }: AddQuestButtonProps) {
   const navigate = useNavigate()
-  const { currentProfile } = useCurrentUserProfile()
+  const { data: currentProfile, isLoading } = useCurrentUserProfile()
+
   const updateProfile = useUpdateProfile()
   const [modalOpen, setModalOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -35,7 +36,15 @@ export default function AddQuestButton({ to }: AddQuestButtonProps) {
   // Treat missing role as "seeker" by default
   const role = currentProfile?.role ?? ProfileRole.seeker
 
+  console.log({
+    currentProfile,
+    role: currentProfile?.role,
+    isLoading,
+  })
+
   const handleClick = () => {
+    if (!currentProfile) return
+
     if (role === ProfileRole.creator) {
       navigate(to)
     } else {
@@ -73,6 +82,7 @@ export default function AddQuestButton({ to }: AddQuestButtonProps) {
               variant="yellow"
               // className="flex items-center justify-center h-auto w-auto p-0 bg-transparent hover:bg-transparent"
               onClick={handleClick}
+              disabled={isLoading}
             >
               {/* Replace the icon with text */}
               <Plus />
@@ -102,7 +112,10 @@ export default function AddQuestButton({ to }: AddQuestButtonProps) {
             <Button variant="outline" onClick={() => setModalOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleBecomeCreator} disabled={loading}>
+            <Button
+              onClick={handleBecomeCreator}
+              disabled={loading || isLoading || !currentProfile}
+            >
               {loading ? 'Updating...' : 'Become a Creator'}
             </Button>
           </DialogFooter>

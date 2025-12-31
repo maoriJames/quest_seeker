@@ -1,9 +1,22 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend'
 import { expiredQuests } from '../functions/expiredQuests/resource'
 import { postRegistration } from '../functions/postRegistration/resource'
+import { joinQuest } from '../functions/joinQuest/resource'
 
 export const schema = a
   .schema({
+    /* ------------------ CUSTOM MUTATION ------------------ */
+    joinQuest: a
+      .mutation()
+      .arguments({
+        questId: a.string().required(),
+        profileId: a.string().required(),
+      })
+      .returns(a.boolean())
+      .authorization((allow) => [allow.authenticated()])
+      .handler(a.handler.function(joinQuest)),
+
+    /* ------------------ QUEST MODEL ------------------ */
     Quest: a
       .model({
         owner: a.string(),
@@ -34,8 +47,10 @@ export const schema = a
       .authorization((allow) => [
         allow.owner().to(['update', 'delete']),
         allow.groups(['Admin']).to(['create', 'update', 'delete']),
-        allow.authenticated().to(['read', 'create']), // 👈 ADD create
+        allow.authenticated().to(['read']),
       ]),
+
+    /* ------------------ PROFILE MODEL ------------------ */
     Profile: a
       .model({
         full_name: a.string(),
@@ -62,13 +77,19 @@ export const schema = a
       .secondaryIndexes((index) => [
         index('leaderboard').sortKeys(['points']).queryField('listLeaderboard'),
       ])
-
-      .authorization((allow) => [allow.authenticated()]),
+      .authorization((allow) => [
+        allow.owner().to(['read', 'create', 'update']),
+        allow.authenticated().to(['read']),
+        allow.groups(['Admin']).to(['read', 'update', 'delete']),
+      ]),
   })
   .authorization((allow) => [
+    // 🔗 Lambda permissions
+    allow.resource(joinQuest).to(['mutate']),
     allow.resource(expiredQuests).to(['query', 'mutate']),
     allow.resource(postRegistration).to(['mutate']),
   ])
+
 export type Schema = ClientSchema<typeof schema>
 
 export const data = defineData({
