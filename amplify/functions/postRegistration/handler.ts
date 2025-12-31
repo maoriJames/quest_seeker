@@ -14,8 +14,8 @@ Amplify.configure(resourceConfig, libraryOptions)
 const client = generateClient<Schema>()
 
 export const handler: PostConfirmationTriggerHandler = async (event) => {
-  const { sub, email, name, given_name } = event.request.userAttributes
-  const fullName = name ?? given_name ?? ''
+  const { sub, email } = event.request.userAttributes
+  const fullName = email
 
   if (!email) {
     console.warn('No email found for user', sub)
