@@ -85,7 +85,7 @@ export const schema = a
   })
   .authorization((allow) => [
     // 🔗 Lambda permissions
-    allow.resource(joinQuest).to(['mutate']),
+    allow.resource(joinQuest),
     allow.resource(expiredQuests).to(['query', 'mutate']),
     allow.resource(postRegistration).to(['mutate']),
   ])
