@@ -25,7 +25,8 @@ export const handler: PostConfirmationTriggerHandler = async (event) => {
   try {
     await client.models.Profile.create({
       id: sub,
-      email,
+      email: email,
+      owner: sub,
       full_name: fullName,
       role: 'seeker',
     })

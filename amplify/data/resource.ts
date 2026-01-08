@@ -2,6 +2,7 @@ import { type ClientSchema, a, defineData } from '@aws-amplify/backend'
 import { expiredQuests } from '../functions/expiredQuests/resource'
 import { postRegistration } from '../functions/postRegistration/resource'
 import { joinQuest } from '../functions/joinQuest/resource'
+import { becomeCreator } from '../functions/becomeCreator/resource'
 
 export const schema = a
   .schema({
@@ -15,6 +16,14 @@ export const schema = a
       .returns(a.boolean())
       .authorization((allow) => [allow.authenticated()])
       .handler(a.handler.function(joinQuest)),
+    becomeCreator: a
+      .mutation()
+      .arguments({
+        profileId: a.string().required(),
+      })
+      .returns(a.json())
+      .authorization((allow) => [allow.authenticated()])
+      .handler(a.handler.function(becomeCreator)),
 
     /* ------------------ QUEST MODEL ------------------ */
     Quest: a
@@ -84,10 +93,12 @@ export const schema = a
       ]),
   })
   .authorization((allow) => [
-    // 🔗 Lambda permissions
+    // 🔗 This global block IS where you grant function access.
+    // It applies IAM permissions across the data resources.
     allow.resource(joinQuest),
     allow.resource(expiredQuests).to(['query', 'mutate']),
     allow.resource(postRegistration).to(['mutate']),
+    allow.resource(becomeCreator).to(['query', 'mutate']), // Ensure both are included
   ])
 
 export type Schema = ClientSchema<typeof schema>

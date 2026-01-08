@@ -8,6 +8,13 @@ type GeneratedMutation<InputType, OutputType> = string & {
   __generatedMutationOutput: OutputType;
 };
 
+export const becomeCreator = /* GraphQL */ `mutation BecomeCreator {
+  becomeCreator
+}
+` as GeneratedMutation<
+  APITypes.BecomeCreatorMutationVariables,
+  APITypes.BecomeCreatorMutation
+>;
 export const createProfile = /* GraphQL */ `mutation CreateProfile(
   $condition: ModelProfileConditionInput
   $input: CreateProfileInput!
