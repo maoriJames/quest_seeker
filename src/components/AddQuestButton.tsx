@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-
+import { useBecomeCreator } from '@/hooks/useBecomeCreator'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,
@@ -17,7 +17,6 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { useCurrentUserProfile } from '@/hooks/userProfiles'
-import { useUpdateProfile } from '@/hooks/userProfiles'
 import { ProfileRole } from '@/graphql/API'
 import { Plus } from 'lucide-react'
 
@@ -29,7 +28,7 @@ export default function AddQuestButton({ to }: AddQuestButtonProps) {
   const navigate = useNavigate()
   const { data: currentProfile, isLoading } = useCurrentUserProfile()
 
-  const updateProfile = useUpdateProfile()
+  const { becomeCreator } = useBecomeCreator()
   const [modalOpen, setModalOpen] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -53,15 +52,9 @@ export default function AddQuestButton({ to }: AddQuestButtonProps) {
   }
 
   const handleBecomeCreator = async () => {
-    if (!currentProfile) return
     setLoading(true)
     try {
-      await updateProfile.mutateAsync({
-        input: {
-          id: currentProfile.id,
-          role: ProfileRole.creator,
-        },
-      })
+      await becomeCreator()
       setModalOpen(false)
       navigate(to)
     } catch (err) {

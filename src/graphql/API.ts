@@ -667,6 +667,13 @@ export type ListQuestsQuery = {
   } | null,
 };
 
+export type BecomeCreatorMutationVariables = {
+};
+
+export type BecomeCreatorMutation = {
+  becomeCreator?: string | null,
+};
+
 export type CreateProfileMutationVariables = {
   condition?: ModelProfileConditionInput | null,
   input: CreateProfileInput,

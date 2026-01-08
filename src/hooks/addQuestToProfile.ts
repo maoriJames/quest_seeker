@@ -3,7 +3,6 @@ import { getCurrentUser } from 'aws-amplify/auth'
 import { getProfile } from '@/graphql/queries'
 import { updateProfile } from '@/graphql/mutations'
 import { MyQuest } from '@/types'
-// import { QuestStatus } from '@/graphql/API'
 
 const client = generateClient()
 

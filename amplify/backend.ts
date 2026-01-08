@@ -10,6 +10,7 @@ import { expiredQuests } from './functions/expiredQuests/resource'
 import { sendNotification } from './functions/sendNotification/resource'
 import { postRegistration } from './functions/postRegistration/resource'
 import { joinQuest } from './functions/joinQuest/resource'
+import { becomeCreator } from './functions/becomeCreator/resource'
 
 const backend = defineBackend({
   auth,
@@ -19,6 +20,7 @@ const backend = defineBackend({
   sendNotification,
   postRegistration,
   joinQuest,
+  becomeCreator,
 })
 
 const notificationLambda = backend.sendNotification.resources
