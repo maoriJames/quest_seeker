@@ -2,11 +2,10 @@ import { generateClient } from 'aws-amplify/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { listQuests, getQuest } from '@/graphql/queries'
 import type {
-  CreateQuestInput,
   ListQuestsQuery,
-  UpdateQuestInput,
+  MutateQuestMutationVariables,
 } from '@/graphql/API'
-import { createQuest, deleteQuest, updateQuest } from '@/graphql/mutations'
+import { deleteQuest, mutateQuest } from '@/graphql/mutations'
 
 const client = generateClient()
 
@@ -53,68 +52,32 @@ export const useQuest = (id?: string | number) => {
   })
 }
 
-export const useInsertQuest = () => {
+export const useMutateQuest = () => {
   const queryClient = useQueryClient()
+
   return useMutation({
-    mutationFn: async (questInput: CreateQuestInput) => {
-      const { data } = await client.graphql({
-        query: createQuest,
-        variables: { input: questInput },
+    mutationFn: async (variables: MutateQuestMutationVariables) => {
+      const result = await client.graphql({
+        query: mutateQuest,
+        variables, // ✅ FLAT VARIABLES
         authMode: 'userPool',
       })
-      return data.createQuest
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['quests'] })
-    },
-    onError: (err: unknown) => {
-      console.error('❌ createQuest failed')
 
-      if (
-        typeof err === 'object' &&
-        err !== null &&
-        'errors' in err &&
-        Array.isArray((err as { errors?: unknown }).errors)
-      ) {
-        const gqlErrors = (
-          err as {
-            errors: {
-              message?: string
-              errorType?: string
-              path?: readonly (string | number)[]
-            }[]
-          }
-        ).errors
-
-        console.error(
-          gqlErrors.map((e) => ({
-            message: e.message,
-            errorType: e.errorType,
-            path: e.path,
-          }))
-        )
-      } else {
-        console.error('Non-GraphQL error:', err)
+      if (!('data' in result) || !result.data?.mutateQuest) {
+        throw new Error('mutateQuest failed')
       }
-    },
-  })
-}
 
-export const useUpdateQuest = () => {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (questInput: UpdateQuestInput) => {
-      const { data } = await client.graphql({
-        query: updateQuest,
-        variables: { input: questInput },
-        authMode: 'userPool',
-      })
-      return data.updateQuest
+      return result.data.mutateQuest
     },
-    onSuccess: (_, { id }) => {
+
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['quests'] })
-      queryClient.invalidateQueries({ queryKey: ['quests', id] })
+
+      if (data?.questId) {
+        queryClient.invalidateQueries({
+          queryKey: ['quest', data.questId],
+        })
+      }
     },
   })
 }

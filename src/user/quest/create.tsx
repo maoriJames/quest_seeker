@@ -19,15 +19,15 @@ import RemoteImage from '@/components/RemoteImage'
 import PickRegion from '@/components/PickRegion'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
 import bg from '@/assets/images/background_main.png'
-import { useInsertQuest, useUpdateQuest, useQuest } from '@/hooks/userQuests'
+import { useMutateQuest, useQuest } from '@/hooks/userQuests'
 import { Prize, Sponsor, Task } from '@/types'
-import { useCurrentUserProfile } from '@/hooks/userProfiles'
-import { getCurrentUser } from 'aws-amplify/auth'
+// import { useCurrentUserProfile } from '@/hooks/userProfiles'
+// import { getCurrentUser } from 'aws-amplify/auth'
 import { DialogTitle } from '@radix-ui/react-dialog'
 import { VisuallyHidden } from '@aws-amplify/ui-react'
 import { uploadData } from 'aws-amplify/storage'
 import imageCompression from 'browser-image-compression'
-import { QuestStatus } from '@/graphql/API'
+import { MutateQuestAction, QuestStatus } from '@/graphql/API'
 import { toZonedTime } from 'date-fns-tz'
 
 export default function CreateQuestPage() {
@@ -35,9 +35,14 @@ export default function CreateQuestPage() {
   const params = useParams()
   const questId = params.id
   const isUpdating = !!questId
+
+  const [createdQuestId, setCreatedQuestId] = useState<string | null>(null)
+
+  const effectiveQuestId = questId ?? createdQuestId
+  // const isEffectivelyUpdating = !!effectiveQuestId
+
   const currencyExp = /^\d*\.?\d{0,2}$/
 
-  const [authUserId, setAuthUserId] = useState<string>('')
   const [name, setName] = useState('')
   const [details, setDetails] = useState('')
   const [imageFile, setImageFile] = useState<File | null>(null)
@@ -60,11 +65,10 @@ export default function CreateQuestPage() {
   const next = () => setStep((s) => s + 1)
   const prev = () => setStep((s) => Math.max(0, s - 1))
 
-  const { mutate: insertQuest } = useInsertQuest()
-  const { mutate: updateQuest } = useUpdateQuest()
+  const { mutateAsync: mutateQuest } = useMutateQuest()
 
-  const { data: currentUser } = useCurrentUserProfile()
-  const creatorId = currentUser?.id ?? ''
+  // const { data: currentUser } = useCurrentUserProfile()
+  // const creatorId = currentUser?.id ?? ''
 
   const { data: updatingQuest } = useQuest(questId)
 
@@ -82,27 +86,21 @@ export default function CreateQuestPage() {
     setPrizes(
       updatingQuest.quest_prize_info
         ? JSON.parse(updatingQuest.quest_prize_info)
-        : []
+        : [],
     )
     setSponsors(
-      updatingQuest.quest_sponsor ? JSON.parse(updatingQuest.quest_sponsor) : []
+      updatingQuest.quest_sponsor
+        ? JSON.parse(updatingQuest.quest_sponsor)
+        : [],
     )
     setSelectedRegion(updatingQuest.region ?? '')
     setCurrencyValue(updatingQuest.quest_entry?.toString() ?? '')
     setTasks(
-      updatingQuest.quest_tasks ? JSON.parse(updatingQuest.quest_tasks) : []
+      updatingQuest.quest_tasks ? JSON.parse(updatingQuest.quest_tasks) : [],
     )
 
     setLoading(false)
   }, [updatingQuest])
-
-  useEffect(() => {
-    getCurrentUser()
-      .then((user) => {
-        setAuthUserId(user.userId) // 👈 Cognito sub
-      })
-      .catch(console.error)
-  }, [])
 
   if (isUpdating && loading) {
     return (
@@ -212,76 +210,80 @@ export default function CreateQuestPage() {
       return { fullPath: '', thumbPath: '' }
     }
   }
+  // const formatGraphQLErrors = (err: any) => {
+  //   // Case A: you threw the GraphQLResult directly (your screenshot-like object)
+  //   const errs = err?.errors ?? err?.data?.errors
+
+  //   if (Array.isArray(errs) && errs.length) {
+  //     return errs.map((e: any) => e?.message ?? JSON.stringify(e)).join('\n')
+  //   }
+
+  //   // Case B: normal JS error
+  //   return err?.message ?? String(err)
+  // }
 
   const saveQuest = async (status: QuestStatus) => {
-    if (!isUpdating && !authUserId) {
-      console.error('Missing auth user id; cannot create quest')
-      return
-    }
+    if (status === QuestStatus.published && !validateInput()) return
 
-    if (status === QuestStatus.published && !validateInput()) {
-      console.log('Validation failed, not saving.')
-      return
-    }
+    try {
+      const imagePaths = imageFile
+        ? await uploadImage(imageFile)
+        : { fullPath: previewImage, thumbPath: '' }
 
-    const imagePaths = imageFile
-      ? await uploadImage(imageFile)
-      : { fullPath: previewImage, thumbPath: '' }
+      const basePayload = {
+        name,
+        details,
+        imagePath: imagePaths.fullPath,
+        imageThumbPath: imagePaths.thumbPath,
+        startAt: startDateTime,
+        endAt: endDateTime,
+        region: selectedRegion,
+        entryFee: currencyValue ? Number(currencyValue) : null,
+        prizes: prizes?.length ? JSON.stringify(prizes) : null,
+        sponsors: sponsors?.length ? JSON.stringify(sponsors) : null,
+        tasks: tasks?.length ? JSON.stringify(tasks) : null,
+      }
 
-    const payload = {
-      quest_name: name,
-      quest_details: details,
-      quest_image: imagePaths.fullPath,
-      quest_image_thumb: imagePaths.thumbPath,
-      quest_start_at: startDateTime,
-      quest_end_at: endDateTime,
-      quest_prize: prizeEnabled,
-      quest_prize_info: JSON.stringify(prizes),
-      quest_sponsor: JSON.stringify(sponsors),
-      region: selectedRegion,
-      quest_entry: currencyValue ? Number(currencyValue) : null,
-      quest_tasks: JSON.stringify(tasks),
+      let currentQuestId = effectiveQuestId
 
-      // 🧩 BUSINESS LOGIC
-      creator_id: creatorId,
+      // ------------------------------------
+      // Ensure questId exists
+      // ------------------------------------
+      if (!currentQuestId) {
+        const draftResult = await mutateQuest({
+          action: MutateQuestAction.CREATE_DRAFT,
+          ...basePayload,
+        })
 
-      status,
-    }
+        const newQuestId = draftResult?.questId
+        if (!newQuestId) {
+          console.error('CREATE_DRAFT result:', draftResult)
+          throw new Error('CREATE_DRAFT returned no questId')
+        }
 
-    const createPayload = {
-      ...payload,
-    }
+        setCreatedQuestId(newQuestId)
+        currentQuestId = newQuestId // ✅ CRITICAL LINE
+      }
 
-    const updatePayload = {
-      ...payload,
-      id: questId!,
-    }
+      // ------------------------------------
+      // Now questId ALWAYS exists
+      // ------------------------------------
+      const action =
+        status === QuestStatus.published
+          ? MutateQuestAction.PUBLISH
+          : MutateQuestAction.UPDATE_DRAFT
 
-    if (isUpdating) {
-      // console.log('Updating quest with id:', questId)
-      updateQuest(updatePayload, {
-        onSuccess: (data) => {
-          console.log('Update successful:', data)
-          navigate(-1)
-        },
-        onError: (err) => {
-          console.error('Update failed:', err)
-        },
+      await mutateQuest({
+        action,
+        questId: currentQuestId, // ✅ always defined
+        ...basePayload,
       })
-    } else {
-      console.log('Inserting new quest')
-      insertQuest(createPayload, {
-        onSuccess: (data) => {
-          console.log('Insert successful:', data)
-          navigate(-1)
-        },
-        onError: (err) => {
-          console.error('Insert failed:', err)
-        },
-      })
-    }
 
-    setImageFile(null)
+      navigate(-1)
+    } catch (err) {
+      console.error('saveQuest failed:', err)
+      // setErrors(formatGraphQLErrors(err))
+    }
   }
 
   // --- Render ---
@@ -300,7 +302,7 @@ export default function CreateQuestPage() {
                 variant="yellow"
                 onClick={() => {
                   const confirmLeave = window.confirm(
-                    'Are you sure you want to leave this page? Any unsaved changes will be lost.'
+                    'Are you sure you want to leave this page? Any unsaved changes will be lost.',
                   )
 
                   if (confirmLeave) {
@@ -334,7 +336,7 @@ export default function CreateQuestPage() {
                 variant="yellow"
                 onClick={() => {
                   const confirmLeave = window.confirm(
-                    'Are you sure you want to leave this page? Any unsaved changes will be lost.'
+                    'Are you sure you want to leave this page? Any unsaved changes will be lost.',
                   )
 
                   if (confirmLeave) {
@@ -383,7 +385,7 @@ export default function CreateQuestPage() {
                 variant="yellow"
                 onClick={() => {
                   const confirmLeave = window.confirm(
-                    'Are you sure you want to leave this page? Any unsaved changes will be lost.'
+                    'Are you sure you want to leave this page? Any unsaved changes will be lost.',
                   )
 
                   if (confirmLeave) {
@@ -418,7 +420,7 @@ export default function CreateQuestPage() {
                 variant="yellow"
                 onClick={() => {
                   const confirmLeave = window.confirm(
-                    'Are you sure you want to leave this page? Any unsaved changes will be lost.'
+                    'Are you sure you want to leave this page? Any unsaved changes will be lost.',
                   )
 
                   if (confirmLeave) {
@@ -457,7 +459,7 @@ export default function CreateQuestPage() {
                 variant="yellow"
                 onClick={() => {
                   const confirmLeave = window.confirm(
-                    'Are you sure you want to leave this page? Any unsaved changes will be lost.'
+                    'Are you sure you want to leave this page? Any unsaved changes will be lost.',
                   )
 
                   if (confirmLeave) {
@@ -503,7 +505,7 @@ export default function CreateQuestPage() {
                 variant="yellow"
                 onClick={() => {
                   const confirmLeave = window.confirm(
-                    'Are you sure you want to leave this page? Any unsaved changes will be lost.'
+                    'Are you sure you want to leave this page? Any unsaved changes will be lost.',
                   )
 
                   if (confirmLeave) {
@@ -677,7 +679,7 @@ export default function CreateQuestPage() {
                 variant="yellow"
                 onClick={() => {
                   const confirmLeave = window.confirm(
-                    'Are you sure you want to leave this page? Any unsaved changes will be lost.'
+                    'Are you sure you want to leave this page? Any unsaved changes will be lost.',
                   )
 
                   if (confirmLeave) {
@@ -753,7 +755,7 @@ export default function CreateQuestPage() {
                 variant="yellow"
                 onClick={() => {
                   const confirmLeave = window.confirm(
-                    'Are you sure you want to leave this page? Any unsaved changes will be lost.'
+                    'Are you sure you want to leave this page? Any unsaved changes will be lost.',
                   )
 
                   if (confirmLeave) {
