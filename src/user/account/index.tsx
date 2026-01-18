@@ -1,46 +1,24 @@
 import bg from '@/assets/images/background_main.png'
 import UpdateAccount from '@/components/UpdateAccount'
 import MyQuests from '@/components/MyQuests'
+import ExpiredQuests from '@/components/ExpiredQuests'
 import { useCurrentUserProfile, useUpdateProfile } from '@/hooks/userProfiles'
-import { useState, useEffect } from 'react'
-import type { Profile, MyQuest } from '@/types'
-import { UpdateProfileInput } from '@/graphql/API'
+import { useLocation } from 'react-router-dom'
+import { cn } from '@/lib/utils'
+import { isProfileComplete } from '@/tools/profileValidation'
 import { toProfileRole } from '@/hooks/toProfileTole'
 import { generateClient } from 'aws-amplify/api'
 import { getQuest } from '@/graphql/queries'
-import { useLocation } from 'react-router-dom'
-import ExpiredQuests from '@/components/ExpiredQuests'
-import { cn } from '@/lib/utils'
-import { isProfileComplete } from '@/tools/profileValidation'
+import type { MyQuest, Profile } from '@/types'
+// import type { UpdateProfileInput } from '@/graphql/API'
+import { useEffect, useState } from 'react'
 
 const client = generateClient()
 
 export default function AccountPage() {
-  const { currentProfile } = useCurrentUserProfile()
-  const { mutate: updateProfile } = useUpdateProfile()
+  const { currentProfile, isLoading } = useCurrentUserProfile()
+  const updateProfile = useUpdateProfile()
   const location = useLocation()
-  const [profileData, setProfileData] = useState<Profile>({
-    id: '',
-    full_name: '',
-    email: '',
-    organization_name: '',
-    registration_number: '',
-    charity_number: '',
-    business_type: '',
-    organization_description: '',
-    primary_contact_name: '',
-    primary_contact_position: '',
-    primary_contact_phone: '',
-    about_me: '',
-    secondary_contact_name: '',
-    secondary_contact_position: '',
-    secondary_contact_phone: '',
-    image: '',
-    image_thumbnail: '',
-    role: 'seeker',
-    my_quests: [],
-    points: 0,
-  })
 
   const defaultTab = (
     location.state as {
@@ -52,7 +30,9 @@ export default function AccountPage() {
     'account' | 'my-quests' | 'expired-quests'
   >(defaultTab || 'account')
 
-  const isComplete = isProfileComplete(profileData)
+  // if (isLoading || !currentProfile) return null
+
+  const isComplete = isProfileComplete(currentProfile)
 
   const confirmLeaveIfIncomplete = () => {
     if (!isComplete) {
@@ -63,120 +43,85 @@ export default function AccountPage() {
     return true
   }
 
-  // 🧠 Load current profile into local state
+  // 🧹 Clean up deleted quests (HOOK MUST ALWAYS RUN)
   useEffect(() => {
-    if (!currentProfile) return
+    if (!currentProfile?.my_quests?.length) return
 
-    const quests = Array.isArray(currentProfile.my_quests)
-      ? currentProfile.my_quests
-      : currentProfile.my_quests
-        ? JSON.parse(currentProfile.my_quests)
-        : []
-
-    setProfileData({
-      id: currentProfile.id,
-      full_name: currentProfile.full_name ?? '',
-      email: currentProfile.email ?? '',
-      organization_name: currentProfile.organization_name ?? '',
-      registration_number: currentProfile.registration_number ?? '',
-      charity_number: currentProfile.charity_number ?? '',
-      business_type: currentProfile.business_type ?? '',
-      organization_description: currentProfile.organization_description ?? '',
-      primary_contact_name: currentProfile.primary_contact_name ?? '',
-      primary_contact_position: currentProfile.primary_contact_position ?? '',
-      primary_contact_phone: currentProfile.primary_contact_phone ?? '',
-      about_me: currentProfile.about_me ?? '',
-      secondary_contact_name: currentProfile.secondary_contact_name ?? '',
-      secondary_contact_position:
-        currentProfile.secondary_contact_position ?? '',
-      secondary_contact_phone: currentProfile.secondary_contact_phone ?? '',
-      image: currentProfile.image ?? '',
-      image_thumbnail: currentProfile.image_thumbnail ?? '',
-      role: currentProfile.role ?? 'seeker',
-      my_quests: quests,
-      points: currentProfile.points ?? 0,
-    })
-  }, [currentProfile])
-
-  // 🧹 Clean up deleted quests
-  useEffect(() => {
     const cleanUpDeletedQuests = async () => {
-      if (!profileData?.my_quests?.length) return
+      let quests: MyQuest[] = []
 
       try {
-        const questsStatus = await Promise.all(
-          profileData.my_quests.map(async (quest) => {
-            try {
-              const result = await client.graphql({
-                query: getQuest,
-                variables: { id: quest.quest_id },
-                authMode: 'userPool',
-              })
-              return result.data?.getQuest ? quest : null
-            } catch {
-              console.warn(`Quest ${quest.quest_id} not found, removing.`)
-              return null
-            }
-          })
-        )
+        quests = Array.isArray(currentProfile.my_quests)
+          ? currentProfile.my_quests
+          : JSON.parse(currentProfile.my_quests)
+      } catch {
+        return
+      }
 
-        const validQuests: MyQuest[] = questsStatus.filter(Boolean) as MyQuest[]
-
-        if (validQuests.length !== profileData.my_quests.length) {
-          setProfileData((prev) => ({ ...prev, my_quests: validQuests }))
-
-          const input: UpdateProfileInput = {
-            id: profileData.id,
-            my_quests: JSON.stringify(validQuests),
+      const questsStatus = await Promise.all(
+        quests.map(async (quest) => {
+          try {
+            const result = await client.graphql({
+              query: getQuest,
+              variables: { id: quest.quest_id },
+              authMode: 'userPool',
+            })
+            return result.data?.getQuest ? quest : null
+          } catch {
+            return null
           }
-          updateProfile({ input })
-        }
-      } catch (err) {
-        console.error('Error cleaning up deleted quests:', err)
+        })
+      )
+
+      const validQuests = questsStatus.filter(Boolean) as MyQuest[]
+
+      if (validQuests.length !== quests.length) {
+        updateProfile.mutate({
+          input: {
+            id: currentProfile.id,
+            my_quests: JSON.stringify(validQuests),
+          },
+        })
       }
     }
 
-    if (profileData.id) cleanUpDeletedQuests()
-  }, [profileData.id])
+    cleanUpDeletedQuests()
+  }, [currentProfile?.id])
 
-  // 🧩 Generic profile update handler
-  const handleUpdate = (updates: Partial<Profile>) => {
-    if (!profileData.id) return
+  // ✅ EARLY RETURN COMES AFTER ALL HOOKS
+  if (isLoading || !currentProfile) return null
 
-    const merged = { ...profileData, ...updates }
-
-    setProfileData(merged)
-
-    const input: UpdateProfileInput = {
-      id: merged.id,
-      full_name: merged.full_name,
-      email: merged.email,
-      organization_name: merged.organization_name,
-      registration_number: merged.registration_number,
-      business_type: merged.business_type,
-      organization_description: merged.organization_description,
-      primary_contact_name: merged.primary_contact_name,
-      primary_contact_position: merged.primary_contact_position,
-      primary_contact_phone: merged.primary_contact_phone,
-      about_me: merged.about_me,
-      secondary_contact_name: merged.secondary_contact_name,
-      secondary_contact_position: merged.secondary_contact_position,
-      secondary_contact_phone: merged.secondary_contact_phone,
-      image: merged.image,
-      image_thumbnail: merged.image_thumbnail,
-      role: toProfileRole(merged.role),
-    }
-
-    updateProfile({ input })
+  const handleUpdate = async (updates: Partial<Profile>) => {
+    await updateProfile.mutateAsync({
+      input: {
+        id: currentProfile.id,
+        full_name: updates.full_name,
+        email: updates.email,
+        organization_name: updates.organization_name,
+        registration_number: updates.registration_number,
+        charity_number: updates.charity_number,
+        business_type: updates.business_type,
+        organization_description: updates.organization_description,
+        primary_contact_name: updates.primary_contact_name,
+        primary_contact_position: updates.primary_contact_position,
+        primary_contact_phone: updates.primary_contact_phone,
+        about_me: updates.about_me,
+        secondary_contact_name: updates.secondary_contact_name,
+        secondary_contact_position: updates.secondary_contact_position,
+        secondary_contact_phone: updates.secondary_contact_phone,
+        image: updates.image,
+        image_thumbnail: updates.image_thumbnail,
+        role: toProfileRole(currentProfile.role),
+      },
+    })
   }
 
-  // ✅ Render
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-start bg-cover bg-center py-8"
       style={{ backgroundImage: `url(${bg})` }}
     >
-      {/* Tab buttons */}
+      {/* Tabs */}
       <div className="flex gap-2 mb-6">
         <button
           className={cn(
@@ -189,6 +134,7 @@ export default function AccountPage() {
         >
           My Account
         </button>
+
         <button
           className={cn(
             'px-4 py-2 rounded transition-colors',
@@ -205,18 +151,20 @@ export default function AccountPage() {
         </button>
       </div>
 
-      {/* Tab content */}
+      {/* Content */}
       <div className="w-full max-w-3xl">
         {activeTab === 'account' && (
           <UpdateAccount
-            profile={profileData}
+            profile={currentProfile}
             onUpdate={handleUpdate}
             isProfileComplete={isComplete}
           />
         )}
-        {activeTab === 'my-quests' && <MyQuests profile={profileData} />}
+
+        {activeTab === 'my-quests' && <MyQuests profile={currentProfile} />}
+
         {activeTab === 'expired-quests' && (
-          <ExpiredQuests profile={profileData} />
+          <ExpiredQuests profile={currentProfile} />
         )}
       </div>
     </div>

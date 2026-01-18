@@ -8,8 +8,8 @@ type GeneratedMutation<InputType, OutputType> = string & {
   __generatedMutationOutput: OutputType;
 };
 
-export const becomeCreator = /* GraphQL */ `mutation BecomeCreator {
-  becomeCreator
+export const becomeCreator = /* GraphQL */ `mutation BecomeCreator($profileId: String!) {
+  becomeCreator(profileId: $profileId)
 }
 ` as GeneratedMutation<
   APITypes.BecomeCreatorMutationVariables,
@@ -155,6 +155,45 @@ export const joinQuest = /* GraphQL */ `mutation JoinQuest($profileId: String!, 
 ` as GeneratedMutation<
   APITypes.JoinQuestMutationVariables,
   APITypes.JoinQuestMutation
+>;
+export const mutateQuest = /* GraphQL */ `mutation MutateQuest(
+  $action: MutateQuestAction!
+  $details: String
+  $endAt: AWSDateTime
+  $entryFee: Int
+  $imagePath: String
+  $imageThumbPath: String
+  $name: String
+  $prizes: AWSJSON
+  $questId: String
+  $region: String
+  $sponsors: AWSJSON
+  $startAt: AWSDateTime
+  $tasks: AWSJSON
+) {
+  mutateQuest(
+    action: $action
+    details: $details
+    endAt: $endAt
+    entryFee: $entryFee
+    imagePath: $imagePath
+    imageThumbPath: $imageThumbPath
+    name: $name
+    prizes: $prizes
+    questId: $questId
+    region: $region
+    sponsors: $sponsors
+    startAt: $startAt
+    tasks: $tasks
+  ) {
+    questId
+    status
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.MutateQuestMutationVariables,
+  APITypes.MutateQuestMutation
 >;
 export const updateProfile = /* GraphQL */ `mutation UpdateProfile(
   $condition: ModelProfileConditionInput

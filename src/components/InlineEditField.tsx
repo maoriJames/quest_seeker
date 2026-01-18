@@ -42,24 +42,22 @@ export default function InlineEditField({
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              onBlur={handleSave} // optional: auto-save on blur
-              autoFocus
               className={`border p-1 rounded flex-1 ${error ? 'border-red-500' : ''}`}
+              autoFocus
             />
             <Button size="small" onClick={handleSave}>
               Save
             </Button>
           </>
         ) : (
-          <input
-            type="text"
-            value={inputValue}
-            placeholder="Click to update"
-            onChange={(e) => setInputValue(e.target.value)}
-            onBlur={handleSave} // optional: auto-save on blur
-            autoFocus
-            className={`border p-1 rounded flex-1 ${error ? 'border-red-500' : ''}`}
-          />
+          <div
+            className="flex-1 cursor-pointer border p-1 rounded bg-gray-50"
+            onClick={() => setEditing(true)}
+          >
+            {inputValue || (
+              <span className="text-gray-400">Click to update</span>
+            )}
+          </div>
         )}
       </div>
       {error && <span className="text-red-500 text-sm">{error}</span>}

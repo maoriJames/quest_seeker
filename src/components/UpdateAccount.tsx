@@ -196,12 +196,13 @@ export default function UpdateAccount({
             />
 
             <label className="text-base font-bold">Business Type</label>
+
             <Select
+              key={profile.business_type ?? 'empty'}
               value={profile.business_type || ''}
               onValueChange={(newValue) =>
                 onUpdate({ business_type: newValue })
               }
-              required
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select Business Type" />

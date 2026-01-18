@@ -3,6 +3,7 @@ import { expiredQuests } from '../functions/expiredQuests/resource'
 import { postRegistration } from '../functions/postRegistration/resource'
 import { joinQuest } from '../functions/joinQuest/resource'
 import { becomeCreator } from '../functions/becomeCreator/resource'
+import { mutateQuest } from '../functions/mutateQuest/resource'
 
 export const schema = a
   .schema({
@@ -25,6 +26,47 @@ export const schema = a
       .authorization((allow) => [allow.authenticated()])
       .handler(a.handler.function(becomeCreator)),
 
+    /* --- 1. DEFINE CUSTOM TYPES & ENUMS FIRST --- */
+    QuestStatus: a.enum([
+      'draft',
+      'published',
+      'expired',
+      'archived',
+      'upcoming',
+      'occurring',
+      'completed',
+    ]),
+
+    MutateQuestAction: a.enum(['CREATE_DRAFT', 'UPDATE_DRAFT', 'PUBLISH']),
+
+    // Return type for mutateQuest
+    MutateQuestResponse: a.customType({
+      questId: a.string().required(),
+      status: a.ref('QuestStatus').required(), // Use ref here
+    }),
+    /* --- 2. CUSTOM MUTATIONS --- */
+
+    mutateQuest: a
+      .mutation()
+      .arguments({
+        action: a.ref('MutateQuestAction').required(), // Use .ref() for enums in args
+        questId: a.string(),
+        name: a.string(),
+        details: a.string(),
+        imagePath: a.string(),
+        imageThumbPath: a.string(),
+        startAt: a.datetime(),
+        endAt: a.datetime(),
+        region: a.string(),
+        entryFee: a.integer(),
+        prizes: a.json(),
+        sponsors: a.json(),
+        tasks: a.json(),
+      })
+      .returns(a.ref('MutateQuestResponse')) // Reference the customType here
+      .authorization((allow) => [allow.authenticated()])
+      .handler(a.handler.function(mutateQuest)),
+
     /* ------------------ QUEST MODEL ------------------ */
     Quest: a
       .model({
@@ -42,15 +84,7 @@ export const schema = a
         quest_entry: a.integer(),
         quest_tasks: a.json(),
         creator_id: a.string(),
-        status: a.enum([
-          'draft',
-          'published',
-          'expired',
-          'archived',
-          'upcoming',
-          'occurrring',
-          'completed',
-        ]),
+        status: a.ref('QuestStatus'),
         participants: a.json(),
       })
       .authorization((allow) => [
@@ -98,7 +132,8 @@ export const schema = a
     allow.resource(joinQuest),
     allow.resource(expiredQuests).to(['query', 'mutate']),
     allow.resource(postRegistration).to(['mutate']),
-    allow.resource(becomeCreator).to(['query', 'mutate']), // Ensure both are included
+    allow.resource(becomeCreator).to(['query', 'mutate']),
+    allow.resource(mutateQuest).to(['mutate', 'query']),
   ])
 
 export type Schema = ClientSchema<typeof schema>

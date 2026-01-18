@@ -64,7 +64,7 @@ export enum QuestStatus {
   completed = "completed",
   draft = "draft",
   expired = "expired",
-  occurrring = "occurrring",
+  occurring = "occurring",
   published = "published",
   upcoming = "upcoming",
 }
@@ -340,6 +340,19 @@ export type DeleteProfileInput = {
 
 export type DeleteQuestInput = {
   id: string,
+};
+
+export enum MutateQuestAction {
+  CREATE_DRAFT = "CREATE_DRAFT",
+  PUBLISH = "PUBLISH",
+  UPDATE_DRAFT = "UPDATE_DRAFT",
+}
+
+
+export type MutateQuestResponse = {
+  __typename: "MutateQuestResponse",
+  questId: string,
+  status: QuestStatus,
 };
 
 export type UpdateProfileInput = {
@@ -668,6 +681,7 @@ export type ListQuestsQuery = {
 };
 
 export type BecomeCreatorMutationVariables = {
+  profileId: string,
 };
 
 export type BecomeCreatorMutation = {
@@ -811,6 +825,30 @@ export type JoinQuestMutationVariables = {
 
 export type JoinQuestMutation = {
   joinQuest?: boolean | null,
+};
+
+export type MutateQuestMutationVariables = {
+  action: MutateQuestAction,
+  details?: string | null,
+  endAt?: string | null,
+  entryFee?: number | null,
+  imagePath?: string | null,
+  imageThumbPath?: string | null,
+  name?: string | null,
+  prizes?: string | null,
+  questId?: string | null,
+  region?: string | null,
+  sponsors?: string | null,
+  startAt?: string | null,
+  tasks?: string | null,
+};
+
+export type MutateQuestMutation = {
+  mutateQuest?:  {
+    __typename: "MutateQuestResponse",
+    questId: string,
+    status: QuestStatus,
+  } | null,
 };
 
 export type UpdateProfileMutationVariables = {
