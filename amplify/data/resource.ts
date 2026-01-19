@@ -64,13 +64,12 @@ export const schema = a
         tasks: a.json(),
       })
       .returns(a.ref('MutateQuestResponse')) // Reference the customType here
-      .authorization((allow) => [allow.authenticated()])
+      .authorization((allow) => [allow.groups(['creator'])])
       .handler(a.handler.function(mutateQuest)),
 
     /* ------------------ QUEST MODEL ------------------ */
     Quest: a
       .model({
-        owner: a.string(),
         quest_name: a.string(),
         quest_details: a.string(),
         quest_image: a.string(),
@@ -88,9 +87,9 @@ export const schema = a
         participants: a.json(),
       })
       .authorization((allow) => [
-        allow.owner().to(['update', 'delete']),
-        allow.groups(['Admin']).to(['create', 'update', 'delete']),
-        allow.authenticated().to(['read', 'create']),
+        allow.groups(['creator']).to(['create', 'update', 'delete', 'read']), // 👈 add read
+        allow.groups(['Admin']).to(['create', 'update', 'delete', 'read']),
+        allow.authenticated().to(['read']),
       ]),
 
     /* ------------------ PROFILE MODEL ------------------ */

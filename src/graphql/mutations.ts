@@ -59,7 +59,6 @@ export const createQuest = /* GraphQL */ `mutation CreateQuest(
     createdAt
     creator_id
     id
-    owner
     participants
     quest_details
     quest_end_at
@@ -126,7 +125,6 @@ export const deleteQuest = /* GraphQL */ `mutation DeleteQuest(
     createdAt
     creator_id
     id
-    owner
     participants
     quest_details
     quest_end_at
@@ -239,7 +237,6 @@ export const updateQuest = /* GraphQL */ `mutation UpdateQuest(
     createdAt
     creator_id
     id
-    owner
     participants
     quest_details
     quest_end_at
