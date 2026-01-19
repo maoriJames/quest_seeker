@@ -12,12 +12,29 @@ import QuestDetailPage from './components/QuestDetailPage'
 import Help from './user/help'
 import Leader from './user/leader'
 
+import { useEffect } from 'react'
+import { fetchAuthSession } from 'aws-amplify/auth'
+
 const queryClient = new QueryClient()
 
 function UserRoutes() {
-  // console.log('UserRoutes component rendering')
-  // const location = useLocation()
-  // console.log('Current path:', location.pathname)
+  useEffect(() => {
+    const logGroups = async () => {
+      const session = await fetchAuthSession({ forceRefresh: true })
+
+      console.log(
+        'ID token groups:',
+        session.tokens?.idToken?.payload['cognito:groups'],
+      )
+
+      console.log(
+        'Access token groups:',
+        session.tokens?.accessToken?.payload['cognito:groups'],
+      )
+    }
+
+    logGroups()
+  }, [])
 
   return (
     <QueryClientProvider client={queryClient}>

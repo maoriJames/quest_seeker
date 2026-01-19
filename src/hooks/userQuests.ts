@@ -13,20 +13,34 @@ export const useQuestList = (region?: string) => {
   return useQuery({
     queryKey: ['quests', region],
     queryFn: async () => {
-      const result = await client.graphql<ListQuestsQuery>({
-        query: listQuests,
-        variables:
-          region && region !== 'Browse all'
-            ? { filter: { region: { eq: region } } }
-            : {},
-        authMode: 'userPool', // Corrected authMode
-      })
+      let result
 
-      if ('data' in result) {
-        return result.data?.listQuests?.items ?? []
+      try {
+        result = await client.graphql<ListQuestsQuery>({
+          query: listQuests,
+          authMode: 'userPool',
+        })
+      } catch (err) {
+        console.error('[useQuestList] graphql threw:', err)
+        throw err
       }
 
-      throw new Error('No data returned from GraphQL query')
+      console.log('[useQuestList] raw result:', result)
+
+      if ('errors' in result && result.errors?.length) {
+        console.error('[useQuestList] GraphQL errors:', result.errors)
+        throw new Error(result.errors[0].message)
+      }
+
+      if (!('data' in result)) {
+        throw new Error('GraphQL result had no data')
+      }
+
+      const items = result.data?.listQuests?.items ?? []
+
+      console.log('[useQuestList] items:', items)
+
+      return items
     },
     staleTime: 1000 * 60 * 2,
   })

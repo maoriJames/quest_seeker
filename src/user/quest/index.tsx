@@ -17,7 +17,7 @@ export default function QuestPage() {
   const location = useLocation()
   const searchParams = new URLSearchParams(location.search)
   const selectedRegion = searchParams.get('region') || 'Browse all'
-  const { data: quests, error, isLoading } = useQuestList()
+  const { data: quests, error, isLoading, isError } = useQuestList()
   const allQuests: Quest[] = quests ?? []
   const { data: profiles } = useProfileList()
   const { currentProfile } = useCurrentUserProfile()
@@ -26,6 +26,11 @@ export default function QuestPage() {
 
   const [searchTerm, setSearchTerm] = useState('')
   const [sortOption, setSortOption] = useState('title')
+
+  console.log('quests:', quests)
+  console.log('isLoading:', isLoading)
+  console.log('isError:', isError)
+  console.log('error:', error)
 
   const profileMap: Record<string, Profile> = useMemo(() => {
     const map: Record<string, Profile> = {}
@@ -108,21 +113,21 @@ export default function QuestPage() {
     switch (sortOption) {
       case 'title':
         sorted.sort((a, b) =>
-          (a.quest_name || '').localeCompare(b.quest_name || '')
+          (a.quest_name || '').localeCompare(b.quest_name || ''),
         )
         break
       case 'newest':
         sorted.sort(
           (a, b) =>
             new Date(b.quest_start_at || '').getTime() -
-            new Date(a.quest_start_at || '').getTime()
+            new Date(a.quest_start_at || '').getTime(),
         )
         break
       case 'oldest':
         sorted.sort(
           (a, b) =>
             new Date(a.quest_start_at || '').getTime() -
-            new Date(b.quest_start_at || '').getTime()
+            new Date(b.quest_start_at || '').getTime(),
         )
         break
       case 'recently-added':
@@ -132,14 +137,14 @@ export default function QuestPage() {
         sorted.sort(
           (a, b) =>
             new Date(a.quest_end_at || '').getTime() -
-            new Date(b.quest_end_at || '').getTime()
+            new Date(b.quest_end_at || '').getTime(),
         )
         break
       case 'expiry-furthest':
         sorted.sort(
           (a, b) =>
             new Date(b.quest_end_at || '').getTime() -
-            new Date(a.quest_end_at || '').getTime()
+            new Date(a.quest_end_at || '').getTime(),
         )
         break
       default:

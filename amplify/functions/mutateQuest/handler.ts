@@ -70,7 +70,7 @@ export const handler = async (event: AppSyncEvent) => {
   const groups = event.identity.claims?.['cognito:groups'] ?? []
 
   const isCreator = groups.includes('creator')
-  const isAdmin = groups.includes('admin')
+  const isAdmin = groups.includes('Admin')
 
   if (!isCreator && !isAdmin) {
     throw new Error('Not authorized')
@@ -123,8 +123,8 @@ export const handler = async (event: AppSyncEvent) => {
           quest_sponsor: normalizeAwsJson(input.sponsors),
           quest_tasks: normalizeAwsJson(input.tasks),
 
-          created_at: now,
-          updated_at: now,
+          createdAt: now,
+          updatedAt: now,
         },
       }),
     )

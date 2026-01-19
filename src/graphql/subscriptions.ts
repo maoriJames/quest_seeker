@@ -49,7 +49,6 @@ export const onCreateQuest = /* GraphQL */ `subscription OnCreateQuest($filter: 
     createdAt
     creator_id
     id
-    owner
     participants
     quest_details
     quest_end_at
@@ -113,7 +112,6 @@ export const onDeleteQuest = /* GraphQL */ `subscription OnDeleteQuest($filter: 
     createdAt
     creator_id
     id
-    owner
     participants
     quest_details
     quest_end_at
@@ -177,7 +175,6 @@ export const onUpdateQuest = /* GraphQL */ `subscription OnUpdateQuest($filter: 
     createdAt
     creator_id
     id
-    owner
     participants
     quest_details
     quest_end_at
