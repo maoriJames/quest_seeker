@@ -17,6 +17,7 @@ import { generateClient } from 'aws-amplify/api'
 import { listProfiles, getProfile } from '@/graphql/queries'
 import { updateProfile, createProfile } from '@/graphql/mutations'
 import { getCurrentUser } from 'aws-amplify/auth'
+import { profileKeys } from '@/queryKeys'
 
 const client = generateClient()
 
@@ -35,7 +36,7 @@ export const useProfile = (
   options?: Omit<
     UseQueryOptions<GetProfileQuery['getProfile'] | null, Error>,
     'queryKey' | 'queryFn'
-  >
+  >,
 ) => {
   return useQuery<GetProfileQuery['getProfile'] | null, Error>({
     queryKey: ['profiles', id],
@@ -60,7 +61,7 @@ export const useProfile = (
 
 export const useCurrentUserProfile = () => {
   const query = useQuery({
-    queryKey: ['currentProfile'],
+    queryKey: profileKeys.current,
     queryFn: async () => {
       const { userId, signInDetails } = await getCurrentUser()
 
@@ -108,7 +109,7 @@ export const useUpdateProfile = (
     UpdateProfileMutation['updateProfile'],
     unknown,
     UpdateProfileMutationVariables
-  >
+  >,
 ) => {
   const queryClient = useQueryClient()
 
@@ -131,14 +132,14 @@ export const useUpdateProfile = (
       return updated
     },
     onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: profileKeys.current })
+
       if (variables?.input?.id) {
-        queryClient.invalidateQueries({ queryKey: ['profiles'] })
         queryClient.invalidateQueries({
-          queryKey: ['profiles', variables.input.id],
+          queryKey: profileKeys.byId(variables.input.id),
         })
       }
 
-      // Call custom onSuccess if provided
       options?.onSuccess?.(data, variables, context)
     },
     ...options, // spread any other options

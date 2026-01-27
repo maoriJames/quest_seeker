@@ -39,6 +39,7 @@ export type Profile = {
   id: string
   full_name: string
   email: string
+  phone: string
   organization_name: string
   registration_number: string
   charity_number: string

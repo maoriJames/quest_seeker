@@ -97,6 +97,7 @@ export const schema = a
       .model({
         full_name: a.string(),
         email: a.string(),
+        phone: a.string(),
         organization_name: a.string(),
         registration_number: a.string(),
         charity_number: a.string(),
