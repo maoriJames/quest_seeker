@@ -24,6 +24,7 @@ export const getProfile = /* GraphQL */ `query GetProfile($id: ID!) {
     organization_description
     organization_name
     owner
+    phone
     points
     primary_contact_name
     primary_contact_phone
@@ -96,6 +97,7 @@ export const listLeaderboard = /* GraphQL */ `query ListLeaderboard(
       organization_description
       organization_name
       owner
+      phone
       points
       primary_contact_name
       primary_contact_phone
@@ -137,6 +139,7 @@ export const listProfiles = /* GraphQL */ `query ListProfiles(
       organization_description
       organization_name
       owner
+      phone
       points
       primary_contact_name
       primary_contact_phone

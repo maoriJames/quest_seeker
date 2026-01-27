@@ -32,12 +32,12 @@ export default function AccountPage() {
 
   // if (isLoading || !currentProfile) return null
 
-  const isComplete = isProfileComplete(currentProfile)
+  // const isComplete = isProfileComplete(currentProfile)
 
   const confirmLeaveIfIncomplete = () => {
     if (!isComplete) {
       return window.confirm(
-        'Your profile is incomplete. Please fill in all required fields before leaving this page.'
+        'Your profile is incomplete. Please fill in all required fields before leaving this page.',
       )
     }
     return true
@@ -70,7 +70,7 @@ export default function AccountPage() {
           } catch {
             return null
           }
-        })
+        }),
       )
 
       const validQuests = questsStatus.filter(Boolean) as MyQuest[]
@@ -91,12 +91,15 @@ export default function AccountPage() {
   // ✅ EARLY RETURN COMES AFTER ALL HOOKS
   if (isLoading || !currentProfile) return null
 
+  const isComplete = isProfileComplete(currentProfile)
+
   const handleUpdate = async (updates: Partial<Profile>) => {
     await updateProfile.mutateAsync({
       input: {
         id: currentProfile.id,
         full_name: updates.full_name,
         email: updates.email,
+        phone: updates.phone,
         organization_name: updates.organization_name,
         registration_number: updates.registration_number,
         charity_number: updates.charity_number,
@@ -128,7 +131,7 @@ export default function AccountPage() {
             'px-4 py-2 rounded transition-colors',
             activeTab === 'account'
               ? 'bg-yellow-500 text-black hover:bg-yellow-600'
-              : 'bg-gray-800 text-gray-300 hover:bg-yellow-500 hover:text-black'
+              : 'bg-gray-800 text-gray-300 hover:bg-yellow-500 hover:text-black',
           )}
           onClick={() => setActiveTab('account')}
         >
@@ -140,7 +143,7 @@ export default function AccountPage() {
             'px-4 py-2 rounded transition-colors',
             activeTab === 'my-quests'
               ? 'bg-yellow-500 text-black hover:bg-yellow-600'
-              : 'bg-gray-800 text-gray-300 hover:bg-yellow-500 hover:text-black'
+              : 'bg-gray-800 text-gray-300 hover:bg-yellow-500 hover:text-black',
           )}
           onClick={() => {
             if (!confirmLeaveIfIncomplete()) return

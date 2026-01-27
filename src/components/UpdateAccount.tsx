@@ -34,7 +34,7 @@ export default function UpdateAccount({
   const [previewImage, setPreviewImage] = useState(profile.image || '')
   const [oldImagePath, setOldImagePath] = useState(profile.image || '')
   const [oldImageThumbPath, setOldImageThumbPath] = useState(
-    profile.image_thumbnail || ''
+    profile.image_thumbnail || '',
   )
 
   // ✅ Keep oldImagePath updated when profile changes
@@ -90,7 +90,7 @@ export default function UpdateAccount({
 
   // Helper function to upload full + thumbnail
   const uploadImageWithThumbnail = async (
-    file: File
+    file: File,
   ): Promise<{ fullPath: string; thumbPath: string }> => {
     const fullPath = `public/${crypto.randomUUID()}-${file.name}`
     const thumbPath = `public/thumbnails/${crypto.randomUUID()}-${file.name}`
@@ -170,8 +170,8 @@ export default function UpdateAccount({
 
         <InlineEditField
           label="Phone"
-          value={profile.primary_contact_phone || ''}
-          onSave={(newValue) => onUpdate({ primary_contact_phone: newValue })}
+          value={profile.phone || ''}
+          onSave={(newValue) => onUpdate({ phone: newValue })}
           required
         />
 
@@ -271,6 +271,14 @@ export default function UpdateAccount({
               required
             />
             <InlineEditField
+              label="Primary Contact Phone"
+              value={profile.primary_contact_phone || ''}
+              onSave={(newValue) =>
+                onUpdate({ primary_contact_phone: newValue })
+              }
+              required
+            />
+            <InlineEditField
               label="Secondary Contact Name"
               value={profile.secondary_contact_name || ''}
               onSave={(newValue) =>
@@ -298,7 +306,7 @@ export default function UpdateAccount({
             Please complete:
             <ul className="list-disc ml-5">
               {!profile.full_name && <li>Name</li>}
-              {!profile.primary_contact_phone && <li>Phone</li>}
+              {!profile.phone && <li>Phone</li>}
               {!profile.about_me && <li>About Me</li>}
               {profile.role === 'creator' && !profile.organization_name && (
                 <li>Organisation Name</li>
@@ -313,6 +321,20 @@ export default function UpdateAccount({
               {profile.role === 'creator' &&
                 profile.business_type === 'Registered Charity' &&
                 !profile.charity_number && <li>Registered Charity Number</li>}
+              {profile.role === 'creator' &&
+                !profile.organization_description && (
+                  <li>Organization Description</li>
+                )}
+              {profile.role === 'creator' && !profile.primary_contact_name && (
+                <li>Primary Contact Name</li>
+              )}
+              {profile.role === 'creator' &&
+                !profile.primary_contact_position && (
+                  <li>Primary Contact Position</li>
+                )}
+              {profile.role === 'creator' && !profile.primary_contact_phone && (
+                <li>Primary Contact Phone</li>
+              )}
             </ul>
           </div>
         )}
