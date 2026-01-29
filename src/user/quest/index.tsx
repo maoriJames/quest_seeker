@@ -42,6 +42,7 @@ export default function QuestPage() {
         id: p.id,
         full_name: p.full_name ?? '',
         email: p.email ?? '',
+        phone: p.phone ?? '',
         organization_name: p.organization_name ?? '',
         registration_number: p.registration_number ?? '',
         charity_number: p.charity_number ?? '',
