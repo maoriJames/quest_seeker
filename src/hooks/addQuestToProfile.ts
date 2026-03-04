@@ -28,7 +28,7 @@ export async function addQuestToProfile(questId: string, MyQuests: MyQuest[]) {
 
     // 🟢 FIRST TIME joining this quest
     if (!existingQuest) {
-      console.log('✅ Join bonus awarded (+10 points)')
+      // console.log('✅ Join bonus awarded (+10 points)')
 
       existingQuests.push({
         quest_id: questId,
@@ -52,7 +52,7 @@ export async function addQuestToProfile(questId: string, MyQuests: MyQuest[]) {
       MyQuests.forEach((newMyQuest) => {
         newMyQuest.tasks.forEach((newTask) => {
           const index = existingQuest.tasks.findIndex(
-            (t) => t.id === newTask.id
+            (t) => t.id === newTask.id,
           )
 
           if (index >= 0) {
@@ -82,7 +82,7 @@ export async function addQuestToProfile(questId: string, MyQuests: MyQuest[]) {
       authMode: 'userPool',
     })
 
-    console.log('✅ Profile updated with points:', (profile.points ?? 0) + 10)
+    // console.log('✅ Profile updated with points:', (profile.points ?? 0) + 10)
   } catch (err) {
     console.error('❌ Failed to add/update quest in profile:', err)
   }

@@ -6,7 +6,7 @@ const ses = new SESClient()
 const ddb = new DynamoDBClient()
 
 export const handler: DynamoDBStreamHandler = async (event) => {
-  console.log('Lambda invoked with event:', JSON.stringify(event))
+  // console.log('Lambda invoked with event:', JSON.stringify(event))
 
   for (const record of event.Records) {
     if (record.eventName !== 'MODIFY') continue
@@ -31,11 +31,11 @@ export const handler: DynamoDBStreamHandler = async (event) => {
     const joinedIds = newIds.filter((id) => !oldIds.includes(id))
 
     if (joinedIds.length === 0) {
-      console.log('No new participants joined')
+      // console.log('No new participants joined')
       continue
     }
 
-    console.log('New participants joined:', joinedIds)
+    // console.log('New participants joined:', joinedIds)
 
     const creatorId = newImage.creator_id?.S
     const questName = newImage.quest_name?.S ?? 'your quest'
@@ -47,7 +47,7 @@ export const handler: DynamoDBStreamHandler = async (event) => {
       new GetItemCommand({
         TableName: process.env.PROFILE_TABLE_NAME,
         Key: { id: { S: creatorId } },
-      })
+      }),
     )
 
     const creatorEmail = profileResult.Item?.email?.S
@@ -70,10 +70,10 @@ export const handler: DynamoDBStreamHandler = async (event) => {
               },
             },
           },
-        })
+        }),
       )
 
-      console.log('Notification email sent to:', creatorEmail)
+      // console.log('Notification email sent to:', creatorEmail)
     } catch (err: unknown) {
       if (err instanceof Error && err.name === 'MessageRejected') {
         console.warn('SES rejected email (sandbox):', creatorEmail)
@@ -89,7 +89,7 @@ export const handler: DynamoDBStreamHandler = async (event) => {
         new GetItemCommand({
           TableName: process.env.PROFILE_TABLE_NAME,
           Key: { id: { S: seekerId } },
-        })
+        }),
       )
 
       const seekerEmail = seekerProfile.Item?.email?.S
@@ -111,10 +111,10 @@ export const handler: DynamoDBStreamHandler = async (event) => {
                 },
               },
             },
-          })
+          }),
         )
 
-        console.log('Seeker notification sent to:', seekerEmail)
+        // console.log('Seeker notification sent to:', seekerEmail)
       } catch (err: unknown) {
         if (err instanceof Error && err.name === 'MessageRejected') {
           console.warn('SES rejected seeker email (sandbox):', seekerEmail)
@@ -123,7 +123,7 @@ export const handler: DynamoDBStreamHandler = async (event) => {
         }
       }
 
-      console.log('Seeker notification sent to:', seekerEmail)
+      // console.log('Seeker notification sent to:', seekerEmail)
     }
   }
 }

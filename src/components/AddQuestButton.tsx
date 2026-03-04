@@ -35,11 +35,11 @@ export default function AddQuestButton({ to }: AddQuestButtonProps) {
   // Treat missing role as "seeker" by default
   const role = currentProfile?.role ?? ProfileRole.seeker
 
-  console.log({
-    currentProfile,
-    role: currentProfile?.role,
-    isLoading,
-  })
+  // console.log({
+  //   currentProfile,
+  //   role: currentProfile?.role,
+  //   isLoading,
+  // })
 
   const handleClick = () => {
     if (!currentProfile) return

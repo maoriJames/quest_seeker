@@ -9,6 +9,7 @@ import placeHold from '@/assets/images/placeholder_view_vector.svg'
 import { Trash2 } from 'lucide-react'
 import { toZonedTime } from 'date-fns-tz'
 import { useQuestDeletion } from '@/hooks/useQuestDeletion'
+import { ensureArray } from '@/tools/ensureArray'
 
 type MyQuestsProps = {
   profile: Profile
@@ -24,27 +25,29 @@ export default function MyQuests({ profile }: MyQuestsProps) {
   const now = new Date()
 
   const myCreatedQuests = allQuests.filter(
-    (quest) => quest.creator_id === profile.id
+    (quest) => quest.creator_id === profile.id,
   )
   // console.log('myCreatedQuests: ', myCreatedQuests)
+  const myQuestsArray = ensureArray<any>(profile.my_quests)
 
-  const normalizedQuests = (profile.my_quests ?? []).map((myQuest) => {
+  const normalizedQuests = myQuestsArray.map((myQuest) => {
     const fullQuest = allQuests.find((q) => q.id === myQuest.quest_id)
 
     const questStatus = fullQuest?.status ?? 'draft'
 
-    // const nzNow = toZonedTime(new Date(), 'Pacific/Auckland')
     const startDate = fullQuest?.quest_start_at
       ? toZonedTime(new Date(fullQuest.quest_start_at), 'Pacific/Auckland')
       : null
-    // console.log('Start date', startDate)
+
     const isUpcoming =
       questStatus === 'published' && startDate && startDate > now
 
     const isExpired = questStatus === 'expired'
 
-    const totalTasks = myQuest.tasks?.length ?? 0
-    const completedTasks = myQuest.tasks?.filter((t) => t.completed).length ?? 0
+    const tasks = ensureArray<any>(myQuest.tasks)
+
+    const totalTasks = tasks.length
+    const completedTasks = tasks.filter((t) => t.completed).length
 
     const progressPercent =
       totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
@@ -63,10 +66,6 @@ export default function MyQuests({ profile }: MyQuestsProps) {
       progressPercent,
     }
   })
-
-  // console.log('normalizedQuests: ', normalizedQuests)
-  console.log('profile.my_quests:', profile.my_quests)
-  console.log('allQuests:', allQuests)
 
   return (
     <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl p-8 max-w-md w-full">
@@ -152,7 +151,7 @@ export default function MyQuests({ profile }: MyQuestsProps) {
                 const startDate = quest.quest_start_at
                   ? toZonedTime(
                       new Date(quest.quest_start_at),
-                      'Pacific/Auckland'
+                      'Pacific/Auckland',
                     )
                   : null
                 //                   const startDate = fullQuest?.quest_start_at

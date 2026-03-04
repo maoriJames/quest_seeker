@@ -28,7 +28,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@radix-ui/react-tooltip'
-import { parseQuestTasks } from '@/tools/questTasks'
+// import { parseQuestTasks } from '@/tools/questTasks'
 import { Toolbar } from './Toolbar'
 import TaskPreview from './TaskPreview'
 import { GetProfileQuery, QuestStatus } from '@/graphql/API'
@@ -40,6 +40,7 @@ import SeekerTaskPdfButton from '@/components/SeekerTaskPdfButton'
 import { format, toZonedTime } from 'date-fns-tz'
 import { getUrl } from 'aws-amplify/storage'
 import { joinQuest } from '@/graphql/mutations'
+import { ensureArray } from '@/tools/ensureArray'
 
 export default function QuestDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -70,13 +71,11 @@ export default function QuestDetailPage() {
   // Update edit fields when quest data is fetched
   useEffect(() => {
     if (!quest) return
-
-    const parsedTasks: Task[] = Array.isArray(quest.quest_tasks)
-      ? quest.quest_tasks
-      : JSON.parse(quest.quest_tasks || '[]')
-
-    setTasks(parsedTasks)
+    // console.log('What is quest.quest_tasks? ', quest.quest_tasks)
+    setTasks(ensureArray<Task>(quest.quest_tasks))
   }, [quest])
+  // console.log('Tasks: ', tasks)
+  // console.log('quest.quest_tasks: ', quest?.quest_tasks)
 
   useEffect(() => {
     if (isExpired && !participantsLoaded) {
@@ -120,7 +119,7 @@ export default function QuestDetailPage() {
           console.error('Failed to resolve image URL:', err)
           return task
         }
-      })
+      }),
     )
 
     setPdfTasks(resolved)
@@ -197,18 +196,16 @@ export default function QuestDetailPage() {
   const progressPercent =
     totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
 
-  const seekerTasks: Task[] = parseQuestTasks(quest?.quest_tasks).map(
-    (task) => {
-      const existingAnswer = joinedQuestEntry?.tasks?.find(
-        (t) => t.id === task.id
-      )
-      return {
-        ...task,
-        caption: existingAnswer?.caption || '',
-        answer: existingAnswer?.answer || '', // <-- use empty string instead of null
-      }
+  const seekerTasks = tasks.map((task) => {
+    const existingAnswer = joinedQuestEntry?.tasks?.find(
+      (t) => t.id === task.id,
+    )
+    return {
+      ...task,
+      caption: existingAnswer?.caption || '',
+      answer: existingAnswer?.answer || '',
     }
-  )
+  })
 
   // Parse sponsors (safe check in case it's undefined or malformed)
   const sponsors: Sponsor[] = (() => {
@@ -237,7 +234,7 @@ export default function QuestDetailPage() {
 
     // Find this quest's entry for this participant
     const questEntry = myQuests.find((q) => q.quest_id === quest.id)
-    console.log('questEntry: ', questEntry)
+    // console.log('questEntry: ', questEntry)
     if (!questEntry) return false
 
     // ✅ 1) If the MyQuest-level completed flag is true, we’re done
@@ -273,7 +270,7 @@ export default function QuestDetailPage() {
           }
 
           return null
-        })
+        }),
       )
 
       setParticipantProfiles(profiles.filter(Boolean) as Profile[])
@@ -281,7 +278,7 @@ export default function QuestDetailPage() {
     } catch (err) {
       console.error('Failed to fetch participant profiles:', err)
     }
-    console.log('Participants Array: ', participantsArray.length)
+    // console.log('Participants Array: ', participantsArray.length)
   }
   return (
     <div
@@ -566,7 +563,7 @@ export default function QuestDetailPage() {
                   </p>
                   <p className="text-sm text-gray-500">
                     Number of tasks in this quest:{' '}
-                    <strong>{tasks.length}</strong>
+                    <strong>{ensureArray<Task>(tasks).length}</strong>
                   </p>
                   <p className="text-sm text-gray-500">
                     Entry: <strong>${quest.quest_entry}</strong>
@@ -773,7 +770,7 @@ export default function QuestDetailPage() {
                     <TaskInformationWindow
                       questId={quest.id}
                       tasks={seekerTasks}
-                      userTasks={myQuestsArray}
+                      userTasks={joinedQuestEntry ? [joinedQuestEntry] : []}
                       readOnly={isOwner}
                       onTasksUpdated={async () => {
                         await refetch()
@@ -783,7 +780,9 @@ export default function QuestDetailPage() {
                   </div>
                 )}
 
-                {!isOwner && !hasJoined && <TaskPreview tasks={tasks} />}
+                {!isOwner && !hasJoined && (
+                  <TaskPreview tasks={ensureArray(tasks)} />
+                )}
               </>
             )}
           </div>

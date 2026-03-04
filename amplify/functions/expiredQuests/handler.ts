@@ -24,7 +24,7 @@ export const handler: Handler = async () => {
     },
   })
 
-  console.log(`Found ${quests.length} quests to expire.`)
+  // console.log(`Found ${quests.length} quests to expire.`)
 
   for (const quest of quests) {
     await client.models.Quest.update({

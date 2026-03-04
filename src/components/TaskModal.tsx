@@ -9,7 +9,7 @@ import {
 import { Button } from '@/components/ui/button'
 
 export const TaskModal: React.FC<TaskModalProps> = ({
-  tasks,
+  tasks = [],
   setTasks,
   setTask,
   setEditIndex,
@@ -17,9 +17,13 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   onClose,
   onNewTask,
 }) => {
+  // console.log('tasks type:', typeof tasks, 'isArray:', Array.isArray(tasks))
+  // console.log('tasks value:', tasks)
   const handleEditTask = (index: number) => {
-    const taskToEdit = tasks[index].description
-    setTask(taskToEdit)
+    const task = tasks[index]
+    if (!task) return
+
+    setTask(task.description)
     setEditIndex(index)
     onClose()
   }
@@ -32,13 +36,22 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   }
 
   return (
-    <Dialog open={visible} onOpenChange={onClose}>
+    <Dialog
+      open={visible}
+      onOpenChange={(open) => {
+        if (!open) onClose()
+      }}
+    >
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Tasks</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
+          {tasks.length === 0 && (
+            <div className="text-gray-500">No tasks yet.</div>
+          )}
+
           {tasks.map((task, index) => (
             <div
               key={task.id ?? index}
@@ -47,7 +60,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               <span className="font-semibold mr-2">
                 {task.isImage ? 'IMAGE:' : 'TEXT:'}
               </span>
-              <span className="flex-1 truncate">{task.description}</span>
+              <span className="flex-1 truncate">{task.description ?? ''}</span>
+
               <div className="flex space-x-2">
                 <button
                   onClick={() => handleEditTask(index)}

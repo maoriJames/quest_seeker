@@ -13,7 +13,13 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
   const [answer, setAnswer] = useState('')
   const [caption, setCaption] = useState('')
   const [location, setLocation] = useState('')
-  const [tasks, setTasks] = useState<Task[]>(questUpdates)
+  const [tasks, setTasks] = useState<Task[]>(
+    Array.isArray(questUpdates)
+      ? questUpdates
+      : typeof questUpdates === 'string'
+        ? JSON.parse(questUpdates)
+        : [],
+  )
 
   const [editIndex, setEditIndex] = useState(-1)
   const [modalVisible, setModalVisible] = useState(false)
@@ -35,7 +41,13 @@ const TaskCreatorButton: React.FC<TaskCreatorButtonProps> = ({
   }
 
   useEffect(() => {
-    setTasks(questUpdates)
+    setTasks(
+      Array.isArray(questUpdates)
+        ? questUpdates
+        : typeof questUpdates === 'string'
+          ? JSON.parse(questUpdates)
+          : [],
+    )
   }, [questUpdates])
 
   const handleAddTask = () => {

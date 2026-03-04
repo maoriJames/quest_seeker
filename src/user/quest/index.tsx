@@ -27,10 +27,10 @@ export default function QuestPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [sortOption, setSortOption] = useState('title')
 
-  console.log('quests:', quests)
-  console.log('isLoading:', isLoading)
+  // console.log('quests:', quests)
+  // console.log('isLoading:', isLoading)
   console.log('isError:', isError)
-  console.log('error:', error)
+  // console.log('error:', error)
 
   const profileMap: Record<string, Profile> = useMemo(() => {
     const map: Record<string, Profile> = {}
@@ -165,7 +165,7 @@ export default function QuestPage() {
       setVisibleCount((prev) => prev + pageSize)
     }, 500) // simulates load time
   }
-  console.log('Quest: ', allQuests)
+  // console.log('Quest: ', allQuests)
   return (
     <div
       className="relative min-h-screen flex items-center justify-center bg-cover bg-center px-4"

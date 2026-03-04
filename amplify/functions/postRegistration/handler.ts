@@ -31,7 +31,7 @@ export const handler: PostConfirmationTriggerHandler = async (event) => {
       role: 'seeker',
     })
 
-    console.log('Profile created for user:', sub)
+    // console.log('Profile created for user:', sub)
   } catch (err: unknown) {
     if (err instanceof Error) {
       console.warn('Profile creation failed:', err.message)

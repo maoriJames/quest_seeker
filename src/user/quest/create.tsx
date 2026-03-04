@@ -29,6 +29,7 @@ import { uploadData } from 'aws-amplify/storage'
 import imageCompression from 'browser-image-compression'
 import { MutateQuestAction, QuestStatus } from '@/graphql/API'
 import { toZonedTime } from 'date-fns-tz'
+import { ensureArray } from '@/tools/ensureArray'
 
 export default function CreateQuestPage() {
   const navigate = useNavigate()
@@ -95,9 +96,7 @@ export default function CreateQuestPage() {
     )
     setSelectedRegion(updatingQuest.region ?? '')
     setCurrencyValue(updatingQuest.quest_entry?.toString() ?? '')
-    setTasks(
-      updatingQuest.quest_tasks ? JSON.parse(updatingQuest.quest_tasks) : [],
-    )
+    setTasks(ensureArray<Task>(updatingQuest?.quest_tasks))
 
     setLoading(false)
   }, [updatingQuest])
