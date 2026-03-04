@@ -73,7 +73,7 @@ export default function UpdateAccount({
             : oldImageThumbPath
           if (cleanFull) await remove({ path: cleanFull })
           if (cleanThumb) await remove({ path: cleanThumb })
-          console.log('✅ Old images removed')
+          // console.log('✅ Old images removed')
         } catch (err) {
           console.error('Error deleting old images:', err)
         }
@@ -179,7 +179,7 @@ export default function UpdateAccount({
           label="About me"
           value={profile.about_me || ''}
           onSave={(newValue) => {
-            console.log('ABOUT ME SAVING:', newValue)
+            // console.log('ABOUT ME SAVING:', newValue)
             onUpdate({ about_me: newValue })
           }}
           required

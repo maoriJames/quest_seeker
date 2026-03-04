@@ -127,7 +127,7 @@ export const useUpdateProfile = (
 
       const updated = result.data.updateProfile
 
-      console.log('🟢 useUpdateProfile returned profile:', updated)
+      // console.log('🟢 useUpdateProfile returned profile:', updated)
 
       return updated
     },

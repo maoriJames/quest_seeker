@@ -45,6 +45,7 @@ export default function TaskInformationWindow({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
+  // console.log('Tasks in TaskInformationWindow: ', tasks)
   const getCurrentCoords = () => {
     if (!navigator.geolocation) {
       alert('Geolocation not supported on this device.')
@@ -63,9 +64,13 @@ export default function TaskInformationWindow({
       (err) => {
         alert('Failed to get location: ' + err.message)
       },
-      { enableHighAccuracy: true }
+      { enableHighAccuracy: true },
     )
   }
+
+  // useEffect(() => {
+  //   console.log('Tasks in TaskInformationWindow:', tasks)
+  // }, [tasks])
 
   // Prefill when a task is selected
   useEffect(() => {
@@ -81,7 +86,7 @@ export default function TaskInformationWindow({
           location: existingAnswer?.location || '',
           completed: existingAnswer?.completed ?? false,
         }
-      })
+      }),
     )
   }, [tasks, userTasks, questId])
 
@@ -97,19 +102,19 @@ export default function TaskInformationWindow({
 
   const handleCaptionChange = (taskId: string, value: string) => {
     setEditableTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, caption: value } : t))
+      prev.map((t) => (t.id === taskId ? { ...t, caption: value } : t)),
     )
   }
 
   const handleAnswerChange = (taskId: string, answer: string) => {
     setEditableTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, answer } : t))
+      prev.map((t) => (t.id === taskId ? { ...t, answer } : t)),
     )
   }
 
   const handleLocationChange = (taskId: string, location: string) => {
     setEditableTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, location } : t))
+      prev.map((t) => (t.id === taskId ? { ...t, location } : t)),
     )
   }
 
@@ -167,7 +172,7 @@ export default function TaskInformationWindow({
       const pointsDelta = shouldAwardPoints ? 1 : 0
 
       if (pointsDelta > 0 && currentUserProfile) {
-        console.log('1 is true')
+        // console.log('1 is true')
         await updateProfile({
           input: {
             id: currentUserProfile.id,
@@ -186,7 +191,7 @@ export default function TaskInformationWindow({
               location,
               completed: taskIsCompleted,
             }
-          : t
+          : t,
       )
 
       // 🔥 3. Compute quest-wide `completed` state AFTER updating this task
@@ -219,8 +224,8 @@ export default function TaskInformationWindow({
       // 🔥 5. Optimistic UI update
       setEditableTasks((prev) =>
         prev.map((t) =>
-          t.id === selectedTask.id ? { ...t, completed: taskIsCompleted } : t
-        )
+          t.id === selectedTask.id ? { ...t, completed: taskIsCompleted } : t,
+        ),
       )
 
       if (onTasksUpdated) await onTasksUpdated()
