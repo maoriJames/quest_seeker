@@ -857,7 +857,14 @@ export default function CreateQuestPage() {
               </Button>
               <Button
                 variant="yellow"
-                onClick={() => saveQuest(QuestStatus.published)}
+                onClick={() => {
+                  const proceed = window.confirm(
+                    "If you 'Finish & Create Quest' or 'Save and Publish Quest', you will not be able to make any further changes to this quest. Do you want to continue?",
+                  )
+                  if (proceed) {
+                    saveQuest(QuestStatus.published)
+                  }
+                }}
               >
                 {isDraftBeingPublished
                   ? 'Save and Publish Quest'

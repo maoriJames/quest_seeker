@@ -429,13 +429,18 @@ export default function QuestDetailPage() {
               </div>
             )}
             {/* Edit Button (top right of banner) */}
-            {isOwner && !isExpired && (
+            {isOwner && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
                       onClick={() => navigate(`/user/quest/${id}/edit`)}
-                      className="absolute top-4 right-4 p-2 rounded-full bg-white/80 hover:bg-white shadow z-20"
+                      className={`absolute top-4 right-4 p-2 rounded-full bg-white/80 shadow z-20 ${
+                        quest.status === QuestStatus.published
+                          ? 'cursor-not-allowed opacity-50 hover:bg-white/80'
+                          : 'hover:bg-white'
+                      }`}
+                      disabled={quest.status === QuestStatus.published}
                     >
                       <Pencil className="w-5 h-5 text-gray-700" />
                     </button>
@@ -444,7 +449,9 @@ export default function QuestDetailPage() {
                     side="top"
                     className="bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg"
                   >
-                    Edit quest
+                    {quest.status === QuestStatus.published
+                      ? 'Only draft Quests can be edited'
+                      : 'Edit quest'}
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
