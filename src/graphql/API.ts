@@ -754,6 +754,16 @@ export type CreateQuestMutation = {
   } | null,
 };
 
+export type CreateStripeSessionMutationVariables = {
+  profileId: string,
+  questId: string,
+  returnUrl: string,
+};
+
+export type CreateStripeSessionMutation = {
+  createStripeSession?: string | null,
+};
+
 export type DeleteProfileMutationVariables = {
   condition?: ModelProfileConditionInput | null,
   input: DeleteProfileInput,

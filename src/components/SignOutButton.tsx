@@ -1,4 +1,4 @@
-import { signOut } from '@aws-amplify/auth'
+import { signOut } from 'aws-amplify/auth'
 import { Button } from '@/components/ui/button'
 import { LogOut } from 'lucide-react'
 

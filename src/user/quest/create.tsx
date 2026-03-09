@@ -21,7 +21,7 @@ import placeHold from '@/assets/images/placeholder_view_vector.svg'
 import bg from '@/assets/images/background_main.png'
 import { useMutateQuest, useQuest } from '@/hooks/userQuests'
 import { Prize, Sponsor, Task } from '@/types'
-// import { useCurrentUserProfile } from '@/hooks/userProfiles'
+import { useCurrentUserProfile } from '@/hooks/userProfiles'
 // import { getCurrentUser } from 'aws-amplify/auth'
 import { DialogTitle } from '@radix-ui/react-dialog'
 import { VisuallyHidden } from '@aws-amplify/ui-react'
@@ -30,13 +30,17 @@ import imageCompression from 'browser-image-compression'
 import { MutateQuestAction, QuestStatus } from '@/graphql/API'
 import { toZonedTime } from 'date-fns-tz'
 import { ensureArray } from '@/tools/ensureArray'
+import { generateClient } from 'aws-amplify/api'
+import { Schema } from 'amplify/data/resource'
+
+const client = generateClient<Schema>()
 
 export default function CreateQuestPage() {
   const navigate = useNavigate()
   const params = useParams()
   const questId = params.id
   const isUpdating = !!questId
-
+  const { data: profile, isLoading: isProfileLoading } = useCurrentUserProfile()
   const [createdQuestId, setCreatedQuestId] = useState<string | null>(null)
 
   const effectiveQuestId = questId ?? createdQuestId
@@ -209,22 +213,51 @@ export default function CreateQuestPage() {
       return { fullPath: '', thumbPath: '' }
     }
   }
-  // const formatGraphQLErrors = (err: any) => {
-  //   // Case A: you threw the GraphQLResult directly (your screenshot-like object)
-  //   const errs = err?.errors ?? err?.data?.errors
 
-  //   if (Array.isArray(errs) && errs.length) {
-  //     return errs.map((e: any) => e?.message ?? JSON.stringify(e)).join('\n')
-  //   }
+  const handlePayAndPublish = async () => {
+    try {
+      console.log('1. Starting Save...')
+      const questId = await saveQuest(QuestStatus.published)
 
-  //   // Case B: normal JS error
-  //   return err?.message ?? String(err)
-  // }
+      if (!questId) {
+        alert('Save failed - check your validation or image upload.')
+        return
+      }
+
+      console.log('2. Profile ID:', profile?.id)
+      if (!profile?.id) {
+        alert('Error: Profile ID is missing. Are you logged in?')
+        return
+      }
+
+      console.log('3. Calling Stripe Mutation...')
+      // Force a try-catch here to see why it might be "silent"
+      const response = await client.mutations.createStripeSession({
+        questId: questId,
+        profileId: profile.id,
+        returnUrl: window.location.origin + '/user/account?payment=success',
+      })
+
+      console.log('4. Mutation Response:', response)
+
+      if (response.data) {
+        window.location.href = response.data
+      } else if (response.errors) {
+        console.error('GraphQL Errors:', response.errors)
+        alert(`Mutation Error: ${response.errors[0].message}`)
+      }
+    } catch (err: any) {
+      console.error('CRITICAL ERROR:', err)
+      alert(`Caught Error: ${err.message}`)
+    }
+  }
 
   const saveQuest = async (status: QuestStatus) => {
-    if (status === QuestStatus.published && !validateInput()) return
+    // 1. Validation
+    if (status === QuestStatus.published && !validateInput()) return null
 
     try {
+      setLoading(true)
       const imagePaths = imageFile
         ? await uploadImage(imageFile)
         : { fullPath: previewImage, thumbPath: '' }
@@ -245,43 +278,38 @@ export default function CreateQuestPage() {
 
       let currentQuestId = effectiveQuestId
 
-      // ------------------------------------
-      // Ensure questId exists
-      // ------------------------------------
+      // 2. Create or Update Draft (Always save as draft first)
       if (!currentQuestId) {
         const draftResult = await mutateQuest({
           action: MutateQuestAction.CREATE_DRAFT,
           ...basePayload,
         })
-
-        const newQuestId = draftResult?.questId
-        if (!newQuestId) {
-          console.error('CREATE_DRAFT result:', draftResult)
-          throw new Error('CREATE_DRAFT returned no questId')
-        }
-
-        setCreatedQuestId(newQuestId)
-        currentQuestId = newQuestId // ✅ CRITICAL LINE
+        currentQuestId = draftResult?.questId
+        setCreatedQuestId(currentQuestId)
+      } else {
+        await mutateQuest({
+          action: MutateQuestAction.UPDATE_DRAFT,
+          questId: currentQuestId,
+          ...basePayload,
+        })
       }
 
-      // ------------------------------------
-      // Now questId ALWAYS exists
-      // ------------------------------------
-      const action =
-        status === QuestStatus.published
-          ? MutateQuestAction.PUBLISH
-          : MutateQuestAction.UPDATE_DRAFT
+      // 3. Logic Branch
+      // If the status passed is specifically 'draft', it means the user clicked the "Save as Draft" button.
+      if (status === QuestStatus.draft) {
+        navigate('/user/quests')
+        return null
+      }
 
-      await mutateQuest({
-        action,
-        questId: currentQuestId, // ✅ always defined
-        ...basePayload,
-      })
-
-      navigate(-1)
+      // If we are here, it means we are in the "Publish/Pay" flow.
+      // We've saved the draft, now we return the ID to the payment handler.
+      return currentQuestId
     } catch (err) {
       console.error('saveQuest failed:', err)
-      // setErrors(formatGraphQLErrors(err))
+      setErrors('Failed to save quest. Please try again.')
+      return null
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -857,20 +885,16 @@ export default function CreateQuestPage() {
               </Button>
               <Button
                 variant="yellow"
-                onClick={() => {
-                  const proceed = window.confirm(
-                    "If you 'Finish & Create Quest' or 'Save and Publish Quest', you will not be able to make any further changes to this quest. Do you want to continue?",
-                  )
-                  if (proceed) {
-                    saveQuest(QuestStatus.published)
-                  }
-                }}
+                disabled={loading || isProfileLoading || isPublishedQuest}
+                onClick={handlePayAndPublish} // 👈 Updated
               >
-                {isDraftBeingPublished
-                  ? 'Save and Publish Quest'
-                  : isUpdating
-                    ? 'Save Changes'
-                    : 'Finish & Create Quest'}
+                {loading
+                  ? 'Processing...'
+                  : isDraftBeingPublished
+                    ? 'Pay and Publish Quest'
+                    : isUpdating
+                      ? 'Save and Publish Changes'
+                      : 'Finish & Create Quest'}
               </Button>
             </div>
           </>

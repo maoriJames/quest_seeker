@@ -82,6 +82,21 @@ export const createQuest = /* GraphQL */ `mutation CreateQuest(
   APITypes.CreateQuestMutationVariables,
   APITypes.CreateQuestMutation
 >;
+export const createStripeSession = /* GraphQL */ `mutation CreateStripeSession(
+  $profileId: String!
+  $questId: String!
+  $returnUrl: String!
+) {
+  createStripeSession(
+    profileId: $profileId
+    questId: $questId
+    returnUrl: $returnUrl
+  )
+}
+` as GeneratedMutation<
+  APITypes.CreateStripeSessionMutationVariables,
+  APITypes.CreateStripeSessionMutation
+>;
 export const deleteProfile = /* GraphQL */ `mutation DeleteProfile(
   $condition: ModelProfileConditionInput
   $input: DeleteProfileInput!

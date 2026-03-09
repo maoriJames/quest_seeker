@@ -11,9 +11,19 @@ import { toZonedTime } from 'date-fns-tz'
 import { useQuestDeletion } from '@/hooks/useQuestDeletion'
 import { ensureArray } from '@/tools/ensureArray'
 
+// Type for the my_quests data structure
+interface MyQuestData {
+  quest_id: string
+  title: string
+  tasks: Array<{
+    id: string
+    name: string
+    completed: boolean
+  }>
+}
+
 type MyQuestsProps = {
   profile: Profile
-  // allQuests: Quest[]
 }
 
 export default function MyQuests({ profile }: MyQuestsProps) {
@@ -28,7 +38,7 @@ export default function MyQuests({ profile }: MyQuestsProps) {
     (quest) => quest.creator_id === profile.id,
   )
   // console.log('myCreatedQuests: ', myCreatedQuests)
-  const myQuestsArray = ensureArray<any>(profile.my_quests)
+  const myQuestsArray = ensureArray<MyQuestData>(profile.my_quests)
 
   const normalizedQuests = myQuestsArray.map((myQuest) => {
     const fullQuest = allQuests.find((q) => q.id === myQuest.quest_id)
@@ -44,7 +54,7 @@ export default function MyQuests({ profile }: MyQuestsProps) {
 
     const isExpired = questStatus === 'expired'
 
-    const tasks = ensureArray<any>(myQuest.tasks)
+    const tasks = myQuest.tasks
 
     const totalTasks = tasks.length
     const completedTasks = tasks.filter((t) => t.completed).length
@@ -154,15 +164,6 @@ export default function MyQuests({ profile }: MyQuestsProps) {
                       'Pacific/Auckland',
                     )
                   : null
-                //                   const startDate = fullQuest?.quest_start_at
-                //   ? toZonedTime(new Date(fullQuest.quest_start_at), 'Pacific/Auckland')
-                //   : null
-                // console.log(
-                //   'Start date for: ',
-                //   quest.quest_name,
-                //   ' is ',
-                //   startDate
-                // )
 
                 const isUpcoming =
                   quest.status === 'published' && startDate && startDate > now
