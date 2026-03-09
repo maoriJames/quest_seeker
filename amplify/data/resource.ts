@@ -4,6 +4,8 @@ import { postRegistration } from '../functions/postRegistration/resource'
 import { joinQuest } from '../functions/joinQuest/resource'
 import { becomeCreator } from '../functions/becomeCreator/resource'
 import { mutateQuest } from '../functions/mutateQuest/resource'
+import { createStripeSession } from '../functions/createStripeSession/resource'
+import { stripeWebhook } from '../functions/stripeWebhook/resource'
 
 export const schema = a
   .schema({
@@ -67,6 +69,17 @@ export const schema = a
       .authorization((allow) => [allow.groups(['creator'])])
       .handler(a.handler.function(mutateQuest)),
 
+    createStripeSession: a
+      .mutation()
+      .arguments({
+        questId: a.string().required(),
+        profileId: a.string().required(),
+        returnUrl: a.string().required(),
+      })
+      .returns(a.string())
+      .authorization((allow) => [allow.authenticated()])
+      .handler(a.handler.function(createStripeSession)), // Ensure this matches your imported resource
+
     /* ------------------ QUEST MODEL ------------------ */
     Quest: a
       .model({
@@ -87,9 +100,10 @@ export const schema = a
         participants: a.json(),
       })
       .authorization((allow) => [
-        allow.groups(['creator']).to(['create', 'update', 'delete', 'read']), // 👈 add read
+        allow.groups(['creator']).to(['create', 'update', 'delete', 'read']),
         allow.groups(['Admin']).to(['create', 'update', 'delete', 'read']),
         allow.authenticated().to(['read']),
+        allow.guest().to(['read', 'update']),
       ]),
 
     /* ------------------ PROFILE MODEL ------------------ */
@@ -124,6 +138,9 @@ export const schema = a
         allow.owner().to(['read', 'create', 'update']),
         allow.authenticated().to(['read', 'update', 'create']),
         allow.groups(['Admin']).to(['read', 'update', 'delete']),
+        // allow.groups(['creator']).to(['read']),
+        allow.guest().to(['read']),
+        // allow.authenticated('identityPool').to(['read']),
       ]),
   })
   .authorization((allow) => [
@@ -134,6 +151,8 @@ export const schema = a
     allow.resource(postRegistration).to(['mutate']),
     allow.resource(becomeCreator).to(['query', 'mutate']),
     allow.resource(mutateQuest).to(['mutate', 'query']),
+    allow.resource(createStripeSession).to(['query']),
+    allow.resource(stripeWebhook).to(['query', 'mutate']),
   ])
 
 export type Schema = ClientSchema<typeof schema>

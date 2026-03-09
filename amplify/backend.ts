@@ -2,7 +2,7 @@ import { defineBackend } from '@aws-amplify/backend'
 import * as lambda from 'aws-cdk-lib/aws-lambda'
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam'
 import { DynamoEventSource } from 'aws-cdk-lib/aws-lambda-event-sources'
-import { StartingPosition } from 'aws-cdk-lib/aws-lambda'
+import { FunctionUrlAuthType, StartingPosition } from 'aws-cdk-lib/aws-lambda'
 
 import { auth } from './auth/resource'
 import { data } from './data/resource'
@@ -14,6 +14,8 @@ import { postRegistration } from './functions/postRegistration/resource'
 import { joinQuest } from './functions/joinQuest/resource'
 import { becomeCreator } from './functions/becomeCreator/resource'
 import { mutateQuest } from './functions/mutateQuest/resource'
+import { createStripeSession } from './functions/createStripeSession/resource'
+import { stripeWebhook } from './functions/stripeWebhook/resource'
 
 const backend = defineBackend({
   auth,
@@ -25,6 +27,17 @@ const backend = defineBackend({
   joinQuest,
   becomeCreator,
   mutateQuest,
+  createStripeSession,
+  stripeWebhook,
+})
+
+const webhookLambda = backend.stripeWebhook.resources.lambda
+
+webhookLambda.addFunctionUrl({
+  authType: FunctionUrlAuthType.NONE, // Stripe needs public access
+  cors: {
+    allowedOrigins: ['*'], // Or specifically 'https://stripe.com'
+  },
 })
 
 // -----------------------------
@@ -37,7 +50,7 @@ const profileTable = backend.data.resources.tables['Profile']
 // mutateQuest permissions
 // -----------------------------
 questTable.grantReadWriteData(
-  backend.mutateQuest.resources.lambda as lambda.Function
+  backend.mutateQuest.resources.lambda as lambda.Function,
 )
 
 backend.mutateQuest.addEnvironment('QUEST_TABLE_NAME', questTable.tableName)
@@ -51,14 +64,14 @@ const notificationLambda = backend.sendNotification.resources
 notificationLambda.addEventSource(
   new DynamoEventSource(questTable, {
     startingPosition: StartingPosition.LATEST,
-  })
+  }),
 )
 
 notificationLambda.addToRolePolicy(
   new PolicyStatement({
     actions: ['ses:SendEmail', 'ses:SendRawEmail'],
     resources: ['*'],
-  })
+  }),
 )
 
 profileTable.grantReadData(notificationLambda)
