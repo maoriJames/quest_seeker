@@ -1,9 +1,9 @@
+import { Amplify } from 'aws-amplify'
 import { generateClient } from 'aws-amplify/data'
 import type { Schema } from '../../data/resource'
 import Stripe from 'stripe'
 import { env } from '$amplify/env/createStripeSession'
 import outputs from '../../../amplify_outputs.json'
-import { Amplify } from 'aws-amplify'
 
 Amplify.configure(outputs)
 
