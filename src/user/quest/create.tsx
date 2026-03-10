@@ -224,7 +224,6 @@ export default function CreateQuestPage() {
         return
       }
 
-      console.log('2. Profile ID:', profile?.id)
       if (!profile?.id) {
         alert('Error: Profile ID is missing. Are you logged in?')
         return
