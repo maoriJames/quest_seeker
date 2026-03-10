@@ -33,7 +33,7 @@ export const handler = async (event: LambdaFunctionURLEvent) => {
 
     if (questId) {
       const mutation = /* GraphQL */ `
-        mutation UpdateQuest($id: ID!, $status: String!) {
+        mutation UpdateQuest($id: ID!, $status: QuestStatus!) {
           updateQuest(input: { id: $id, status: $status }) {
             id
             status
