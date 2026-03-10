@@ -1,16 +1,9 @@
-import { Amplify } from 'aws-amplify' // 1. Add this
-import { generateClient } from 'aws-amplify/data'
-import type { Schema } from '../../data/resource'
 import Stripe from 'stripe'
 import { env } from '$amplify/env/stripeWebhook'
 import type { LambdaFunctionURLEvent } from 'aws-lambda'
-import outputs from '../../../amplify_outputs.json'
-
-// 3. Configure Amplify (This is the missing piece!)
-Amplify.configure(outputs)
+import { signedAppSyncFetch } from '../shared/appsyncRequest'
 
 const stripe = new Stripe(env.STRIPE_SECRET_KEY!)
-const client = generateClient<Schema>({ authMode: 'iam' })
 
 export const handler = async (event: LambdaFunctionURLEvent) => {
   const body = event.isBase64Encoded
@@ -28,7 +21,6 @@ export const handler = async (event: LambdaFunctionURLEvent) => {
       env.STRIPE_WEBHOOK_SECRET!,
     )
   } catch (err) {
-    console.error('Webhook Error:', err)
     return {
       statusCode: 400,
       body: `Webhook Error: ${err instanceof Error ? err.message : 'Unknown'}`,
@@ -40,15 +32,23 @@ export const handler = async (event: LambdaFunctionURLEvent) => {
     const questId = session.metadata?.questId
 
     if (questId) {
-      console.log(`🚀 Webhook received! Updating Quest: ${questId}`)
+      const mutation = /* GraphQL */ `
+        mutation UpdateQuest($id: ID!, $status: String!) {
+          updateQuest(input: { id: $id, status: $status }) {
+            id
+            status
+          }
+        }
+      `
 
-      // 4. Await and log the result
-      const result = await client.models.Quest.update({
+      // Use the helper! No amplify_outputs.json needed.
+      const response = await signedAppSyncFetch(mutation, {
         id: questId,
         status: 'published',
       })
 
-      console.log('Update Result:', JSON.stringify(result, null, 2))
+      const result = await response.json()
+      console.log('Update Success:', JSON.stringify(result))
     }
   }
 

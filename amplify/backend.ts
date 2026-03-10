@@ -77,3 +77,39 @@ notificationLambda.addToRolePolicy(
 profileTable.grantReadData(notificationLambda)
 
 notificationLambda.addEnvironment('PROFILE_TABLE_NAME', profileTable.tableName)
+
+// Cast the lambdas as you did before
+const stripeSessionLambda = backend.createStripeSession.resources
+  .lambda as lambda.Function
+const stripeWebhookLambda = backend.stripeWebhook.resources
+  .lambda as lambda.Function
+
+// 1. Pass User Pool ID
+stripeSessionLambda.addEnvironment(
+  'AMPLIFY_USER_POOL_ID',
+  backend.auth.resources.userPool.userPoolId,
+)
+stripeWebhookLambda.addEnvironment(
+  'AMPLIFY_USER_POOL_ID',
+  backend.auth.resources.userPool.userPoolId,
+)
+
+// 2. Pass Data Endpoint using the L1 construct property
+const graphqlUrl =
+  backend.data.resources.cfnResources.cfnGraphqlApi.attrGraphQlUrl
+
+stripeSessionLambda.addEnvironment('AMPLIFY_DATA_ENDPOINT', graphqlUrl)
+stripeWebhookLambda.addEnvironment('AMPLIFY_DATA_ENDPOINT', graphqlUrl)
+
+// Allow the Stripe functions to call the AppSync API
+backend.data.resources.graphqlApi.grantMutation(
+  backend.stripeWebhook.resources.lambda,
+)
+backend.data.resources.graphqlApi.grantQuery(
+  backend.createStripeSession.resources.lambda,
+)
+
+// Explicitly grant the Lambda permission to read the Profile table
+backend.data.resources.tables['Profile'].grantReadData(
+  backend.createStripeSession.resources.lambda as lambda.Function,
+)
