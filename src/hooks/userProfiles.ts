@@ -131,7 +131,10 @@ export const useUpdateProfile = (
 
       return updated
     },
-    onSuccess: (data, variables, context) => {
+    // src/hooks/userProfiles.ts
+
+    onSuccess: (data, variables, onMutateResult, context) => {
+      // 1. Use 4 args here
       queryClient.invalidateQueries({ queryKey: profileKeys.current })
 
       if (variables?.input?.id) {
@@ -140,8 +143,10 @@ export const useUpdateProfile = (
         })
       }
 
-      options?.onSuccess?.(data, variables, context)
+      // 2. Pass all 4 args to your internal options callback
+      options?.onSuccess?.(data, variables, onMutateResult, context)
     },
+
     ...options, // spread any other options
   })
 }
