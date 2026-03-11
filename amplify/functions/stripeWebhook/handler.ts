@@ -7,7 +7,6 @@ import { DynamoDBDocumentClient, UpdateCommand } from '@aws-sdk/lib-dynamodb'
 const stripe = new Stripe(env.STRIPE_SECRET_KEY!)
 const client = new DynamoDBClient({})
 const ddb = DynamoDBDocumentClient.from(client)
-
 const QUEST_TABLE = process.env.QUEST_TABLE_NAME!
 
 export const handler = async (event: LambdaFunctionURLEvent) => {
@@ -48,13 +47,13 @@ export const handler = async (event: LambdaFunctionURLEvent) => {
           UpdateExpression:
             'SET #status = :status, published_at = :now, updatedAt = :now',
           ExpressionAttributeNames: {
-            '#status': 'status', // 'status' is a reserved word in DynamoDB
+            '#status': 'status',
           },
           ExpressionAttributeValues: {
             ':status': 'published',
             ':now': now,
           },
-          ConditionExpression: 'attribute_exists(id)', // ensures quest exists
+          ConditionExpression: 'attribute_exists(id)',
         }),
       )
 
