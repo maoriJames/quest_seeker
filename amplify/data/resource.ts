@@ -104,7 +104,6 @@ export const schema = a
         allow.groups(['Admin']).to(['create', 'update', 'delete', 'read']),
         allow.authenticated().to(['read']),
         allow.guest().to(['read', 'update']),
-        allow.publicApiKey().to(['read', 'update']),
       ]),
 
     /* ------------------ PROFILE MODEL ------------------ */
@@ -160,8 +159,5 @@ export const data = defineData({
   schema,
   authorizationModes: {
     defaultAuthorizationMode: 'userPool',
-    apiKeyAuthorizationMode: {
-      expiresInDays: 30,
-    },
   },
 })

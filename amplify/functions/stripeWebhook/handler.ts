@@ -1,9 +1,14 @@
 import Stripe from 'stripe'
 import { env } from '$amplify/env/stripeWebhook'
 import type { LambdaFunctionURLEvent } from 'aws-lambda'
-import { signedAppSyncFetch } from '../shared/appsyncRequest'
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
+import { DynamoDBDocumentClient, UpdateCommand } from '@aws-sdk/lib-dynamodb'
 
 const stripe = new Stripe(env.STRIPE_SECRET_KEY!)
+const client = new DynamoDBClient({})
+const ddb = DynamoDBDocumentClient.from(client)
+
+const QUEST_TABLE = process.env.QUEST_TABLE_NAME!
 
 export const handler = async (event: LambdaFunctionURLEvent) => {
   const body = event.isBase64Encoded
@@ -32,23 +37,26 @@ export const handler = async (event: LambdaFunctionURLEvent) => {
     const questId = session.metadata?.questId
 
     if (questId) {
-      const mutation = /* GraphQL */ `
-        mutation UpdateQuest($id: ID!, $status: QuestStatus!) {
-          updateQuest(input: { id: $id, status: $status }) {
-            id
-            status
-          }
-        }
-      `
+      const now = new Date().toISOString()
 
-      // Use the helper! No amplify_outputs.json needed.
-      const response = await signedAppSyncFetch(mutation, {
-        id: questId,
-        status: 'published',
-      })
+      await ddb.send(
+        new UpdateCommand({
+          TableName: QUEST_TABLE,
+          Key: { id: questId },
+          UpdateExpression:
+            'SET #status = :status, published_at = :now, updatedAt = :now',
+          ExpressionAttributeNames: {
+            '#status': 'status', // 'status' is a reserved word in DynamoDB
+          },
+          ExpressionAttributeValues: {
+            ':status': 'published',
+            ':now': now,
+          },
+          ConditionExpression: 'attribute_exists(id)', // ensures quest exists
+        }),
+      )
 
-      const result = await response.json()
-      console.log('Update Success:', JSON.stringify(result))
+      console.log(`Quest ${questId} successfully published`)
     }
   }
 
