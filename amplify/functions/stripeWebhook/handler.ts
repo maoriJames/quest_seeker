@@ -16,7 +16,7 @@ export const handler = async (event: LambdaFunctionURLEvent) => {
     : event.body || ''
 
   const sig = event.headers['stripe-signature']
-  let stripeEvent: Stripe.Event
+  let stripeEvent!: Stripe.Event
 
   try {
     if (!sig) throw new Error('Missing stripe-signature')
