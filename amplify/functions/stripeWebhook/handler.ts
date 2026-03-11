@@ -25,12 +25,13 @@ export const handler = async (event: LambdaFunctionURLEvent) => {
       env.STRIPE_WEBHOOK_SECRET!,
     )
   } catch (err) {
-    console.log('Webhook Error:', err instanceof Error ? err.message : err)
-    return {
-      statusCode: 400,
-      body: `Webhook Error: ${err instanceof Error ? err.message : 'Unknown'}`,
-    }
+} catch (err) {
+  console.log('Webhook Error:', err instanceof Error ? err.message : err)  // 👈 add this
+  return {
+    statusCode: 400,
+    body: `Webhook Error: ${err instanceof Error ? err.message : 'Unknown'}`,
   }
+}
 
   if (stripeEvent.type === 'checkout.session.completed') {
     const session = stripeEvent.data.object as Stripe.Checkout.Session
