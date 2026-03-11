@@ -112,3 +112,6 @@ stripeLambdas.forEach((l) => {
 backend.data.resources.graphqlApi.grantMutation(stripeWebhookLambda)
 backend.data.resources.graphqlApi.grantQuery(stripeSessionLambda)
 backend.data.resources.tables['Profile'].grantReadData(stripeSessionLambda)
+
+questTable.grantWriteData(stripeWebhookLambda)
+stripeWebhookLambda.addEnvironment('QUEST_TABLE_NAME', questTable.tableName)
