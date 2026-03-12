@@ -9,7 +9,7 @@ import {
 } from '@radix-ui/react-dialog'
 import { uploadData } from 'aws-amplify/storage'
 import { useCurrentUserProfile, useUpdateProfile } from '@/hooks/userProfiles'
-import { addQuestToProfile } from '@/hooks/addQuestToProfile'
+import { updateQuestProgressInProfile } from '@/hooks/updateQuestProgressInProfile'
 import RemoteImage from './RemoteImage'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
 import {
@@ -210,7 +210,7 @@ export default function TaskInformationWindow({
       // })
 
       // 🔥 4. Save everything to the profile
-      await addQuestToProfile(questId, [
+      await updateQuestProgressInProfile(questId, [
         {
           quest_id: questId,
           tasks: updatedTasksForUser,

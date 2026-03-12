@@ -216,7 +216,6 @@ export default function CreateQuestPage() {
 
   const handlePayAndPublish = async () => {
     try {
-      console.log('1. Starting Save...')
       const questId = await saveQuest(QuestStatus.published)
 
       if (!questId) {
@@ -229,15 +228,11 @@ export default function CreateQuestPage() {
         return
       }
 
-      console.log('3. Calling Stripe Mutation...')
-      // Force a try-catch here to see why it might be "silent"
       const response = await client.mutations.createStripeSession({
         questId: questId,
         profileId: profile.id,
         returnUrl: window.location.origin + '/user/account?payment=success',
       })
-
-      console.log('4. Mutation Response:', response)
 
       if (response.data) {
         window.location.href = response.data
@@ -276,7 +271,11 @@ export default function CreateQuestPage() {
       }
 
       let currentQuestId = effectiveQuestId
-
+      console.log(
+        'basePayload tasks type:',
+        typeof basePayload.tasks,
+        basePayload.tasks,
+      )
       // 2. Create or Update Draft (Always save as draft first)
       if (!currentQuestId) {
         const draftResult = await mutateQuest({

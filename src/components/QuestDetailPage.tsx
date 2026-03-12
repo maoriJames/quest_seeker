@@ -8,7 +8,7 @@ import { Button } from './ui/button'
 import { Card, CardContent } from './ui/card'
 import { useEffect, useState } from 'react'
 import { Prize, MyQuest, Sponsor, Task, Profile } from '@/types'
-import { addQuestToProfile } from '@/hooks/addQuestToProfile'
+// import { addQuestToProfile } from '@/hooks/addQuestToProfile'
 import RemoteImage from './RemoteImage'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
 import useEmblaCarousel from 'embla-carousel-react'
@@ -137,11 +137,9 @@ export default function QuestDetailPage() {
 
   const handleJoinQuest = async () => {
     if (!quest?.id || !currentUserProfile?.id) return
-
     setJoining(true)
 
     try {
-      // 1️⃣ BACKEND: join quest (Quest.participants)
       await client.graphql({
         query: joinQuest,
         variables: {
@@ -150,18 +148,7 @@ export default function QuestDetailPage() {
         },
       })
 
-      // 2️⃣ CLIENT: update profile (my_quests, points, tasks)
-      const userQuestEntry: MyQuest = {
-        quest_id: quest.id,
-        title: quest.quest_name ?? 'Untitled Quest',
-        tasks: tasks,
-        completed: false,
-      }
-
-      await addQuestToProfile(quest.id, [userQuestEntry])
-
       alert('✅ Quest added to your profile!')
-
       await refetch()
       await refetchProfile()
     } catch (err) {

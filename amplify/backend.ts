@@ -75,6 +75,7 @@ const stripeWebhookLambda = backend.stripeWebhook.resources
   .lambda as lambda.Function
 const stripeSessionLambda = backend.createStripeSession.resources
   .lambda as lambda.Function
+const joinQuestLambda = backend.joinQuest.resources.lambda as lambda.Function
 
 // 1. Unified Function URL Configuration
 stripeWebhookLambda.addFunctionUrl({
@@ -95,7 +96,6 @@ stripeWebhookLambda.addPermission('StripePublicInvoke', {
 })
 
 // 3. Environment Variables
-// 3. Environment Variables
 const graphqlUrl =
   backend.data.resources.cfnResources.cfnGraphqlApi.attrGraphQlUrl
 
@@ -112,6 +112,21 @@ stripeLambdas.forEach((l) => {
 backend.data.resources.graphqlApi.grantMutation(stripeWebhookLambda)
 backend.data.resources.graphqlApi.grantQuery(stripeSessionLambda)
 backend.data.resources.tables['Profile'].grantReadData(stripeSessionLambda)
+questTable.grantReadData(joinQuestLambda)
 
 questTable.grantWriteData(stripeWebhookLambda)
 stripeWebhookLambda.addEnvironment('QUEST_TABLE_NAME', questTable.tableName)
+joinQuestLambda.addEnvironment('QUEST_TABLE_NAME', questTable.tableName)
+
+// -----------------------------
+// joinQuest permissions
+// -----------------------------
+const userQuestTable = backend.data.resources.tables['UserQuest']
+userQuestTable.grantReadWriteData(joinQuestLambda)
+joinQuestLambda.addEnvironment(
+  'USER_QUEST_TABLE_NAME',
+  userQuestTable.tableName,
+)
+
+profileTable.grantReadWriteData(joinQuestLambda)
+joinQuestLambda.addEnvironment('PROFILE_TABLE_NAME', profileTable.tableName)

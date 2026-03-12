@@ -1,19 +1,24 @@
 import type { AppSyncResolverHandler } from 'aws-lambda'
-import type { Schema } from '../../data/resource'
-import { Amplify } from 'aws-amplify'
-import { generateClient } from 'aws-amplify/data'
-import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtime'
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  PutCommand,
+  UpdateCommand,
+} from '@aws-sdk/lib-dynamodb'
+import { randomUUID } from 'crypto'
 
-import { env } from '$amplify/env/joinQuest'
-
-// 🔐 Configure Amplify for service (IAM) auth
-const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env)
-
-Amplify.configure(resourceConfig, libraryOptions)
-
-const client = generateClient<Schema>({
-  authMode: 'identityPool',
+const ddbClient = new DynamoDBClient({})
+const ddb = DynamoDBDocumentClient.from(ddbClient, {
+  marshallOptions: {
+    removeUndefinedValues: true,
+    convertEmptyValues: false,
+  },
 })
+
+const QUEST_TABLE = process.env.QUEST_TABLE_NAME!
+const USER_QUEST_TABLE = process.env.USER_QUEST_TABLE_NAME!
+const PROFILE_TABLE = process.env.PROFILE_TABLE_NAME!
 
 type Args = {
   questId: string
@@ -32,51 +37,127 @@ type QuestTask = {
   location: string
 }
 
-type MyQuest = {
-  quest_id: string
-  quest_status: string
-  completed: boolean
-  title: string
-  tasks: QuestTask[]
+type DynamoDBError = {
+  name: string
+  message: string
 }
 
 export const handler: AppSyncResolverHandler<Args, boolean> = async (event) => {
   const { questId, profileId } = event.arguments
+  if (!questId || !profileId) throw new Error('Missing questId or profileId')
 
-  if (!questId || !profileId) {
-    throw new Error('Missing questId or profileId')
-  }
+  // 1️⃣ Fetch quest and profile in parallel
+  const [{ Item: quest }, { Item: profile }] = await Promise.all([
+    ddb.send(new GetCommand({ TableName: QUEST_TABLE, Key: { id: questId } })),
+    ddb.send(
+      new GetCommand({ TableName: PROFILE_TABLE, Key: { id: profileId } }),
+    ),
+  ])
 
-  const { data: quest } = await client.models.Quest.get({ id: questId })
   if (!quest) throw new Error('Quest not found')
-
-  const { data: profile } = await client.models.Profile.get({ id: profileId })
   if (!profile) throw new Error('Profile not found')
 
-  /* 3️⃣ Build quest entry */
-  const newQuest = {
-    quest_id: quest.id,
-    quest_status: quest.status,
-    completed: false,
-    title: quest.quest_name,
-    tasks: quest.quest_tasks ?? [],
+  // 2️⃣ Parse quest tasks
+  const rawTasks = (() => {
+    try {
+      if (!quest.quest_tasks) return []
+      let parsed =
+        typeof quest.quest_tasks === 'string'
+          ? JSON.parse(quest.quest_tasks)
+          : quest.quest_tasks
+      if (typeof parsed === 'string') parsed = JSON.parse(parsed)
+      return Array.isArray(parsed) ? parsed : []
+    } catch {
+      return []
+    }
+  })()
+
+  // 3️⃣ Map tasks for user
+  const tasksForSave = JSON.stringify(
+    rawTasks.map((task: QuestTask) => ({
+      ...task,
+      completed: false,
+      answer: '',
+      caption: '',
+      location: '',
+    })),
+  )
+
+  // 4️⃣ Write UserQuest item directly to DynamoDB
+  const now = new Date().toISOString()
+  try {
+    await ddb.send(
+      new PutCommand({
+        TableName: USER_QUEST_TABLE,
+        Item: {
+          id: randomUUID(),
+          __typename: 'UserQuest',
+          profileId,
+          questId,
+          status: 'ACTIVE',
+          joinedAt: now,
+          points: 0,
+          tasks: tasksForSave,
+          createdAt: now,
+          updatedAt: now,
+        },
+        ConditionExpression: 'attribute_not_exists(id)',
+      }),
+    )
+  } catch (err) {
+    const dynamoErr = err as DynamoDBError
+    const isDuplicate = dynamoErr.name === 'ConditionalCheckFailedException'
+    if (isDuplicate) throw new Error('User has already joined this quest')
+    throw new Error(`Failed to join quest: ${dynamoErr.message}`)
   }
 
-  const existingQuests: MyQuest[] = Array.isArray(profile.my_quests)
-    ? (profile.my_quests as MyQuest[])
-    : []
+  // 5️⃣ DUAL-WRITE: keep my_quests in sync while other components still depend on it
+  // 🔜 Remove this block once all components migrate to UserQuest
+  try {
+    const existingQuests = (() => {
+      try {
+        if (!profile.my_quests) return []
+        const parsed =
+          typeof profile.my_quests === 'string'
+            ? JSON.parse(profile.my_quests)
+            : profile.my_quests
+        return Array.isArray(parsed) ? parsed : []
+      } catch {
+        return []
+      }
+    })()
 
-  const alreadyJoined = existingQuests.some((q) => q.quest_id === questId)
+    const alreadyJoined = existingQuests.some(
+      (q: { quest_id: string }) => q.quest_id === questId,
+    )
 
-  const updatedMyQuests = alreadyJoined
-    ? existingQuests
-    : [...existingQuests, newQuest]
+    if (!alreadyJoined) {
+      const updatedQuests = JSON.stringify([
+        ...existingQuests,
+        {
+          quest_id: quest.id,
+          quest_status: quest.status,
+          completed: false,
+          title: quest.quest_name,
+          tasks: rawTasks,
+        },
+      ])
 
-  /* 5️⃣ Save profile */
-  await client.models.Profile.update({
-    id: profileId,
-    my_quests: updatedMyQuests,
-  })
+      await ddb.send(
+        new UpdateCommand({
+          TableName: PROFILE_TABLE,
+          Key: { id: profileId },
+          UpdateExpression: 'SET my_quests = :quests, updatedAt = :updatedAt',
+          ExpressionAttributeValues: {
+            ':quests': updatedQuests,
+            ':updatedAt': now,
+          },
+        }),
+      )
+    }
+  } catch (err) {
+    console.error('dual-write failed:', err)
+  }
 
   return true
 }

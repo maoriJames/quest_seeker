@@ -3,24 +3,12 @@ import { Link, useNavigate } from 'react-router-dom'
 import { CardContent } from './ui/card'
 import { Profile, Quest } from '@/types'
 import { Button } from './ui/button'
-import { useQuestList } from '@/hooks/userQuests'
+import { useQuestList, useUserQuests } from '@/hooks/userQuests'
 import RemoteImage from './RemoteImage'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
 import { Trash2 } from 'lucide-react'
 import { toZonedTime } from 'date-fns-tz'
 import { useQuestDeletion } from '@/hooks/useQuestDeletion'
-import { ensureArray } from '@/tools/ensureArray'
-
-// Type for the my_quests data structure
-interface MyQuestData {
-  quest_id: string
-  title: string
-  tasks: Array<{
-    id: string
-    name: string
-    completed: boolean
-  }>
-}
 
 type MyQuestsProps = {
   profile: Profile
@@ -37,11 +25,10 @@ export default function MyQuests({ profile }: MyQuestsProps) {
   const myCreatedQuests = allQuests.filter(
     (quest) => quest.creator_id === profile.id,
   )
-  // console.log('myCreatedQuests: ', myCreatedQuests)
-  const myQuestsArray = ensureArray<MyQuestData>(profile.my_quests)
+  const { data: userQuests } = useUserQuests(profile.id)
 
-  const normalizedQuests = myQuestsArray.map((myQuest) => {
-    const fullQuest = allQuests.find((q) => q.id === myQuest.quest_id)
+  const normalizedQuests = (userQuests ?? []).map((userQuest) => {
+    const fullQuest = allQuests.find((q) => q.id === userQuest.questId)
 
     const questStatus = fullQuest?.status ?? 'draft'
 
@@ -54,10 +41,23 @@ export default function MyQuests({ profile }: MyQuestsProps) {
 
     const isExpired = questStatus === 'expired'
 
-    const tasks = myQuest.tasks
-
+    const tasks = Array.isArray(userQuest.tasks)
+      ? userQuest.tasks
+      : (() => {
+          try {
+            const parsed =
+              typeof userQuest.tasks === 'string'
+                ? JSON.parse(userQuest.tasks)
+                : []
+            return Array.isArray(parsed) ? parsed : []
+          } catch {
+            return []
+          }
+        })()
     const totalTasks = tasks.length
-    const completedTasks = tasks.filter((t) => t.completed).length
+    const completedTasks = tasks.filter(
+      (t: { completed: boolean }) => t.completed,
+    ).length
 
     const progressPercent =
       totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
@@ -65,7 +65,8 @@ export default function MyQuests({ profile }: MyQuestsProps) {
     const isCompleted = progressPercent === 100
 
     return {
-      ...myQuest,
+      quest_id: userQuest.questId, // map to what the template expects
+      title: fullQuest?.quest_name ?? 'Untitled Quest',
       quest: fullQuest || null,
       questStatus,
       isUpcoming,
@@ -223,7 +224,6 @@ export default function MyQuests({ profile }: MyQuestsProps) {
                             onClick={(e) => {
                               e.preventDefault()
                               e.stopPropagation()
-                              // console.log('Delete quest:', quest.id)
                               deleteQuest(quest, { stayHere: true })
                             }}
                           >

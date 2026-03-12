@@ -140,6 +140,32 @@ export const schema = a
         allow.groups(['Admin']).to(['read', 'update', 'delete']),
         allow.guest().to(['read']),
       ]),
+
+    /* ------------------ USER QUEST MODEL ------------------ */
+    UserQuestStatus: a.enum(['ACTIVE', 'COMPLETED', 'ABANDONED']),
+
+    UserQuest: a
+      .model({
+        profileId: a.string().required(),
+        questId: a.string().required(),
+        status: a.ref('UserQuestStatus'),
+        joinedAt: a.datetime(),
+        points: a.integer(),
+        tasks: a.json(),
+      })
+      .secondaryIndexes((index) => [
+        // GSI1: find all users on a quest
+        index('questId').queryField('listUsersByQuest'),
+        // GSI2: find all users on a quest by status
+        index('questId')
+          .sortKeys(['status'])
+          .queryField('listUsersByQuestAndStatus'),
+      ])
+      .authorization((allow) => [
+        allow.owner().to(['read', 'create', 'update']),
+        allow.authenticated().to(['read']),
+        allow.groups(['Admin']).to(['read', 'update', 'delete']),
+      ]),
   })
   .authorization((allow) => [
     // 🔗 This global block IS where you grant function access.
@@ -151,6 +177,7 @@ export const schema = a
     allow.resource(mutateQuest).to(['mutate', 'query']),
     allow.resource(createStripeSession).to(['query']),
     allow.resource(stripeWebhook).to(['query', 'mutate']),
+    allow.resource(joinQuest).to(['query', 'mutate']),
   ])
 
 export type Schema = ClientSchema<typeof schema>
