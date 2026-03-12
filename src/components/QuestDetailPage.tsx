@@ -1,13 +1,13 @@
 import { generateClient, GraphQLResult } from 'aws-amplify/data'
 // import * as mutations from '@/graphql/mutations'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useQuest } from '@/hooks/userQuests'
+import { useQuest, useUserQuests } from '@/hooks/userQuests'
 import { useProfile, useCurrentUserProfile } from '@/hooks/userProfiles'
 import bg from '@/assets/images/background_main.png'
 import { Button } from './ui/button'
 import { Card, CardContent } from './ui/card'
 import { useEffect, useState } from 'react'
-import { Prize, MyQuest, Sponsor, Task, Profile } from '@/types'
+import { Prize, Sponsor, Task, Profile } from '@/types'
 // import { addQuestToProfile } from '@/hooks/addQuestToProfile'
 import RemoteImage from './RemoteImage'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
@@ -52,11 +52,15 @@ export default function QuestDetailPage() {
   const scrollNext = () => emblaApi && emblaApi.scrollNext()
   const navigate = useNavigate()
 
-  // 🧩 Fetch quest data
   const { data: quest, isLoading, error, refetch } = useQuest(id)
   const questCreatorProfile = useProfile(quest?.creator_id || '')
   const { data: currentUserProfile, refetch: refetchProfile } =
     useCurrentUserProfile()
+
+  // 🧩 Fetch quest data
+  const { data: userQuests, refetch: refetchUserQuests } = useUserQuests(
+    currentUserProfile?.id,
+  )
 
   const [participantProfiles, setParticipantProfiles] = useState<Profile[]>([])
   const [participantsLoaded, setParticipantsLoaded] = useState(false)
@@ -71,11 +75,8 @@ export default function QuestDetailPage() {
   // Update edit fields when quest data is fetched
   useEffect(() => {
     if (!quest) return
-    // console.log('What is quest.quest_tasks? ', quest.quest_tasks)
     setTasks(ensureArray<Task>(quest.quest_tasks))
   }, [quest])
-  // console.log('Tasks: ', tasks)
-  // console.log('quest.quest_tasks: ', quest?.quest_tasks)
 
   useEffect(() => {
     if (isExpired && !participantsLoaded) {
@@ -138,7 +139,6 @@ export default function QuestDetailPage() {
   const handleJoinQuest = async () => {
     if (!quest?.id || !currentUserProfile?.id) return
     setJoining(true)
-
     try {
       await client.graphql({
         query: joinQuest,
@@ -147,10 +147,10 @@ export default function QuestDetailPage() {
           profileId: currentUserProfile.id,
         },
       })
-
       alert('✅ Quest added to your profile!')
       await refetch()
       await refetchProfile()
+      await refetchUserQuests() // ✅ add this
     } catch (err) {
       console.error('❌ Failed to join quest:', err)
       alert('Failed to join quest.')
@@ -167,25 +167,31 @@ export default function QuestDetailPage() {
     currentUserProfile?.id === quest.creator_id &&
     currentUserProfile?.role === 'creator'
 
-  const myQuestsArray: MyQuest[] =
-    typeof currentUserProfile?.my_quests === 'string'
-      ? JSON.parse(currentUserProfile.my_quests)
-      : (currentUserProfile?.my_quests ?? [])
-  // console.log('myQuestArray: ', myQuestsArray)
-  const hasJoined = myQuestsArray.some((q) => q.quest_id === quest.id)
-  const joinedQuestEntry = myQuestsArray.find((q) => q.quest_id === quest.id)
+  const joinedQuestEntry = userQuests?.find((uq) => uq.questId === quest.id)
+  const hasJoined = !!joinedQuestEntry
+  const joinedTasks = Array.isArray(joinedQuestEntry?.tasks)
+    ? joinedQuestEntry.tasks
+    : (() => {
+        try {
+          return typeof joinedQuestEntry?.tasks === 'string'
+            ? JSON.parse(joinedQuestEntry.tasks)
+            : []
+        } catch {
+          return []
+        }
+      })()
 
-  const totalTasks = joinedQuestEntry?.tasks?.length ?? 0
+  const totalTasks = joinedTasks.length
 
-  const completedTasks =
-    joinedQuestEntry?.tasks?.filter((t) => t.completed).length ?? 0
-
+  const completedTasks = joinedTasks.filter(
+    (t: { completed: boolean }) => t.completed,
+  ).length
   const progressPercent =
     totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
 
   const seekerTasks = tasks.map((task) => {
-    const existingAnswer = joinedQuestEntry?.tasks?.find(
-      (t) => t.id === task.id,
+    const existingAnswer = joinedTasks.find(
+      (t: { id: string }) => t.id === task.id,
     )
     return {
       ...task,
@@ -197,7 +203,6 @@ export default function QuestDetailPage() {
   // Parse sponsors (safe check in case it's undefined or malformed)
   const sponsors: Sponsor[] = (() => {
     try {
-      // console.log('Quest Sponsors: ', quest?.quest_sponsor)
       return quest.quest_sponsor ? JSON.parse(quest.quest_sponsor) : []
     } catch {
       return []
@@ -213,27 +218,19 @@ export default function QuestDetailPage() {
     }
   })()
 
+  // 🔜 Phase 4: Replace with UserQuest GSI query (listUsersByQuest)
+  // Currently still reads from my_quests on participant profiles
   const completedParticipants = participantProfiles.filter((profile) => {
-    // Parse participant's my_quests
     const myQuestsRaw = profile.my_quests ?? []
     const myQuests: MyQuest[] =
       typeof myQuestsRaw === 'string' ? JSON.parse(myQuestsRaw) : myQuestsRaw
-
-    // Find this quest's entry for this participant
     const questEntry = myQuests.find((q) => q.quest_id === quest.id)
-    // console.log('questEntry: ', questEntry)
     if (!questEntry) return false
-
-    // ✅ 1) If the MyQuest-level completed flag is true, we’re done
     if (questEntry.completed) return true
-
-    // ✅ 2) Fallback: require all tasks to be marked completed
     const taskCount = questEntry.tasks?.length ?? 0
     if (taskCount === 0) return false
-
     const completedCount =
       questEntry.tasks?.filter((t) => t.completed).length ?? 0
-
     return completedCount === taskCount
   })
 
@@ -265,7 +262,6 @@ export default function QuestDetailPage() {
     } catch (err) {
       console.error('Failed to fetch participant profiles:', err)
     }
-    // console.log('Participants Array: ', participantsArray.length)
   }
   return (
     <div
@@ -764,11 +760,13 @@ export default function QuestDetailPage() {
                     <TaskInformationWindow
                       questId={quest.id}
                       tasks={seekerTasks}
-                      userTasks={joinedQuestEntry ? [joinedQuestEntry] : []}
+                      userTasks={
+                        joinedQuestEntry ? ([joinedQuestEntry] as any) : []
+                      }
                       readOnly={isOwner}
                       onTasksUpdated={async () => {
                         await refetch()
-                        await refetchProfile()
+                        await refetchUserQuests()
                       }}
                     />
                   </div>

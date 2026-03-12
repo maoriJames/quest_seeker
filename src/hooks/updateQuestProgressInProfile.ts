@@ -1,64 +1,43 @@
-import { generateClient } from 'aws-amplify/api'
+import { generateClient } from 'aws-amplify/data'
 import { getCurrentUser } from 'aws-amplify/auth'
-import { getProfile } from '@/graphql/queries'
-import { updateProfile } from '@/graphql/mutations'
-import { MyQuest } from '@/types'
+import { Schema } from 'amplify/data/resource'
+import { Task } from '@/types'
 
-const client = generateClient()
+const client = generateClient<Schema>()
 
-// 🔜 DEPRECATE: only used for task progress updates now, not joining
-// Once my_quests is fully replaced by UserQuest, this can be removed entirely
 export async function updateQuestProgressInProfile(
   questId: string,
-  MyQuests: MyQuest[],
+  updatedTasks: Task[],
+  isCompleted: boolean,
 ) {
   try {
     const user = await getCurrentUser()
-    const userId = user.userId
+    const profileId = user.userId
 
-    const { data } = await client.graphql({
-      query: getProfile,
-      variables: { id: userId },
-      authMode: 'userPool',
-    })
-
-    const profile = data?.getProfile
-    if (!profile) throw new Error('Profile not found')
-
-    const existingQuests: MyQuest[] = profile.my_quests
-      ? JSON.parse(profile.my_quests)
-      : []
-
-    const existingQuest = existingQuests.find((q) => q.quest_id === questId)
-    if (!existingQuest) return // joining is handled by Lambda now
-
-    // 🔄 Update existing quest task progress only
-    MyQuests.forEach((newMyQuest) => {
-      newMyQuest.tasks.forEach((newTask) => {
-        const index = existingQuest.tasks.findIndex((t) => t.id === newTask.id)
-        if (index >= 0) {
-          existingQuest.tasks[index] = {
-            ...existingQuest.tasks[index],
-            ...newTask,
-          }
-        } else {
-          existingQuest.tasks.push(newTask)
-        }
-      })
-      existingQuest.completed = existingQuest.tasks.every((t) => t.completed)
-    })
-
-    await client.graphql({
-      query: updateProfile,
-      variables: {
-        input: {
-          id: profile.id,
-          my_quests: JSON.stringify(existingQuests),
-        },
+    // 1️⃣ Find the existing UserQuest item
+    const { data: userQuests, errors } = await client.models.UserQuest.list({
+      filter: {
+        profileId: { eq: profileId },
+        questId: { eq: questId },
       },
-      authMode: 'userPool',
     })
+
+    if (errors?.length) throw new Error(errors[0].message)
+
+    const userQuest = userQuests?.[0]
+    if (!userQuest) return // not joined, nothing to update
+
+    // 2️⃣ Update the UserQuest item with new task progress
+    await client.models.UserQuest.update({
+      id: userQuest.id,
+      tasks: JSON.stringify(updatedTasks),
+      status: isCompleted ? 'COMPLETED' : 'ACTIVE',
+    })
+
+    // 🔜 DUAL-WRITE: keep my_quests in sync while other components still depend on it
+    // Remove this block once all components migrate to UserQuest
+    // ... dual-write removed since TaskInformationWindow is now migrated
   } catch (err) {
-    console.error('❌ Failed to update quest progress in profile:', err)
+    console.error('❌ Failed to update quest progress:', err)
   }
 }

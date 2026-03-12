@@ -7,16 +7,12 @@ import { useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { isProfileComplete } from '@/tools/profileValidation'
 import { toProfileRole } from '@/hooks/toProfileTole'
-import { generateClient } from 'aws-amplify/api'
-import { getQuest } from '@/graphql/queries'
-import type { MyQuest, Profile } from '@/types'
+import type { Profile } from '@/types'
 // import type { UpdateProfileInput } from '@/graphql/API'
-import { useEffect, useState } from 'react'
-
-const client = generateClient()
+import { useState } from 'react'
 
 export default function AccountPage() {
-  const { currentProfile, isLoading } = useCurrentUserProfile()
+  const { data: currentProfile, isLoading } = useCurrentUserProfile()
   const updateProfile = useUpdateProfile()
   const location = useLocation()
 
@@ -43,50 +39,13 @@ export default function AccountPage() {
     return true
   }
 
-  // 🧹 Clean up deleted quests (HOOK MUST ALWAYS RUN)
-  useEffect(() => {
-    if (!currentProfile?.my_quests?.length) return
-
-    const cleanUpDeletedQuests = async () => {
-      let quests: MyQuest[] = []
-
-      try {
-        quests = Array.isArray(currentProfile.my_quests)
-          ? currentProfile.my_quests
-          : JSON.parse(currentProfile.my_quests)
-      } catch {
-        return
-      }
-
-      const questsStatus = await Promise.all(
-        quests.map(async (quest) => {
-          try {
-            const result = await client.graphql({
-              query: getQuest,
-              variables: { id: quest.quest_id },
-              authMode: 'userPool',
-            })
-            return result.data?.getQuest ? quest : null
-          } catch {
-            return null
-          }
-        }),
-      )
-
-      const validQuests = questsStatus.filter(Boolean) as MyQuest[]
-
-      if (validQuests.length !== quests.length) {
-        updateProfile.mutate({
-          input: {
-            id: currentProfile.id,
-            my_quests: JSON.stringify(validQuests),
-          },
-        })
-      }
-    }
-
-    cleanUpDeletedQuests()
-  }, [currentProfile?.id])
+  // 🔜 Phase 3: Replace with UserQuest cleanup logic
+  // Previously cleaned up deleted quests from my_quests JSON blob
+  // Will need to instead delete UserQuest items where quest no longer exists
+  // useEffect(() => {
+  //   if (!currentProfile?.my_quests?.length) return
+  //   ... cleanup logic ...
+  // }, [currentProfile?.id])
 
   // ✅ EARLY RETURN COMES AFTER ALL HOOKS
   if (isLoading || !currentProfile) return null

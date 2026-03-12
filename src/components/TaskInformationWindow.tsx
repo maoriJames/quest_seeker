@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Task, MyQuest } from '@/types'
+import { Task } from '@/types'
+import { Schema } from 'amplify/data/resource'
 import {
   Dialog,
   DialogClose,
@@ -18,12 +19,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@radix-ui/react-tooltip'
-// import { QuestStatus } from '@/graphql/API'
+
+type UserQuest = Schema['UserQuest']['type'] & { tasks: Task[] }
 
 interface TaskInformationWindowProps {
   questId: string
   tasks: Task[]
-  userTasks?: MyQuest[] // new prop
+  userTasks?: UserQuest[]
   onTasksUpdated?: () => void
   readOnly?: boolean
 }
@@ -68,16 +70,26 @@ export default function TaskInformationWindow({
     )
   }
 
-  // useEffect(() => {
-  //   console.log('Tasks in TaskInformationWindow:', tasks)
-  // }, [tasks])
-
-  // Prefill when a task is selected
   useEffect(() => {
     setEditableTasks(
       tasks.map((task) => {
-        const userEntry = userTasks?.find((q) => q.quest_id === questId)
-        const existingAnswer = userEntry?.tasks?.find((t) => t.id === task.id)
+        // UserQuest has tasks directly, not nested under quest_id
+        const userQuest = userTasks?.[0]
+        const userQuestTasks = Array.isArray(userQuest?.tasks)
+          ? userQuest.tasks
+          : (() => {
+              try {
+                return typeof userQuest?.tasks === 'string'
+                  ? JSON.parse(userQuest.tasks)
+                  : []
+              } catch {
+                return []
+              }
+            })()
+
+        const existingAnswer = userQuestTasks.find(
+          (t: Task) => t.id === task.id,
+        )
 
         return {
           ...task,
@@ -197,27 +209,13 @@ export default function TaskInformationWindow({
       // 🔥 3. Compute quest-wide `completed` state AFTER updating this task
       const allCompleted = updatedTasksForUser.every((t) => t.completed)
 
-      // console.log('📌 Selected task completed:', taskIsCompleted)
-
-      // console.log('📌 Updated tasks for user:', updatedTasksForUser)
-
-      // console.log('📌 allCompleted:', allCompleted)
-
-      // console.log('📌 Payload sending to addQuestToProfile:', {
-      //   quest_id: questId,
-      //   tasks: updatedTasksForUser,
-      //   completed: allCompleted,
-      // })
-
       // 🔥 4. Save everything to the profile
-      await updateQuestProgressInProfile(questId, [
-        {
-          quest_id: questId,
-          tasks: updatedTasksForUser,
-          title: '',
-          completed: allCompleted,
-        },
-      ])
+      // 🔥 4. Save progress to UserQuest
+      await updateQuestProgressInProfile(
+        questId,
+        updatedTasksForUser,
+        allCompleted,
+      )
 
       alert('✅ Answer saved successfully!')
 

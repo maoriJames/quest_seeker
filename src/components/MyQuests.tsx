@@ -25,7 +25,9 @@ export default function MyQuests({ profile }: MyQuestsProps) {
   const myCreatedQuests = allQuests.filter(
     (quest) => quest.creator_id === profile.id,
   )
-  const { data: userQuests } = useUserQuests(profile.id)
+  const { data: userQuests, isLoading: questsLoading } = useUserQuests(
+    profile.id,
+  )
 
   const normalizedQuests = (userQuests ?? []).map((userQuest) => {
     const fullQuest = allQuests.find((q) => q.id === userQuest.questId)
@@ -89,7 +91,10 @@ export default function MyQuests({ profile }: MyQuestsProps) {
               ⭐ {profile.points} points
             </h2>
           </div>
-
+          {questsLoading && <p className="text-gray-500">Loading quests...</p>}
+          {!questsLoading && normalizedQuests.length === 0 && (
+            <p className="text-gray-500">You haven't joined any quests yet.</p>
+          )}
           {normalizedQuests.map((myQuest) => (
             <Link
               to={`/user/quest/${myQuest.quest_id}`}

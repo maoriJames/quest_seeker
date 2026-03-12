@@ -8,7 +8,6 @@ import {
 import {
   UpdateProfileMutation,
   UpdateProfileMutationVariables,
-  ListProfilesQuery,
   GetProfileQuery,
   CreateProfileMutation,
 } from '@/graphql/API'
@@ -168,34 +167,6 @@ export const useUpdateSeeker = () => {
         queryClient.invalidateQueries({ queryKey: ['profiles'] })
         queryClient.invalidateQueries({ queryKey: ['profiles', input.id] })
       }
-    },
-  })
-}
-
-export const useCountSeekers = (questId: string) => {
-  return useQuery({
-    queryKey: ['profiles', 'count', questId],
-    queryFn: async () => {
-      const result = (await client.graphql<ListProfilesQuery>({
-        query: listProfiles,
-      })) as { data: ListProfilesQuery }
-
-      const profiles = result.data.listProfiles?.items ?? []
-
-      const count = profiles.filter((p) => {
-        if (!p?.my_quests) return false
-        let quests: { questId: string }[] = []
-
-        try {
-          quests = JSON.parse(p.my_quests)
-        } catch {
-          return false
-        }
-
-        return quests.some((q) => q.questId === questId)
-      }).length
-
-      return count
     },
   })
 }

@@ -4,7 +4,6 @@ import {
   DynamoDBDocumentClient,
   GetCommand,
   PutCommand,
-  UpdateCommand,
 } from '@aws-sdk/lib-dynamodb'
 import { randomUUID } from 'crypto'
 
@@ -109,54 +108,6 @@ export const handler: AppSyncResolverHandler<Args, boolean> = async (event) => {
     const isDuplicate = dynamoErr.name === 'ConditionalCheckFailedException'
     if (isDuplicate) throw new Error('User has already joined this quest')
     throw new Error(`Failed to join quest: ${dynamoErr.message}`)
-  }
-
-  // 5️⃣ DUAL-WRITE: keep my_quests in sync while other components still depend on it
-  // 🔜 Remove this block once all components migrate to UserQuest
-  try {
-    const existingQuests = (() => {
-      try {
-        if (!profile.my_quests) return []
-        const parsed =
-          typeof profile.my_quests === 'string'
-            ? JSON.parse(profile.my_quests)
-            : profile.my_quests
-        return Array.isArray(parsed) ? parsed : []
-      } catch {
-        return []
-      }
-    })()
-
-    const alreadyJoined = existingQuests.some(
-      (q: { quest_id: string }) => q.quest_id === questId,
-    )
-
-    if (!alreadyJoined) {
-      const updatedQuests = JSON.stringify([
-        ...existingQuests,
-        {
-          quest_id: quest.id,
-          quest_status: quest.status,
-          completed: false,
-          title: quest.quest_name,
-          tasks: rawTasks,
-        },
-      ])
-
-      await ddb.send(
-        new UpdateCommand({
-          TableName: PROFILE_TABLE,
-          Key: { id: profileId },
-          UpdateExpression: 'SET my_quests = :quests, updatedAt = :updatedAt',
-          ExpressionAttributeValues: {
-            ':quests': updatedQuests,
-            ':updatedAt': now,
-          },
-        }),
-      )
-    }
-  } catch (err) {
-    console.error('dual-write failed:', err)
   }
 
   return true
