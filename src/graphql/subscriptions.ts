@@ -23,7 +23,6 @@ export const onCreateProfile = /* GraphQL */ `subscription OnCreateProfile(
     image
     image_thumbnail
     leaderboard
-    my_quests
     organization_description
     organization_name
     owner
@@ -50,7 +49,6 @@ export const onCreateQuest = /* GraphQL */ `subscription OnCreateQuest($filter: 
     createdAt
     creator_id
     id
-    participants
     quest_details
     quest_end_at
     quest_entry
@@ -72,6 +70,28 @@ export const onCreateQuest = /* GraphQL */ `subscription OnCreateQuest($filter: 
   APITypes.OnCreateQuestSubscriptionVariables,
   APITypes.OnCreateQuestSubscription
 >;
+export const onCreateUserQuest = /* GraphQL */ `subscription OnCreateUserQuest(
+  $filter: ModelSubscriptionUserQuestFilterInput
+  $owner: String
+) {
+  onCreateUserQuest(filter: $filter, owner: $owner) {
+    createdAt
+    id
+    joinedAt
+    owner
+    points
+    profileId
+    questId
+    status
+    tasks
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnCreateUserQuestSubscriptionVariables,
+  APITypes.OnCreateUserQuestSubscription
+>;
 export const onDeleteProfile = /* GraphQL */ `subscription OnDeleteProfile(
   $filter: ModelSubscriptionProfileFilterInput
   $owner: String
@@ -87,7 +107,6 @@ export const onDeleteProfile = /* GraphQL */ `subscription OnDeleteProfile(
     image
     image_thumbnail
     leaderboard
-    my_quests
     organization_description
     organization_name
     owner
@@ -114,7 +133,6 @@ export const onDeleteQuest = /* GraphQL */ `subscription OnDeleteQuest($filter: 
     createdAt
     creator_id
     id
-    participants
     quest_details
     quest_end_at
     quest_entry
@@ -136,6 +154,28 @@ export const onDeleteQuest = /* GraphQL */ `subscription OnDeleteQuest($filter: 
   APITypes.OnDeleteQuestSubscriptionVariables,
   APITypes.OnDeleteQuestSubscription
 >;
+export const onDeleteUserQuest = /* GraphQL */ `subscription OnDeleteUserQuest(
+  $filter: ModelSubscriptionUserQuestFilterInput
+  $owner: String
+) {
+  onDeleteUserQuest(filter: $filter, owner: $owner) {
+    createdAt
+    id
+    joinedAt
+    owner
+    points
+    profileId
+    questId
+    status
+    tasks
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnDeleteUserQuestSubscriptionVariables,
+  APITypes.OnDeleteUserQuestSubscription
+>;
 export const onUpdateProfile = /* GraphQL */ `subscription OnUpdateProfile(
   $filter: ModelSubscriptionProfileFilterInput
   $owner: String
@@ -151,7 +191,6 @@ export const onUpdateProfile = /* GraphQL */ `subscription OnUpdateProfile(
     image
     image_thumbnail
     leaderboard
-    my_quests
     organization_description
     organization_name
     owner
@@ -178,7 +217,6 @@ export const onUpdateQuest = /* GraphQL */ `subscription OnUpdateQuest($filter: 
     createdAt
     creator_id
     id
-    participants
     quest_details
     quest_end_at
     quest_entry
@@ -199,4 +237,26 @@ export const onUpdateQuest = /* GraphQL */ `subscription OnUpdateQuest($filter: 
 ` as GeneratedSubscription<
   APITypes.OnUpdateQuestSubscriptionVariables,
   APITypes.OnUpdateQuestSubscription
+>;
+export const onUpdateUserQuest = /* GraphQL */ `subscription OnUpdateUserQuest(
+  $filter: ModelSubscriptionUserQuestFilterInput
+  $owner: String
+) {
+  onUpdateUserQuest(filter: $filter, owner: $owner) {
+    createdAt
+    id
+    joinedAt
+    owner
+    points
+    profileId
+    questId
+    status
+    tasks
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnUpdateUserQuestSubscriptionVariables,
+  APITypes.OnUpdateUserQuestSubscription
 >;

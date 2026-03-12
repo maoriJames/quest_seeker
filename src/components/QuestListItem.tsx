@@ -1,58 +1,41 @@
 import React, { useState } from 'react'
-import { MyQuest, Profile, Quest } from '@/types'
+import { Quest, Task } from '@/types'
 import { useNavigate } from 'react-router-dom'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
 import RemoteImage from './RemoteImage'
+import { Schema } from 'amplify/data/resource'
+
+type UserQuest = Schema['UserQuest']['type'] & { tasks: Task[] }
 
 interface QuestListItemProps {
   quest: Quest
-  currentUserProfile?: Profile
+  userQuests?: UserQuest[]
 }
 
 const QuestListItem = React.memo(function QuestListItem({
   quest,
-  currentUserProfile,
+  userQuests,
 }: QuestListItemProps) {
   const navigate = useNavigate()
   const [loaded, setLoaded] = useState(false)
-
   const now = new Date()
   const startDate = new Date(quest.quest_start_at ?? '')
   const endDate = new Date(quest.quest_end_at ?? '')
 
-  // Convert my_quests to an array safely
-  const myQuestsArray: MyQuest[] = (() => {
-    if (!currentUserProfile?.my_quests) return []
-    if (typeof currentUserProfile.my_quests === 'string') {
-      try {
-        return JSON.parse(currentUserProfile.my_quests) as MyQuest[]
-      } catch {
-        return []
-      }
-    }
-    return currentUserProfile.my_quests // already an array
-  })()
-
-  // Check if user has joined this quest
-  const hasJoined = myQuestsArray.some((q) => q.quest_id === quest.id)
+  // ✅ Replace my_quests parsing with UserQuest lookup
+  const hasJoined = userQuests?.some((uq) => uq.questId === quest.id) ?? false
 
   const currentQuest = endDate < now
   if (currentQuest) return null
 
-  const handleClick = () => {
-    navigate(`/user/quest/${quest.id}`)
-  }
+  const handleClick = () => navigate(`/user/quest/${quest.id}`)
 
-  // Check if quest is upcoming within 3 days
   const threeDays = 3 * 24 * 60 * 60 * 1000
   const isUpcoming =
     startDate.getTime() - now.getTime() <= threeDays &&
     startDate.getTime() - now.getTime() > 0
 
-  // Check if quest has started
   const isLive = now >= startDate && now <= endDate
-
-  // Use a thumbnail or fallback to the full image
   const imageSrc = quest.quest_image_thumb || quest.quest_image || placeHold
 
   return (
@@ -72,13 +55,11 @@ const QuestListItem = React.memo(function QuestListItem({
           }`}
           onLoad={() => setLoaded(true)}
         />
-        {/* Upcoming badge */}
         {isUpcoming && (
           <span className="absolute bottom-2 right-2 bg-yellow-400 text-white text-xs font-semibold px-2 py-1 rounded">
             Upcoming
           </span>
         )}
-        {/* Live badge */}
         {isLive && (
           <span className="absolute bottom-2 right-2 bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded">
             In Progress

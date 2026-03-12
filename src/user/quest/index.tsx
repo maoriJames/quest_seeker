@@ -1,10 +1,10 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import QuestListItem from '@/components/QuestListItem'
-import { useQuestList } from '@/hooks/userQuests'
+import { useQuestList, useUserQuests } from '@/hooks/userQuests'
 import { useMemo, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import bg from '@/assets/images/background_main.png'
-import type { MyQuest, Profile, Quest } from '@/types'
+import type { Profile, Quest } from '@/types'
 import AddQuestButton from '@/components/AddQuestButton'
 import { useCurrentUserProfile, useProfileList } from '@/hooks/userProfiles'
 import InfiniteScroll from 'react-infinite-scroll-component'
@@ -17,20 +17,16 @@ export default function QuestPage() {
   const location = useLocation()
   const searchParams = new URLSearchParams(location.search)
   const selectedRegion = searchParams.get('region') || 'Browse all'
-  const { data: quests, error, isLoading, isError } = useQuestList()
+  const { data: quests, error, isLoading } = useQuestList()
   const allQuests: Quest[] = quests ?? []
   const { data: profiles } = useProfileList()
-  const { currentProfile } = useCurrentUserProfile()
+  const { data: currentProfile } = useCurrentUserProfile()
+  const { data: userQuests } = useUserQuests(currentProfile?.id)
 
   const navigate = useNavigate()
 
   const [searchTerm, setSearchTerm] = useState('')
   const [sortOption, setSortOption] = useState('title')
-
-  // console.log('quests:', quests)
-  // console.log('isLoading:', isLoading)
-  console.log('isError:', isError)
-  // console.log('error:', error)
 
   const profileMap: Record<string, Profile> = useMemo(() => {
     const map: Record<string, Profile> = {}
@@ -58,17 +54,7 @@ export default function QuestPage() {
         image: p.image ?? '',
         image_thumbnail: p.image_thumbnail ?? '',
         role: p.role ?? 'seeker',
-        my_quests: (() => {
-          if (!p.my_quests) return []
-          if (typeof p.my_quests === 'string') {
-            try {
-              return JSON.parse(p.my_quests) as MyQuest[]
-            } catch {
-              return []
-            }
-          }
-          return p.my_quests // if it's already an array
-        })(),
+        my_quests: [],
         points: p.points ?? 0,
       }
     })
@@ -266,7 +252,7 @@ export default function QuestPage() {
                     quest_end_at: quest.quest_end_at ?? undefined,
                     region: quest.region ?? 'Unknown',
                   }}
-                  currentUserProfile={currentProfile as Profile | undefined}
+                  userQuests={userQuests}
                 />
               ))}
             </div>

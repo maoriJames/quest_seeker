@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "gen": "npx ampx generate graphql-client-code --format graphql-codegen --statement-target typescript --out src/graphql && npx ampx generate outputs --out-dir src",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"

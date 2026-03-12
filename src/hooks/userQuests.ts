@@ -1,4 +1,5 @@
 import { generateClient } from 'aws-amplify/api'
+import { generateClient as generateDataClient } from 'aws-amplify/data'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { listQuests, getQuest } from '@/graphql/queries'
 import type {
@@ -6,8 +7,10 @@ import type {
   MutateQuestMutationVariables,
 } from '@/graphql/API'
 import { deleteQuest, mutateQuest } from '@/graphql/mutations'
+import { Schema } from 'amplify/data/resource'
 
 const client = generateClient()
+const dataClient = generateDataClient<Schema>()
 
 export const useQuestList = (region?: string) => {
   return useQuery({
@@ -110,5 +113,50 @@ export const useDeleteQuest = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['quests'] })
     },
+  })
+}
+
+export const useUserQuests = (profileId?: string) => {
+  return useQuery({
+    queryKey: ['userQuests', profileId],
+    queryFn: async () => {
+      if (!profileId) throw new Error('No profileId provided')
+
+      const { data, errors } = await dataClient.models.UserQuest.list({
+        filter: { profileId: { eq: profileId } },
+      })
+
+      if (errors?.length) throw new Error(errors[0].message)
+
+      return data.map((uq) => ({
+        ...uq,
+        tasks: (() => {
+          try {
+            return typeof uq.tasks === 'string'
+              ? JSON.parse(uq.tasks)
+              : (uq.tasks ?? [])
+          } catch {
+            return []
+          }
+        })(),
+      }))
+    },
+    enabled: !!profileId,
+    staleTime: 1000 * 60 * 2,
+  })
+}
+
+export const useQuestParticipants = (questId?: string) => {
+  return useQuery({
+    queryKey: ['questParticipants', questId],
+    queryFn: async () => {
+      if (!questId) return []
+      const { data, errors } = await dataClient.models.UserQuest.list({
+        filter: { questId: { eq: questId } },
+      })
+      if (errors?.length) throw new Error(errors[0].message)
+      return data ?? []
+    },
+    enabled: !!questId,
   })
 }

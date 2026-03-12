@@ -7,10 +7,16 @@ import {
 } from '@aws-sdk/lib-dynamodb'
 import { randomUUID } from 'crypto'
 
-// console.log('EVENT ARGUMENTS:', JSON.stringify(event.arguments, null, 2))
-
 const client = new DynamoDBClient({})
-const ddb = DynamoDBDocumentClient.from(client)
+const ddb = DynamoDBDocumentClient.from(client, {
+  marshallOptions: {
+    removeUndefinedValues: true,
+    convertEmptyValues: false,
+  },
+  unmarshallOptions: {
+    wrapNumbers: false,
+  },
+})
 
 const QUEST_TABLE = process.env.QUEST_TABLE_NAME!
 
@@ -65,7 +71,6 @@ interface AppSyncEvent {
 // -----------------------------
 export const handler = async (event: AppSyncEvent) => {
   const input = event.arguments
-
   const userId = event.identity.sub
   const groups = event.identity.claims?.['cognito:groups'] ?? []
 
@@ -81,7 +86,6 @@ export const handler = async (event: AppSyncEvent) => {
   // -----------------------------
   // JSON Helper
   // -----------------------------
-
   const parseAwsJson = <T>(value: unknown, fallback: T): T => {
     if (value === undefined || value === null) return fallback
     if (typeof value === 'string') return JSON.parse(value)
@@ -90,7 +94,16 @@ export const handler = async (event: AppSyncEvent) => {
 
   const normalizeAwsJson = (value: unknown, fallback = '[]') => {
     if (value === undefined || value === null) return fallback
-    return typeof value === 'string' ? value : JSON.stringify(value)
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value)
+        // If it parsed to an array or object, re-stringify cleanly
+        return JSON.stringify(parsed)
+      } catch {
+        return fallback
+      }
+    }
+    return JSON.stringify(value)
   }
 
   // -----------------------------
@@ -99,6 +112,10 @@ export const handler = async (event: AppSyncEvent) => {
   if (input.action === 'CREATE_DRAFT') {
     const questId = randomUUID()
 
+    const normalizedTasks = normalizeAwsJson(input.tasks)
+    console.log('about to write tasks:', normalizedTasks)
+    console.log('tasks type:', typeof normalizedTasks)
+
     await ddb.send(
       new PutCommand({
         TableName: QUEST_TABLE,
@@ -106,23 +123,17 @@ export const handler = async (event: AppSyncEvent) => {
           id: questId,
           creator_id: userId,
           status: 'draft',
-
           quest_name: input.name ?? null,
           quest_details: input.details ?? null,
-
           quest_image: input.imagePath ?? null,
           quest_image_thumb: input.imageThumbPath ?? null,
-
           quest_start_at: input.startAt ?? null,
           quest_end_at: input.endAt ?? null,
-
           region: input.region ?? null,
           quest_entry: input.entryFee ?? null,
-
           quest_prize_info: normalizeAwsJson(input.prizes),
           quest_sponsor: normalizeAwsJson(input.sponsors),
-          quest_tasks: normalizeAwsJson(input.tasks),
-
+          quest_tasks: normalizedTasks,
           createdAt: now,
           updatedAt: now,
         },

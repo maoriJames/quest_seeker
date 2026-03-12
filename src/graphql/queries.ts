@@ -20,7 +20,6 @@ export const getProfile = /* GraphQL */ `query GetProfile($id: ID!) {
     image
     image_thumbnail
     leaderboard
-    my_quests
     organization_description
     organization_name
     owner
@@ -47,7 +46,6 @@ export const getQuest = /* GraphQL */ `query GetQuest($id: ID!) {
     createdAt
     creator_id
     id
-    participants
     quest_details
     quest_end_at
     quest_entry
@@ -66,6 +64,25 @@ export const getQuest = /* GraphQL */ `query GetQuest($id: ID!) {
   }
 }
 ` as GeneratedQuery<APITypes.GetQuestQueryVariables, APITypes.GetQuestQuery>;
+export const getUserQuest = /* GraphQL */ `query GetUserQuest($id: ID!) {
+  getUserQuest(id: $id) {
+    createdAt
+    id
+    joinedAt
+    owner
+    points
+    profileId
+    questId
+    status
+    tasks
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.GetUserQuestQueryVariables,
+  APITypes.GetUserQuestQuery
+>;
 export const listLeaderboard = /* GraphQL */ `query ListLeaderboard(
   $filter: ModelProfileFilterInput
   $leaderboard: String!
@@ -93,7 +110,6 @@ export const listLeaderboard = /* GraphQL */ `query ListLeaderboard(
       image
       image_thumbnail
       leaderboard
-      my_quests
       organization_description
       organization_name
       owner
@@ -135,7 +151,6 @@ export const listProfiles = /* GraphQL */ `query ListProfiles(
       image
       image_thumbnail
       leaderboard
-      my_quests
       organization_description
       organization_name
       owner
@@ -170,7 +185,6 @@ export const listQuests = /* GraphQL */ `query ListQuests(
       createdAt
       creator_id
       id
-      participants
       quest_details
       quest_end_at
       quest_entry
@@ -194,4 +208,103 @@ export const listQuests = /* GraphQL */ `query ListQuests(
 ` as GeneratedQuery<
   APITypes.ListQuestsQueryVariables,
   APITypes.ListQuestsQuery
+>;
+export const listUserQuests = /* GraphQL */ `query ListUserQuests(
+  $filter: ModelUserQuestFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  listUserQuests(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    items {
+      createdAt
+      id
+      joinedAt
+      owner
+      points
+      profileId
+      questId
+      status
+      tasks
+      updatedAt
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.ListUserQuestsQueryVariables,
+  APITypes.ListUserQuestsQuery
+>;
+export const listUsersByQuest = /* GraphQL */ `query ListUsersByQuest(
+  $filter: ModelUserQuestFilterInput
+  $limit: Int
+  $nextToken: String
+  $questId: String!
+  $sortDirection: ModelSortDirection
+) {
+  listUsersByQuest(
+    filter: $filter
+    limit: $limit
+    nextToken: $nextToken
+    questId: $questId
+    sortDirection: $sortDirection
+  ) {
+    items {
+      createdAt
+      id
+      joinedAt
+      owner
+      points
+      profileId
+      questId
+      status
+      tasks
+      updatedAt
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.ListUsersByQuestQueryVariables,
+  APITypes.ListUsersByQuestQuery
+>;
+export const listUsersByQuestAndStatus = /* GraphQL */ `query ListUsersByQuestAndStatus(
+  $filter: ModelUserQuestFilterInput
+  $limit: Int
+  $nextToken: String
+  $questId: String!
+  $sortDirection: ModelSortDirection
+  $status: ModelStringKeyConditionInput
+) {
+  listUsersByQuestAndStatus(
+    filter: $filter
+    limit: $limit
+    nextToken: $nextToken
+    questId: $questId
+    sortDirection: $sortDirection
+    status: $status
+  ) {
+    items {
+      createdAt
+      id
+      joinedAt
+      owner
+      points
+      profileId
+      questId
+      status
+      tasks
+      updatedAt
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.ListUsersByQuestAndStatusQueryVariables,
+  APITypes.ListUsersByQuestAndStatusQuery
 >;

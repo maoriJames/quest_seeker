@@ -14,7 +14,6 @@ export type Profile = {
   image?: string | null,
   image_thumbnail?: string | null,
   leaderboard?: string | null,
-  my_quests?: string | null,
   organization_description?: string | null,
   organization_name?: string | null,
   owner?: string | null,
@@ -42,7 +41,6 @@ export type Quest = {
   createdAt: string,
   creator_id?: string | null,
   id: string,
-  participants?: string | null,
   quest_details?: string | null,
   quest_end_at?: string | null,
   quest_entry?: number | null,
@@ -70,6 +68,27 @@ export enum QuestStatus {
 }
 
 
+export type UserQuest = {
+  __typename: "UserQuest",
+  createdAt: string,
+  id: string,
+  joinedAt?: string | null,
+  owner?: string | null,
+  points?: number | null,
+  profileId: string,
+  questId: string,
+  status?: UserQuestStatus | null,
+  tasks?: string | null,
+  updatedAt: string,
+};
+
+export enum UserQuestStatus {
+  ABANDONED = "ABANDONED",
+  ACTIVE = "ACTIVE",
+  COMPLETED = "COMPLETED",
+}
+
+
 export type ModelProfileFilterInput = {
   about_me?: ModelStringInput | null,
   and?: Array< ModelProfileFilterInput | null > | null,
@@ -82,7 +101,6 @@ export type ModelProfileFilterInput = {
   image?: ModelStringInput | null,
   image_thumbnail?: ModelStringInput | null,
   leaderboard?: ModelStringInput | null,
-  my_quests?: ModelStringInput | null,
   not?: ModelProfileFilterInput | null,
   or?: Array< ModelProfileFilterInput | null > | null,
   organization_description?: ModelStringInput | null,
@@ -202,7 +220,6 @@ export type ModelQuestFilterInput = {
   id?: ModelIDInput | null,
   not?: ModelQuestFilterInput | null,
   or?: Array< ModelQuestFilterInput | null > | null,
-  participants?: ModelStringInput | null,
   quest_details?: ModelStringInput | null,
   quest_end_at?: ModelStringInput | null,
   quest_entry?: ModelIntInput | null,
@@ -237,6 +254,43 @@ export type ModelQuestConnection = {
   nextToken?: string | null,
 };
 
+export type ModelUserQuestFilterInput = {
+  and?: Array< ModelUserQuestFilterInput | null > | null,
+  createdAt?: ModelStringInput | null,
+  id?: ModelIDInput | null,
+  joinedAt?: ModelStringInput | null,
+  not?: ModelUserQuestFilterInput | null,
+  or?: Array< ModelUserQuestFilterInput | null > | null,
+  owner?: ModelStringInput | null,
+  points?: ModelIntInput | null,
+  profileId?: ModelStringInput | null,
+  questId?: ModelStringInput | null,
+  status?: ModelUserQuestStatusInput | null,
+  tasks?: ModelStringInput | null,
+  updatedAt?: ModelStringInput | null,
+};
+
+export type ModelUserQuestStatusInput = {
+  eq?: UserQuestStatus | null,
+  ne?: UserQuestStatus | null,
+};
+
+export type ModelUserQuestConnection = {
+  __typename: "ModelUserQuestConnection",
+  items:  Array<UserQuest | null >,
+  nextToken?: string | null,
+};
+
+export type ModelStringKeyConditionInput = {
+  beginsWith?: string | null,
+  between?: Array< string | null > | null,
+  eq?: string | null,
+  ge?: string | null,
+  gt?: string | null,
+  le?: string | null,
+  lt?: string | null,
+};
+
 export type ModelProfileConditionInput = {
   about_me?: ModelStringInput | null,
   and?: Array< ModelProfileConditionInput | null > | null,
@@ -248,7 +302,6 @@ export type ModelProfileConditionInput = {
   image?: ModelStringInput | null,
   image_thumbnail?: ModelStringInput | null,
   leaderboard?: ModelStringInput | null,
-  my_quests?: ModelStringInput | null,
   not?: ModelProfileConditionInput | null,
   or?: Array< ModelProfileConditionInput | null > | null,
   organization_description?: ModelStringInput | null,
@@ -277,7 +330,6 @@ export type CreateProfileInput = {
   image?: string | null,
   image_thumbnail?: string | null,
   leaderboard?: string | null,
-  my_quests?: string | null,
   organization_description?: string | null,
   organization_name?: string | null,
   phone?: string | null,
@@ -298,7 +350,6 @@ export type ModelQuestConditionInput = {
   creator_id?: ModelStringInput | null,
   not?: ModelQuestConditionInput | null,
   or?: Array< ModelQuestConditionInput | null > | null,
-  participants?: ModelStringInput | null,
   quest_details?: ModelStringInput | null,
   quest_end_at?: ModelStringInput | null,
   quest_entry?: ModelIntInput | null,
@@ -318,7 +369,6 @@ export type ModelQuestConditionInput = {
 export type CreateQuestInput = {
   creator_id?: string | null,
   id?: string | null,
-  participants?: string | null,
   quest_details?: string | null,
   quest_end_at?: string | null,
   quest_entry?: number | null,
@@ -334,11 +384,40 @@ export type CreateQuestInput = {
   status?: QuestStatus | null,
 };
 
+export type ModelUserQuestConditionInput = {
+  and?: Array< ModelUserQuestConditionInput | null > | null,
+  createdAt?: ModelStringInput | null,
+  joinedAt?: ModelStringInput | null,
+  not?: ModelUserQuestConditionInput | null,
+  or?: Array< ModelUserQuestConditionInput | null > | null,
+  owner?: ModelStringInput | null,
+  points?: ModelIntInput | null,
+  profileId?: ModelStringInput | null,
+  questId?: ModelStringInput | null,
+  status?: ModelUserQuestStatusInput | null,
+  tasks?: ModelStringInput | null,
+  updatedAt?: ModelStringInput | null,
+};
+
+export type CreateUserQuestInput = {
+  id?: string | null,
+  joinedAt?: string | null,
+  points?: number | null,
+  profileId: string,
+  questId: string,
+  status?: UserQuestStatus | null,
+  tasks?: string | null,
+};
+
 export type DeleteProfileInput = {
   id: string,
 };
 
 export type DeleteQuestInput = {
+  id: string,
+};
+
+export type DeleteUserQuestInput = {
   id: string,
 };
 
@@ -365,7 +444,6 @@ export type UpdateProfileInput = {
   image?: string | null,
   image_thumbnail?: string | null,
   leaderboard?: string | null,
-  my_quests?: string | null,
   organization_description?: string | null,
   organization_name?: string | null,
   phone?: string | null,
@@ -383,7 +461,6 @@ export type UpdateProfileInput = {
 export type UpdateQuestInput = {
   creator_id?: string | null,
   id: string,
-  participants?: string | null,
   quest_details?: string | null,
   quest_end_at?: string | null,
   quest_entry?: number | null,
@@ -399,6 +476,16 @@ export type UpdateQuestInput = {
   status?: QuestStatus | null,
 };
 
+export type UpdateUserQuestInput = {
+  id: string,
+  joinedAt?: string | null,
+  points?: number | null,
+  profileId?: string | null,
+  questId?: string | null,
+  status?: UserQuestStatus | null,
+  tasks?: string | null,
+};
+
 export type ModelSubscriptionProfileFilterInput = {
   about_me?: ModelSubscriptionStringInput | null,
   and?: Array< ModelSubscriptionProfileFilterInput | null > | null,
@@ -411,7 +498,6 @@ export type ModelSubscriptionProfileFilterInput = {
   image?: ModelSubscriptionStringInput | null,
   image_thumbnail?: ModelSubscriptionStringInput | null,
   leaderboard?: ModelSubscriptionStringInput | null,
-  my_quests?: ModelSubscriptionStringInput | null,
   or?: Array< ModelSubscriptionProfileFilterInput | null > | null,
   organization_description?: ModelSubscriptionStringInput | null,
   organization_name?: ModelSubscriptionStringInput | null,
@@ -477,7 +563,6 @@ export type ModelSubscriptionQuestFilterInput = {
   creator_id?: ModelSubscriptionStringInput | null,
   id?: ModelSubscriptionIDInput | null,
   or?: Array< ModelSubscriptionQuestFilterInput | null > | null,
-  participants?: ModelSubscriptionStringInput | null,
   quest_details?: ModelSubscriptionStringInput | null,
   quest_end_at?: ModelSubscriptionStringInput | null,
   quest_entry?: ModelSubscriptionIntInput | null,
@@ -499,6 +584,21 @@ export type ModelSubscriptionBooleanInput = {
   ne?: boolean | null,
 };
 
+export type ModelSubscriptionUserQuestFilterInput = {
+  and?: Array< ModelSubscriptionUserQuestFilterInput | null > | null,
+  createdAt?: ModelSubscriptionStringInput | null,
+  id?: ModelSubscriptionIDInput | null,
+  joinedAt?: ModelSubscriptionStringInput | null,
+  or?: Array< ModelSubscriptionUserQuestFilterInput | null > | null,
+  owner?: ModelStringInput | null,
+  points?: ModelSubscriptionIntInput | null,
+  profileId?: ModelSubscriptionStringInput | null,
+  questId?: ModelSubscriptionStringInput | null,
+  status?: ModelSubscriptionStringInput | null,
+  tasks?: ModelSubscriptionStringInput | null,
+  updatedAt?: ModelSubscriptionStringInput | null,
+};
+
 export type GetProfileQueryVariables = {
   id: string,
 };
@@ -516,7 +616,6 @@ export type GetProfileQuery = {
     image?: string | null,
     image_thumbnail?: string | null,
     leaderboard?: string | null,
-    my_quests?: string | null,
     organization_description?: string | null,
     organization_name?: string | null,
     owner?: string | null,
@@ -544,7 +643,6 @@ export type GetQuestQuery = {
     createdAt: string,
     creator_id?: string | null,
     id: string,
-    participants?: string | null,
     quest_details?: string | null,
     quest_end_at?: string | null,
     quest_entry?: number | null,
@@ -558,6 +656,26 @@ export type GetQuestQuery = {
     quest_tasks?: string | null,
     region?: string | null,
     status?: QuestStatus | null,
+    updatedAt: string,
+  } | null,
+};
+
+export type GetUserQuestQueryVariables = {
+  id: string,
+};
+
+export type GetUserQuestQuery = {
+  getUserQuest?:  {
+    __typename: "UserQuest",
+    createdAt: string,
+    id: string,
+    joinedAt?: string | null,
+    owner?: string | null,
+    points?: number | null,
+    profileId: string,
+    questId: string,
+    status?: UserQuestStatus | null,
+    tasks?: string | null,
     updatedAt: string,
   } | null,
 };
@@ -586,7 +704,6 @@ export type ListLeaderboardQuery = {
       image?: string | null,
       image_thumbnail?: string | null,
       leaderboard?: string | null,
-      my_quests?: string | null,
       organization_description?: string | null,
       organization_name?: string | null,
       owner?: string | null,
@@ -627,7 +744,6 @@ export type ListProfilesQuery = {
       image?: string | null,
       image_thumbnail?: string | null,
       leaderboard?: string | null,
-      my_quests?: string | null,
       organization_description?: string | null,
       organization_name?: string | null,
       owner?: string | null,
@@ -661,7 +777,6 @@ export type ListQuestsQuery = {
       createdAt: string,
       creator_id?: string | null,
       id: string,
-      participants?: string | null,
       quest_details?: string | null,
       quest_end_at?: string | null,
       quest_entry?: number | null,
@@ -675,6 +790,89 @@ export type ListQuestsQuery = {
       quest_tasks?: string | null,
       region?: string | null,
       status?: QuestStatus | null,
+      updatedAt: string,
+    } | null >,
+    nextToken?: string | null,
+  } | null,
+};
+
+export type ListUserQuestsQueryVariables = {
+  filter?: ModelUserQuestFilterInput | null,
+  limit?: number | null,
+  nextToken?: string | null,
+};
+
+export type ListUserQuestsQuery = {
+  listUserQuests?:  {
+    __typename: "ModelUserQuestConnection",
+    items:  Array< {
+      __typename: "UserQuest",
+      createdAt: string,
+      id: string,
+      joinedAt?: string | null,
+      owner?: string | null,
+      points?: number | null,
+      profileId: string,
+      questId: string,
+      status?: UserQuestStatus | null,
+      tasks?: string | null,
+      updatedAt: string,
+    } | null >,
+    nextToken?: string | null,
+  } | null,
+};
+
+export type ListUsersByQuestQueryVariables = {
+  filter?: ModelUserQuestFilterInput | null,
+  limit?: number | null,
+  nextToken?: string | null,
+  questId: string,
+  sortDirection?: ModelSortDirection | null,
+};
+
+export type ListUsersByQuestQuery = {
+  listUsersByQuest?:  {
+    __typename: "ModelUserQuestConnection",
+    items:  Array< {
+      __typename: "UserQuest",
+      createdAt: string,
+      id: string,
+      joinedAt?: string | null,
+      owner?: string | null,
+      points?: number | null,
+      profileId: string,
+      questId: string,
+      status?: UserQuestStatus | null,
+      tasks?: string | null,
+      updatedAt: string,
+    } | null >,
+    nextToken?: string | null,
+  } | null,
+};
+
+export type ListUsersByQuestAndStatusQueryVariables = {
+  filter?: ModelUserQuestFilterInput | null,
+  limit?: number | null,
+  nextToken?: string | null,
+  questId: string,
+  sortDirection?: ModelSortDirection | null,
+  status?: ModelStringKeyConditionInput | null,
+};
+
+export type ListUsersByQuestAndStatusQuery = {
+  listUsersByQuestAndStatus?:  {
+    __typename: "ModelUserQuestConnection",
+    items:  Array< {
+      __typename: "UserQuest",
+      createdAt: string,
+      id: string,
+      joinedAt?: string | null,
+      owner?: string | null,
+      points?: number | null,
+      profileId: string,
+      questId: string,
+      status?: UserQuestStatus | null,
+      tasks?: string | null,
       updatedAt: string,
     } | null >,
     nextToken?: string | null,
@@ -707,7 +905,6 @@ export type CreateProfileMutation = {
     image?: string | null,
     image_thumbnail?: string | null,
     leaderboard?: string | null,
-    my_quests?: string | null,
     organization_description?: string | null,
     organization_name?: string | null,
     owner?: string | null,
@@ -736,7 +933,6 @@ export type CreateQuestMutation = {
     createdAt: string,
     creator_id?: string | null,
     id: string,
-    participants?: string | null,
     quest_details?: string | null,
     quest_end_at?: string | null,
     quest_entry?: number | null,
@@ -754,6 +950,18 @@ export type CreateQuestMutation = {
   } | null,
 };
 
+export type CreateQuestEntrySessionMutationVariables = {
+  entryFee: number,
+  profileId: string,
+  questId: string,
+  questName: string,
+  returnUrl: string,
+};
+
+export type CreateQuestEntrySessionMutation = {
+  createQuestEntrySession?: string | null,
+};
+
 export type CreateStripeSessionMutationVariables = {
   profileId: string,
   questId: string,
@@ -762,6 +970,27 @@ export type CreateStripeSessionMutationVariables = {
 
 export type CreateStripeSessionMutation = {
   createStripeSession?: string | null,
+};
+
+export type CreateUserQuestMutationVariables = {
+  condition?: ModelUserQuestConditionInput | null,
+  input: CreateUserQuestInput,
+};
+
+export type CreateUserQuestMutation = {
+  createUserQuest?:  {
+    __typename: "UserQuest",
+    createdAt: string,
+    id: string,
+    joinedAt?: string | null,
+    owner?: string | null,
+    points?: number | null,
+    profileId: string,
+    questId: string,
+    status?: UserQuestStatus | null,
+    tasks?: string | null,
+    updatedAt: string,
+  } | null,
 };
 
 export type DeleteProfileMutationVariables = {
@@ -782,7 +1011,6 @@ export type DeleteProfileMutation = {
     image?: string | null,
     image_thumbnail?: string | null,
     leaderboard?: string | null,
-    my_quests?: string | null,
     organization_description?: string | null,
     organization_name?: string | null,
     owner?: string | null,
@@ -811,7 +1039,6 @@ export type DeleteQuestMutation = {
     createdAt: string,
     creator_id?: string | null,
     id: string,
-    participants?: string | null,
     quest_details?: string | null,
     quest_end_at?: string | null,
     quest_entry?: number | null,
@@ -825,6 +1052,27 @@ export type DeleteQuestMutation = {
     quest_tasks?: string | null,
     region?: string | null,
     status?: QuestStatus | null,
+    updatedAt: string,
+  } | null,
+};
+
+export type DeleteUserQuestMutationVariables = {
+  condition?: ModelUserQuestConditionInput | null,
+  input: DeleteUserQuestInput,
+};
+
+export type DeleteUserQuestMutation = {
+  deleteUserQuest?:  {
+    __typename: "UserQuest",
+    createdAt: string,
+    id: string,
+    joinedAt?: string | null,
+    owner?: string | null,
+    points?: number | null,
+    profileId: string,
+    questId: string,
+    status?: UserQuestStatus | null,
+    tasks?: string | null,
     updatedAt: string,
   } | null,
 };
@@ -880,7 +1128,6 @@ export type UpdateProfileMutation = {
     image?: string | null,
     image_thumbnail?: string | null,
     leaderboard?: string | null,
-    my_quests?: string | null,
     organization_description?: string | null,
     organization_name?: string | null,
     owner?: string | null,
@@ -909,7 +1156,6 @@ export type UpdateQuestMutation = {
     createdAt: string,
     creator_id?: string | null,
     id: string,
-    participants?: string | null,
     quest_details?: string | null,
     quest_end_at?: string | null,
     quest_entry?: number | null,
@@ -923,6 +1169,27 @@ export type UpdateQuestMutation = {
     quest_tasks?: string | null,
     region?: string | null,
     status?: QuestStatus | null,
+    updatedAt: string,
+  } | null,
+};
+
+export type UpdateUserQuestMutationVariables = {
+  condition?: ModelUserQuestConditionInput | null,
+  input: UpdateUserQuestInput,
+};
+
+export type UpdateUserQuestMutation = {
+  updateUserQuest?:  {
+    __typename: "UserQuest",
+    createdAt: string,
+    id: string,
+    joinedAt?: string | null,
+    owner?: string | null,
+    points?: number | null,
+    profileId: string,
+    questId: string,
+    status?: UserQuestStatus | null,
+    tasks?: string | null,
     updatedAt: string,
   } | null,
 };
@@ -945,7 +1212,6 @@ export type OnCreateProfileSubscription = {
     image?: string | null,
     image_thumbnail?: string | null,
     leaderboard?: string | null,
-    my_quests?: string | null,
     organization_description?: string | null,
     organization_name?: string | null,
     owner?: string | null,
@@ -973,7 +1239,6 @@ export type OnCreateQuestSubscription = {
     createdAt: string,
     creator_id?: string | null,
     id: string,
-    participants?: string | null,
     quest_details?: string | null,
     quest_end_at?: string | null,
     quest_entry?: number | null,
@@ -987,6 +1252,27 @@ export type OnCreateQuestSubscription = {
     quest_tasks?: string | null,
     region?: string | null,
     status?: QuestStatus | null,
+    updatedAt: string,
+  } | null,
+};
+
+export type OnCreateUserQuestSubscriptionVariables = {
+  filter?: ModelSubscriptionUserQuestFilterInput | null,
+  owner?: string | null,
+};
+
+export type OnCreateUserQuestSubscription = {
+  onCreateUserQuest?:  {
+    __typename: "UserQuest",
+    createdAt: string,
+    id: string,
+    joinedAt?: string | null,
+    owner?: string | null,
+    points?: number | null,
+    profileId: string,
+    questId: string,
+    status?: UserQuestStatus | null,
+    tasks?: string | null,
     updatedAt: string,
   } | null,
 };
@@ -1009,7 +1295,6 @@ export type OnDeleteProfileSubscription = {
     image?: string | null,
     image_thumbnail?: string | null,
     leaderboard?: string | null,
-    my_quests?: string | null,
     organization_description?: string | null,
     organization_name?: string | null,
     owner?: string | null,
@@ -1037,7 +1322,6 @@ export type OnDeleteQuestSubscription = {
     createdAt: string,
     creator_id?: string | null,
     id: string,
-    participants?: string | null,
     quest_details?: string | null,
     quest_end_at?: string | null,
     quest_entry?: number | null,
@@ -1051,6 +1335,27 @@ export type OnDeleteQuestSubscription = {
     quest_tasks?: string | null,
     region?: string | null,
     status?: QuestStatus | null,
+    updatedAt: string,
+  } | null,
+};
+
+export type OnDeleteUserQuestSubscriptionVariables = {
+  filter?: ModelSubscriptionUserQuestFilterInput | null,
+  owner?: string | null,
+};
+
+export type OnDeleteUserQuestSubscription = {
+  onDeleteUserQuest?:  {
+    __typename: "UserQuest",
+    createdAt: string,
+    id: string,
+    joinedAt?: string | null,
+    owner?: string | null,
+    points?: number | null,
+    profileId: string,
+    questId: string,
+    status?: UserQuestStatus | null,
+    tasks?: string | null,
     updatedAt: string,
   } | null,
 };
@@ -1073,7 +1378,6 @@ export type OnUpdateProfileSubscription = {
     image?: string | null,
     image_thumbnail?: string | null,
     leaderboard?: string | null,
-    my_quests?: string | null,
     organization_description?: string | null,
     organization_name?: string | null,
     owner?: string | null,
@@ -1101,7 +1405,6 @@ export type OnUpdateQuestSubscription = {
     createdAt: string,
     creator_id?: string | null,
     id: string,
-    participants?: string | null,
     quest_details?: string | null,
     quest_end_at?: string | null,
     quest_entry?: number | null,
@@ -1115,6 +1418,27 @@ export type OnUpdateQuestSubscription = {
     quest_tasks?: string | null,
     region?: string | null,
     status?: QuestStatus | null,
+    updatedAt: string,
+  } | null,
+};
+
+export type OnUpdateUserQuestSubscriptionVariables = {
+  filter?: ModelSubscriptionUserQuestFilterInput | null,
+  owner?: string | null,
+};
+
+export type OnUpdateUserQuestSubscription = {
+  onUpdateUserQuest?:  {
+    __typename: "UserQuest",
+    createdAt: string,
+    id: string,
+    joinedAt?: string | null,
+    owner?: string | null,
+    points?: number | null,
+    profileId: string,
+    questId: string,
+    status?: UserQuestStatus | null,
+    tasks?: string | null,
     updatedAt: string,
   } | null,
 };

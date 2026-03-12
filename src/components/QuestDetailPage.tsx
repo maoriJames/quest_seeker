@@ -1,14 +1,16 @@
 import { generateClient, GraphQLResult } from 'aws-amplify/data'
-// import * as mutations from '@/graphql/mutations'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useQuest } from '@/hooks/userQuests'
+import {
+  useQuest,
+  useQuestParticipants,
+  useUserQuests,
+} from '@/hooks/userQuests'
 import { useProfile, useCurrentUserProfile } from '@/hooks/userProfiles'
 import bg from '@/assets/images/background_main.png'
 import { Button } from './ui/button'
 import { Card, CardContent } from './ui/card'
 import { useEffect, useState } from 'react'
-import { Prize, MyQuest, Sponsor, Task, Profile } from '@/types'
-import { addQuestToProfile } from '@/hooks/addQuestToProfile'
+import { Prize, Sponsor, Task, Profile, UserQuest } from '@/types'
 import RemoteImage from './RemoteImage'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
 import useEmblaCarousel from 'embla-carousel-react'
@@ -28,7 +30,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@radix-ui/react-tooltip'
-// import { parseQuestTasks } from '@/tools/questTasks'
 import { Toolbar } from './Toolbar'
 import TaskPreview from './TaskPreview'
 import { GetProfileQuery, QuestStatus } from '@/graphql/API'
@@ -39,8 +40,8 @@ import { PDFDownloadLink } from '@react-pdf/renderer'
 import SeekerTaskPdfButton from '@/components/SeekerTaskPdfButton'
 import { format, toZonedTime } from 'date-fns-tz'
 import { getUrl } from 'aws-amplify/storage'
-import { joinQuest } from '@/graphql/mutations'
 import { ensureArray } from '@/tools/ensureArray'
+import { joinQuest, createQuestEntrySession } from '@/graphql/mutations'
 
 export default function QuestDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -52,12 +53,17 @@ export default function QuestDetailPage() {
   const scrollNext = () => emblaApi && emblaApi.scrollNext()
   const navigate = useNavigate()
 
-  // 🧩 Fetch quest data
   const { data: quest, isLoading, error, refetch } = useQuest(id)
   const questCreatorProfile = useProfile(quest?.creator_id || '')
   const { data: currentUserProfile, refetch: refetchProfile } =
     useCurrentUserProfile()
 
+  // 🧩 Fetch quest data
+  const { data: userQuests, refetch: refetchUserQuests } = useUserQuests(
+    currentUserProfile?.id,
+  )
+  const { data: questParticipants } = useQuestParticipants(quest?.id)
+  const participantIds = questParticipants?.map((uq) => uq.profileId) ?? []
   const [participantProfiles, setParticipantProfiles] = useState<Profile[]>([])
   const [participantsLoaded, setParticipantsLoaded] = useState(false)
   const [tasks, setTasks] = useState<Task[]>([])
@@ -66,22 +72,33 @@ export default function QuestDetailPage() {
   const [pdfTasks, setPdfTasks] = useState<Task[]>([])
   const [pdfLoading, setPdfLoading] = useState(false)
 
+  const [paymentSuccess, setPaymentSuccess] = useState(false)
+
   const isExpired = quest?.status === QuestStatus.expired
   const NZ_TZ = 'Pacific/Auckland'
   // Update edit fields when quest data is fetched
   useEffect(() => {
     if (!quest) return
-    // console.log('What is quest.quest_tasks? ', quest.quest_tasks)
     setTasks(ensureArray<Task>(quest.quest_tasks))
   }, [quest])
-  // console.log('Tasks: ', tasks)
-  // console.log('quest.quest_tasks: ', quest?.quest_tasks)
 
   useEffect(() => {
     if (isExpired && !participantsLoaded) {
       handleOpenParticipants()
     }
   }, [isExpired])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const sessionId = params.get('session_id')
+    if (!sessionId) return
+
+    setPaymentSuccess(true)
+
+    // Clean up the URL without triggering a reload
+    const cleanUrl = window.location.pathname
+    window.history.replaceState({}, '', cleanUrl)
+  }, [])
 
   const client = generateClient()
 
@@ -137,33 +154,44 @@ export default function QuestDetailPage() {
 
   const handleJoinQuest = async () => {
     if (!quest?.id || !currentUserProfile?.id) return
-
     setJoining(true)
-
     try {
-      // 1️⃣ BACKEND: join quest (Quest.participants)
-      await client.graphql({
-        query: joinQuest,
-        variables: {
-          questId: quest.id,
-          profileId: currentUserProfile.id,
-        },
-      })
+      const entryFee = quest.quest_entry ?? 0
 
-      // 2️⃣ CLIENT: update profile (my_quests, points, tasks)
-      const userQuestEntry: MyQuest = {
-        quest_id: quest.id,
-        title: quest.quest_name ?? 'Untitled Quest',
-        tasks: tasks,
-        completed: false,
+      if (entryFee > 0) {
+        // 💳 Paid quest — create Stripe checkout session
+        const returnUrl = `${window.location.origin}/user/quest/${quest.id}`
+
+        const result = await client.graphql({
+          query: createQuestEntrySession,
+          variables: {
+            questId: quest.id,
+            profileId: currentUserProfile.id,
+            questName: quest.quest_name ?? 'Quest',
+            entryFee,
+            returnUrl,
+          },
+        })
+
+        const sessionUrl = result.data?.createQuestEntrySession
+        if (!sessionUrl) throw new Error('No session URL returned')
+
+        // Redirect to Stripe — joining happens via webhook on success
+        window.location.href = sessionUrl
+      } else {
+        // 🆓 Free quest — join directly
+        await client.graphql({
+          query: joinQuest,
+          variables: {
+            questId: quest.id,
+            profileId: currentUserProfile.id,
+          },
+        })
+        alert('✅ Quest added to your profile!')
+        await refetch()
+        await refetchProfile()
+        await refetchUserQuests()
       }
-
-      await addQuestToProfile(quest.id, [userQuestEntry])
-
-      alert('✅ Quest added to your profile!')
-
-      await refetch()
-      await refetchProfile()
     } catch (err) {
       console.error('❌ Failed to join quest:', err)
       alert('Failed to join quest.')
@@ -172,33 +200,35 @@ export default function QuestDetailPage() {
     }
   }
 
-  const participantsArray: string[] = quest.participants
-    ? JSON.parse(quest.participants)
-    : []
-
   const isOwner =
     currentUserProfile?.id === quest.creator_id &&
     currentUserProfile?.role === 'creator'
 
-  const myQuestsArray: MyQuest[] =
-    typeof currentUserProfile?.my_quests === 'string'
-      ? JSON.parse(currentUserProfile.my_quests)
-      : (currentUserProfile?.my_quests ?? [])
-  // console.log('myQuestArray: ', myQuestsArray)
-  const hasJoined = myQuestsArray.some((q) => q.quest_id === quest.id)
-  const joinedQuestEntry = myQuestsArray.find((q) => q.quest_id === quest.id)
+  const joinedQuestEntry = userQuests?.find((uq) => uq.questId === quest.id)
+  const hasJoined = !!joinedQuestEntry
+  const joinedTasks = Array.isArray(joinedQuestEntry?.tasks)
+    ? joinedQuestEntry.tasks
+    : (() => {
+        try {
+          return typeof joinedQuestEntry?.tasks === 'string'
+            ? JSON.parse(joinedQuestEntry.tasks)
+            : []
+        } catch {
+          return []
+        }
+      })()
 
-  const totalTasks = joinedQuestEntry?.tasks?.length ?? 0
+  const totalTasks = joinedTasks.length
 
-  const completedTasks =
-    joinedQuestEntry?.tasks?.filter((t) => t.completed).length ?? 0
-
+  const completedTasks = joinedTasks.filter(
+    (t: { completed: boolean }) => t.completed,
+  ).length
   const progressPercent =
     totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
 
   const seekerTasks = tasks.map((task) => {
-    const existingAnswer = joinedQuestEntry?.tasks?.find(
-      (t) => t.id === task.id,
+    const existingAnswer = joinedTasks.find(
+      (t: { id: string }) => t.id === task.id,
     )
     return {
       ...task,
@@ -210,7 +240,6 @@ export default function QuestDetailPage() {
   // Parse sponsors (safe check in case it's undefined or malformed)
   const sponsors: Sponsor[] = (() => {
     try {
-      // console.log('Quest Sponsors: ', quest?.quest_sponsor)
       return quest.quest_sponsor ? JSON.parse(quest.quest_sponsor) : []
     } catch {
       return []
@@ -226,60 +255,58 @@ export default function QuestDetailPage() {
     }
   })()
 
+  // 🔜 REMOVE MyQuest dependency — now uses UserQuest status
   const completedParticipants = participantProfiles.filter((profile) => {
-    // Parse participant's my_quests
-    const myQuestsRaw = profile.my_quests ?? []
-    const myQuests: MyQuest[] =
-      typeof myQuestsRaw === 'string' ? JSON.parse(myQuestsRaw) : myQuestsRaw
+    const userQuest = questParticipants?.find(
+      (uq) => uq.profileId === profile.id,
+    )
+    if (!userQuest) return false
+    if (userQuest.status === 'COMPLETED') return true
 
-    // Find this quest's entry for this participant
-    const questEntry = myQuests.find((q) => q.quest_id === quest.id)
-    // console.log('questEntry: ', questEntry)
-    if (!questEntry) return false
+    // Fallback: check if all tasks are completed
+    const tasks = Array.isArray(userQuest.tasks)
+      ? userQuest.tasks
+      : (() => {
+          try {
+            return typeof userQuest.tasks === 'string'
+              ? JSON.parse(userQuest.tasks)
+              : []
+          } catch {
+            return []
+          }
+        })()
 
-    // ✅ 1) If the MyQuest-level completed flag is true, we’re done
-    if (questEntry.completed) return true
-
-    // ✅ 2) Fallback: require all tasks to be marked completed
-    const taskCount = questEntry.tasks?.length ?? 0
+    const taskCount = tasks.length
     if (taskCount === 0) return false
-
-    const completedCount =
-      questEntry.tasks?.filter((t) => t.completed).length ?? 0
-
-    return completedCount === taskCount
+    return (
+      tasks.filter((t: { completed: boolean }) => t.completed).length ===
+      taskCount
+    )
   })
 
   const displayedSponsors = sponsors.slice(0, 2)
 
   const handleOpenParticipants = async () => {
     if (participantsLoaded) return
-
     try {
       const profiles = await Promise.all(
-        participantsArray.map(async (id) => {
+        participantIds.map(async (id) => {
           const res = await client.graphql<GraphQLResult<GetProfileQuery>>({
             query: getProfile,
             variables: { id },
             authMode: 'userPool',
           })
-
-          // Type guard: only access 'data' if it exists
-          if ('data' in res) {
-            return res.data?.getProfile ?? null
-          }
-
+          if ('data' in res) return res.data?.getProfile ?? null
           return null
         }),
       )
-
       setParticipantProfiles(profiles.filter(Boolean) as Profile[])
       setParticipantsLoaded(true)
     } catch (err) {
       console.error('Failed to fetch participant profiles:', err)
     }
-    // console.log('Participants Array: ', participantsArray.length)
   }
+
   return (
     <div
       className="relative min-h-screen flex items-center justify-center bg-cover bg-center px-4"
@@ -579,7 +606,7 @@ export default function QuestDetailPage() {
                   {/* Participant count block remains */}
                   <p className="text-sm text-gray-500">
                     People joined:
-                    {participantsArray.length > 0 && (
+                    {participantIds.length > 0 && (
                       <Dialog
                         onOpenChange={(open) =>
                           open && handleOpenParticipants()
@@ -587,8 +614,8 @@ export default function QuestDetailPage() {
                       >
                         <DialogTrigger asChild>
                           <button className="text-blue-600 underline font-medium text-sm">
-                            {participantsArray.length} participant
-                            {participantsArray.length > 1 ? 's' : ''}
+                            {participantIds.length} participant
+                            {participantIds.length > 1 ? 's' : ''}
                           </button>
                         </DialogTrigger>
 
@@ -777,11 +804,13 @@ export default function QuestDetailPage() {
                     <TaskInformationWindow
                       questId={quest.id}
                       tasks={seekerTasks}
-                      userTasks={joinedQuestEntry ? [joinedQuestEntry] : []}
+                      userTasks={
+                        joinedQuestEntry ? [joinedQuestEntry as UserQuest] : []
+                      }
                       readOnly={isOwner}
                       onTasksUpdated={async () => {
                         await refetch()
-                        await refetchProfile()
+                        await refetchUserQuests()
                       }}
                     />
                   </div>
@@ -794,107 +823,120 @@ export default function QuestDetailPage() {
             )}
           </div>
 
-          {/* Bottom action row: Delete/Join (left) + Back + Prize Info (right) */}
-          <div className="mt-4 flex items-center justify-between w-full gap-4">
-            {/* Left: Delete / Join */}
-            <div className="flex items-center gap-2">
-              {isOwner && participantsArray.length < 1 && (
-                <Button
-                  onClick={() => deleteQuest(quest)}
-                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
-                  disabled={deleting}
-                >
-                  {deleting ? 'Deleting...' : 'Delete Quest'}
-                </Button>
-              )}
+          <div className="mt-4 flex flex-col gap-3 w-full">
+            {/* Payment success banner */}
+            {paymentSuccess && (
+              <div className="w-full bg-green-100 border border-green-300 text-green-800 rounded-lg px-4 py-3 text-sm font-medium flex items-center gap-2">
+                🎉 Payment successful! You've joined the quest.
+              </div>
+            )}
 
-              {!isOwner &&
-                (hasJoined ? (
-                  <p className="text-green-600 font-semibold">✅ Joined!</p>
-                ) : (
-                  <button
-                    onClick={handleJoinQuest}
-                    disabled={joining}
-                    className={`px-4 py-2 rounded text-white ${
-                      joining
-                        ? 'bg-yellow-300'
-                        : 'bg-[#facc15] hover:bg-[#ca8a04]'
-                    }`}
+            {/* Bottom action row: Delete/Join (left) + Back + Prize Info (right) */}
+            <div className="mt-4 flex items-center justify-between w-full gap-4">
+              {/* Left: Delete / Join */}
+              <div className="flex items-center gap-2">
+                {isOwner && participantIds.length < 1 && (
+                  <Button
+                    onClick={() => deleteQuest(quest)}
+                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+                    disabled={deleting}
                   >
-                    {joining ? 'Joining...' : 'Join the quest!'}
-                  </button>
-                ))}
-            </div>
+                    {deleting ? 'Deleting...' : 'Delete Quest'}
+                  </Button>
+                )}
 
-            {/* Right: Back + Prize Info */}
-            <div className="flex items-center gap-3 ml-auto">
-              {/* ⬅️ Back to Quests */}
-              <Button onClick={() => navigate(-1)} variant="yellow">
-                Back to Quests
-              </Button>
+                {!isOwner &&
+                  (hasJoined ? (
+                    <p className="text-green-600 font-semibold">✅ Joined!</p>
+                  ) : (
+                    <button
+                      onClick={handleJoinQuest}
+                      disabled={joining}
+                      className={`px-4 py-2 rounded text-white ${
+                        joining
+                          ? 'bg-yellow-300'
+                          : 'bg-[#facc15] hover:bg-[#ca8a04]'
+                      }`}
+                    >
+                      {joining
+                        ? 'Joining...'
+                        : quest.quest_entry && quest.quest_entry > 0
+                          ? `Join for $${quest.quest_entry}`
+                          : 'Join the quest!'}
+                    </button>
+                  ))}
+              </div>
 
-              {/* 🏆 Prize Information Modal */}
-              {prizes.length > 0 && (
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded">
-                      Prize Information
-                    </Button>
-                  </DialogTrigger>
+              {/* Right: Back + Prize Info */}
+              <div className="flex items-center gap-3 ml-auto">
+                {/* ⬅️ Back to Quests */}
+                <Button onClick={() => navigate(-1)} variant="yellow">
+                  Back to Quests
+                </Button>
 
-                  <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
-                  <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
-                    <DialogTitle className="text-lg font-bold mb-4">
-                      Prize Information
-                    </DialogTitle>
+                {/* 🏆 Prize Information Modal */}
+                {prizes.length > 0 && (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded">
+                        Prize Information
+                      </Button>
+                    </DialogTrigger>
 
-                    {/* Carousel for prizes */}
-                    <div className="overflow-hidden" ref={emblaRef}>
-                      <div className="flex gap-4">
-                        {prizes.map((prize) => (
-                          <div
-                            key={prize.id}
-                            className="flex-[0_0_33.3333%] flex flex-col items-center justify-center p-2"
+                    <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
+                    <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
+                      <DialogTitle className="text-lg font-bold mb-4">
+                        Prize Information
+                      </DialogTitle>
+
+                      {/* Carousel for prizes */}
+                      <div className="overflow-hidden" ref={emblaRef}>
+                        <div className="flex gap-4">
+                          {prizes.map((prize) => (
+                            <div
+                              key={prize.id}
+                              className="flex-[0_0_33.3333%] flex flex-col items-center justify-center p-2"
+                            >
+                              <RemoteImage
+                                path={prize.image || placeHold}
+                                fallback={placeHold}
+                                className="w-20 h-20 object-contain rounded"
+                              />
+                              <span className="text-xs mt-1 font-semibold text-gray-700">
+                                {prize.name}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Navigation only if more than 4 prizes */}
+                      {prizes.length > 4 && (
+                        <div className="flex justify-between items-center mt-4">
+                          <button
+                            onClick={() => emblaApi?.scrollPrev()}
+                            className="text-sm text-blue-600 hover:underline"
                           >
-                            <RemoteImage
-                              path={prize.image || placeHold}
-                              fallback={placeHold}
-                              className="w-20 h-20 object-contain rounded"
-                            />
-                            <span className="text-xs mt-1 font-semibold text-gray-700">
-                              {prize.name}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                            Previous
+                          </button>
+                          <button
+                            onClick={() => emblaApi?.scrollNext()}
+                            className="text-sm text-blue-600 hover:underline"
+                          >
+                            Next
+                          </button>
+                        </div>
+                      )}
 
-                    {/* Navigation only if more than 4 prizes */}
-                    {prizes.length > 4 && (
-                      <div className="flex justify-between items-center mt-4">
-                        <button
-                          onClick={() => emblaApi?.scrollPrev()}
-                          className="text-sm text-blue-600 hover:underline"
-                        >
-                          Previous
+                      <DialogClose asChild>
+                        <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
+                          Close
                         </button>
-                        <button
-                          onClick={() => emblaApi?.scrollNext()}
-                          className="text-sm text-blue-600 hover:underline"
-                        >
-                          Next
-                        </button>
-                      </div>
-                    )}
-
-                    <DialogClose asChild>
-                      <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
-                        Close
-                      </button>
-                    </DialogClose>
-                  </DialogContent>
-                </Dialog>
-              )}
+                      </DialogClose>
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </div>
             </div>
           </div>
         </CardContent>

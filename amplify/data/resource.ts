@@ -4,6 +4,7 @@ import { postRegistration } from '../functions/postRegistration/resource'
 import { joinQuest } from '../functions/joinQuest/resource'
 import { becomeCreator } from '../functions/becomeCreator/resource'
 import { mutateQuest } from '../functions/mutateQuest/resource'
+import { createQuestEntrySession } from '../functions/createQuestEntrySession/resource'
 import { createStripeSession } from '../functions/createStripeSession/resource'
 import { stripeWebhook } from '../functions/stripeWebhook/resource'
 
@@ -80,6 +81,19 @@ export const schema = a
       .authorization((allow) => [allow.authenticated()])
       .handler(a.handler.function(createStripeSession)), // Ensure this matches your imported resource
 
+    createQuestEntrySession: a
+      .mutation()
+      .arguments({
+        questId: a.string().required(),
+        profileId: a.string().required(),
+        questName: a.string().required(),
+        entryFee: a.integer().required(),
+        returnUrl: a.string().required(),
+      })
+      .returns(a.string())
+      .handler(a.handler.function(createQuestEntrySession))
+      .authorization((allow) => [allow.authenticated()]),
+
     /* ------------------ QUEST MODEL ------------------ */
     Quest: a
       .model({
@@ -97,7 +111,6 @@ export const schema = a
         quest_tasks: a.json(),
         creator_id: a.string(),
         status: a.ref('QuestStatus'),
-        participants: a.json(),
       })
       .authorization((allow) => [
         allow.groups(['creator']).to(['create', 'update', 'delete', 'read']),
@@ -126,7 +139,6 @@ export const schema = a
         secondary_contact_phone: a.string(),
         image: a.string(),
         image_thumbnail: a.string(),
-        my_quests: a.json(),
         points: a.integer(),
         leaderboard: a.string().default('GLOBAL'),
         role: a.enum(['seeker', 'creator']),
@@ -140,6 +152,32 @@ export const schema = a
         allow.groups(['Admin']).to(['read', 'update', 'delete']),
         allow.guest().to(['read']),
       ]),
+
+    /* ------------------ USER QUEST MODEL ------------------ */
+    UserQuestStatus: a.enum(['ACTIVE', 'COMPLETED', 'ABANDONED']),
+
+    UserQuest: a
+      .model({
+        profileId: a.string().required(),
+        questId: a.string().required(),
+        status: a.ref('UserQuestStatus'),
+        joinedAt: a.datetime(),
+        points: a.integer(),
+        tasks: a.json(),
+      })
+      .secondaryIndexes((index) => [
+        // GSI1: find all users on a quest
+        index('questId').queryField('listUsersByQuest'),
+        // GSI2: find all users on a quest by status
+        index('questId')
+          .sortKeys(['status'])
+          .queryField('listUsersByQuestAndStatus'),
+      ])
+      .authorization((allow) => [
+        allow.owner().to(['read', 'create', 'update']),
+        allow.authenticated().to(['read']),
+        allow.groups(['Admin']).to(['read', 'update', 'delete']),
+      ]),
   })
   .authorization((allow) => [
     // 🔗 This global block IS where you grant function access.
@@ -151,6 +189,7 @@ export const schema = a
     allow.resource(mutateQuest).to(['mutate', 'query']),
     allow.resource(createStripeSession).to(['query']),
     allow.resource(stripeWebhook).to(['query', 'mutate']),
+    allow.resource(joinQuest).to(['query', 'mutate']),
   ])
 
 export type Schema = ClientSchema<typeof schema>
