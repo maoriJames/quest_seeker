@@ -54,7 +54,6 @@ export default function QuestPage() {
         image: p.image ?? '',
         image_thumbnail: p.image_thumbnail ?? '',
         role: p.role ?? 'seeker',
-        my_quests: [],
         points: p.points ?? 0,
       }
     })
