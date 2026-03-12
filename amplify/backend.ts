@@ -15,6 +15,7 @@ import { postRegistration } from './functions/postRegistration/resource'
 import { joinQuest } from './functions/joinQuest/resource'
 import { becomeCreator } from './functions/becomeCreator/resource'
 import { mutateQuest } from './functions/mutateQuest/resource'
+import { createQuestEntrySession } from './functions/createQuestEntrySession/resource'
 import { createStripeSession } from './functions/createStripeSession/resource'
 import { stripeWebhook } from './functions/stripeWebhook/resource'
 
@@ -28,6 +29,7 @@ const backend = defineBackend({
   joinQuest,
   becomeCreator,
   mutateQuest,
+  createQuestEntrySession,
   createStripeSession,
   stripeWebhook,
 })
@@ -109,12 +111,11 @@ stripeLambdas.forEach((l) => {
 })
 
 // 4. API Permissions
-backend.data.resources.graphqlApi.grantMutation(stripeWebhookLambda)
 backend.data.resources.graphqlApi.grantQuery(stripeSessionLambda)
 backend.data.resources.tables['Profile'].grantReadData(stripeSessionLambda)
 questTable.grantReadData(joinQuestLambda)
 
-questTable.grantWriteData(stripeWebhookLambda)
+questTable.grantReadWriteData(stripeWebhookLambda)
 stripeWebhookLambda.addEnvironment('QUEST_TABLE_NAME', questTable.tableName)
 joinQuestLambda.addEnvironment('QUEST_TABLE_NAME', questTable.tableName)
 
@@ -130,3 +131,11 @@ joinQuestLambda.addEnvironment(
 
 profileTable.grantReadWriteData(joinQuestLambda)
 joinQuestLambda.addEnvironment('PROFILE_TABLE_NAME', profileTable.tableName)
+
+userQuestTable.grantReadWriteData(stripeWebhookLambda)
+stripeWebhookLambda.addEnvironment(
+  'USER_QUEST_TABLE_NAME',
+  userQuestTable.tableName,
+)
+profileTable.grantReadWriteData(stripeWebhookLambda)
+stripeWebhookLambda.addEnvironment('PROFILE_TABLE_NAME', profileTable.tableName)

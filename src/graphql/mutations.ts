@@ -80,6 +80,25 @@ export const createQuest = /* GraphQL */ `mutation CreateQuest(
   APITypes.CreateQuestMutationVariables,
   APITypes.CreateQuestMutation
 >;
+export const createQuestEntrySession = /* GraphQL */ `mutation CreateQuestEntrySession(
+  $entryFee: Int!
+  $profileId: String!
+  $questId: String!
+  $questName: String!
+  $returnUrl: String!
+) {
+  createQuestEntrySession(
+    entryFee: $entryFee
+    profileId: $profileId
+    questId: $questId
+    questName: $questName
+    returnUrl: $returnUrl
+  )
+}
+` as GeneratedMutation<
+  APITypes.CreateQuestEntrySessionMutationVariables,
+  APITypes.CreateQuestEntrySessionMutation
+>;
 export const createStripeSession = /* GraphQL */ `mutation CreateStripeSession(
   $profileId: String!
   $questId: String!

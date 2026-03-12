@@ -40,8 +40,8 @@ import { PDFDownloadLink } from '@react-pdf/renderer'
 import SeekerTaskPdfButton from '@/components/SeekerTaskPdfButton'
 import { format, toZonedTime } from 'date-fns-tz'
 import { getUrl } from 'aws-amplify/storage'
-import { joinQuest } from '@/graphql/mutations'
 import { ensureArray } from '@/tools/ensureArray'
+import { joinQuest, createQuestEntrySession } from '@/graphql/mutations'
 
 export default function QuestDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -72,6 +72,8 @@ export default function QuestDetailPage() {
   const [pdfTasks, setPdfTasks] = useState<Task[]>([])
   const [pdfLoading, setPdfLoading] = useState(false)
 
+  const [paymentSuccess, setPaymentSuccess] = useState(false)
+
   const isExpired = quest?.status === QuestStatus.expired
   const NZ_TZ = 'Pacific/Auckland'
   // Update edit fields when quest data is fetched
@@ -85,6 +87,18 @@ export default function QuestDetailPage() {
       handleOpenParticipants()
     }
   }, [isExpired])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const sessionId = params.get('session_id')
+    if (!sessionId) return
+
+    setPaymentSuccess(true)
+
+    // Clean up the URL without triggering a reload
+    const cleanUrl = window.location.pathname
+    window.history.replaceState({}, '', cleanUrl)
+  }, [])
 
   const client = generateClient()
 
@@ -142,17 +156,42 @@ export default function QuestDetailPage() {
     if (!quest?.id || !currentUserProfile?.id) return
     setJoining(true)
     try {
-      await client.graphql({
-        query: joinQuest,
-        variables: {
-          questId: quest.id,
-          profileId: currentUserProfile.id,
-        },
-      })
-      alert('✅ Quest added to your profile!')
-      await refetch()
-      await refetchProfile()
-      await refetchUserQuests() // ✅ add this
+      const entryFee = quest.quest_entry ?? 0
+
+      if (entryFee > 0) {
+        // 💳 Paid quest — create Stripe checkout session
+        const returnUrl = `${window.location.origin}/user/quest/${quest.id}`
+
+        const result = await client.graphql({
+          query: createQuestEntrySession,
+          variables: {
+            questId: quest.id,
+            profileId: currentUserProfile.id,
+            questName: quest.quest_name ?? 'Quest',
+            entryFee,
+            returnUrl,
+          },
+        })
+
+        const sessionUrl = result.data?.createQuestEntrySession
+        if (!sessionUrl) throw new Error('No session URL returned')
+
+        // Redirect to Stripe — joining happens via webhook on success
+        window.location.href = sessionUrl
+      } else {
+        // 🆓 Free quest — join directly
+        await client.graphql({
+          query: joinQuest,
+          variables: {
+            questId: quest.id,
+            profileId: currentUserProfile.id,
+          },
+        })
+        alert('✅ Quest added to your profile!')
+        await refetch()
+        await refetchProfile()
+        await refetchUserQuests()
+      }
     } catch (err) {
       console.error('❌ Failed to join quest:', err)
       alert('Failed to join quest.')
@@ -784,107 +823,120 @@ export default function QuestDetailPage() {
             )}
           </div>
 
-          {/* Bottom action row: Delete/Join (left) + Back + Prize Info (right) */}
-          <div className="mt-4 flex items-center justify-between w-full gap-4">
-            {/* Left: Delete / Join */}
-            <div className="flex items-center gap-2">
-              {isOwner && participantIds.length < 1 && (
-                <Button
-                  onClick={() => deleteQuest(quest)}
-                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
-                  disabled={deleting}
-                >
-                  {deleting ? 'Deleting...' : 'Delete Quest'}
-                </Button>
-              )}
+          <div className="mt-4 flex flex-col gap-3 w-full">
+            {/* Payment success banner */}
+            {paymentSuccess && (
+              <div className="w-full bg-green-100 border border-green-300 text-green-800 rounded-lg px-4 py-3 text-sm font-medium flex items-center gap-2">
+                🎉 Payment successful! You've joined the quest.
+              </div>
+            )}
 
-              {!isOwner &&
-                (hasJoined ? (
-                  <p className="text-green-600 font-semibold">✅ Joined!</p>
-                ) : (
-                  <button
-                    onClick={handleJoinQuest}
-                    disabled={joining}
-                    className={`px-4 py-2 rounded text-white ${
-                      joining
-                        ? 'bg-yellow-300'
-                        : 'bg-[#facc15] hover:bg-[#ca8a04]'
-                    }`}
+            {/* Bottom action row: Delete/Join (left) + Back + Prize Info (right) */}
+            <div className="mt-4 flex items-center justify-between w-full gap-4">
+              {/* Left: Delete / Join */}
+              <div className="flex items-center gap-2">
+                {isOwner && participantIds.length < 1 && (
+                  <Button
+                    onClick={() => deleteQuest(quest)}
+                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+                    disabled={deleting}
                   >
-                    {joining ? 'Joining...' : 'Join the quest!'}
-                  </button>
-                ))}
-            </div>
+                    {deleting ? 'Deleting...' : 'Delete Quest'}
+                  </Button>
+                )}
 
-            {/* Right: Back + Prize Info */}
-            <div className="flex items-center gap-3 ml-auto">
-              {/* ⬅️ Back to Quests */}
-              <Button onClick={() => navigate(-1)} variant="yellow">
-                Back to Quests
-              </Button>
+                {!isOwner &&
+                  (hasJoined ? (
+                    <p className="text-green-600 font-semibold">✅ Joined!</p>
+                  ) : (
+                    <button
+                      onClick={handleJoinQuest}
+                      disabled={joining}
+                      className={`px-4 py-2 rounded text-white ${
+                        joining
+                          ? 'bg-yellow-300'
+                          : 'bg-[#facc15] hover:bg-[#ca8a04]'
+                      }`}
+                    >
+                      {joining
+                        ? 'Joining...'
+                        : quest.quest_entry && quest.quest_entry > 0
+                          ? `Join for $${quest.quest_entry}`
+                          : 'Join the quest!'}
+                    </button>
+                  ))}
+              </div>
 
-              {/* 🏆 Prize Information Modal */}
-              {prizes.length > 0 && (
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded">
-                      Prize Information
-                    </Button>
-                  </DialogTrigger>
+              {/* Right: Back + Prize Info */}
+              <div className="flex items-center gap-3 ml-auto">
+                {/* ⬅️ Back to Quests */}
+                <Button onClick={() => navigate(-1)} variant="yellow">
+                  Back to Quests
+                </Button>
 
-                  <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
-                  <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
-                    <DialogTitle className="text-lg font-bold mb-4">
-                      Prize Information
-                    </DialogTitle>
+                {/* 🏆 Prize Information Modal */}
+                {prizes.length > 0 && (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded">
+                        Prize Information
+                      </Button>
+                    </DialogTrigger>
 
-                    {/* Carousel for prizes */}
-                    <div className="overflow-hidden" ref={emblaRef}>
-                      <div className="flex gap-4">
-                        {prizes.map((prize) => (
-                          <div
-                            key={prize.id}
-                            className="flex-[0_0_33.3333%] flex flex-col items-center justify-center p-2"
+                    <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
+                    <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
+                      <DialogTitle className="text-lg font-bold mb-4">
+                        Prize Information
+                      </DialogTitle>
+
+                      {/* Carousel for prizes */}
+                      <div className="overflow-hidden" ref={emblaRef}>
+                        <div className="flex gap-4">
+                          {prizes.map((prize) => (
+                            <div
+                              key={prize.id}
+                              className="flex-[0_0_33.3333%] flex flex-col items-center justify-center p-2"
+                            >
+                              <RemoteImage
+                                path={prize.image || placeHold}
+                                fallback={placeHold}
+                                className="w-20 h-20 object-contain rounded"
+                              />
+                              <span className="text-xs mt-1 font-semibold text-gray-700">
+                                {prize.name}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Navigation only if more than 4 prizes */}
+                      {prizes.length > 4 && (
+                        <div className="flex justify-between items-center mt-4">
+                          <button
+                            onClick={() => emblaApi?.scrollPrev()}
+                            className="text-sm text-blue-600 hover:underline"
                           >
-                            <RemoteImage
-                              path={prize.image || placeHold}
-                              fallback={placeHold}
-                              className="w-20 h-20 object-contain rounded"
-                            />
-                            <span className="text-xs mt-1 font-semibold text-gray-700">
-                              {prize.name}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                            Previous
+                          </button>
+                          <button
+                            onClick={() => emblaApi?.scrollNext()}
+                            className="text-sm text-blue-600 hover:underline"
+                          >
+                            Next
+                          </button>
+                        </div>
+                      )}
 
-                    {/* Navigation only if more than 4 prizes */}
-                    {prizes.length > 4 && (
-                      <div className="flex justify-between items-center mt-4">
-                        <button
-                          onClick={() => emblaApi?.scrollPrev()}
-                          className="text-sm text-blue-600 hover:underline"
-                        >
-                          Previous
+                      <DialogClose asChild>
+                        <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
+                          Close
                         </button>
-                        <button
-                          onClick={() => emblaApi?.scrollNext()}
-                          className="text-sm text-blue-600 hover:underline"
-                        >
-                          Next
-                        </button>
-                      </div>
-                    )}
-
-                    <DialogClose asChild>
-                      <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
-                        Close
-                      </button>
-                    </DialogClose>
-                  </DialogContent>
-                </Dialog>
-              )}
+                      </DialogClose>
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </div>
             </div>
           </div>
         </CardContent>

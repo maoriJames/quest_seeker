@@ -4,6 +4,7 @@ import { postRegistration } from '../functions/postRegistration/resource'
 import { joinQuest } from '../functions/joinQuest/resource'
 import { becomeCreator } from '../functions/becomeCreator/resource'
 import { mutateQuest } from '../functions/mutateQuest/resource'
+import { createQuestEntrySession } from '../functions/createQuestEntrySession/resource'
 import { createStripeSession } from '../functions/createStripeSession/resource'
 import { stripeWebhook } from '../functions/stripeWebhook/resource'
 
@@ -79,6 +80,19 @@ export const schema = a
       .returns(a.string())
       .authorization((allow) => [allow.authenticated()])
       .handler(a.handler.function(createStripeSession)), // Ensure this matches your imported resource
+
+    createQuestEntrySession: a
+      .mutation()
+      .arguments({
+        questId: a.string().required(),
+        profileId: a.string().required(),
+        questName: a.string().required(),
+        entryFee: a.integer().required(),
+        returnUrl: a.string().required(),
+      })
+      .returns(a.string())
+      .handler(a.handler.function(createQuestEntrySession))
+      .authorization((allow) => [allow.authenticated()]),
 
     /* ------------------ QUEST MODEL ------------------ */
     Quest: a

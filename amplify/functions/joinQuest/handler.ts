@@ -4,6 +4,7 @@ import {
   DynamoDBDocumentClient,
   GetCommand,
   PutCommand,
+  UpdateCommand,
 } from '@aws-sdk/lib-dynamodb'
 import { randomUUID } from 'crypto'
 
@@ -108,6 +109,26 @@ export const handler: AppSyncResolverHandler<Args, boolean> = async (event) => {
     const isDuplicate = dynamoErr.name === 'ConditionalCheckFailedException'
     if (isDuplicate) throw new Error('User has already joined this quest')
     throw new Error(`Failed to join quest: ${dynamoErr.message}`)
+  }
+  // 5️⃣ Award join points to profile
+  const JOIN_POINTS = 10
+  try {
+    await ddb.send(
+      new UpdateCommand({
+        TableName: PROFILE_TABLE,
+        Key: { id: profileId },
+        UpdateExpression:
+          'SET points = if_not_exists(points, :zero) + :pts, updatedAt = :updatedAt',
+        ExpressionAttributeValues: {
+          ':pts': JOIN_POINTS,
+          ':zero': 0,
+          ':updatedAt': now,
+        },
+      }),
+    )
+  } catch (err) {
+    // Non-fatal — quest join already succeeded
+    console.error('Failed to award join points:', err)
   }
 
   return true

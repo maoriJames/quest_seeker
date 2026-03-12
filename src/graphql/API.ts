@@ -950,6 +950,18 @@ export type CreateQuestMutation = {
   } | null,
 };
 
+export type CreateQuestEntrySessionMutationVariables = {
+  entryFee: number,
+  profileId: string,
+  questId: string,
+  questName: string,
+  returnUrl: string,
+};
+
+export type CreateQuestEntrySessionMutation = {
+  createQuestEntrySession?: string | null,
+};
+
 export type CreateStripeSessionMutationVariables = {
   profileId: string,
   questId: string,
