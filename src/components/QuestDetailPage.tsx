@@ -1,14 +1,16 @@
 import { generateClient, GraphQLResult } from 'aws-amplify/data'
-// import * as mutations from '@/graphql/mutations'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useQuest, useUserQuests } from '@/hooks/userQuests'
+import {
+  useQuest,
+  useQuestParticipants,
+  useUserQuests,
+} from '@/hooks/userQuests'
 import { useProfile, useCurrentUserProfile } from '@/hooks/userProfiles'
 import bg from '@/assets/images/background_main.png'
 import { Button } from './ui/button'
 import { Card, CardContent } from './ui/card'
 import { useEffect, useState } from 'react'
-import { Prize, Sponsor, Task, Profile } from '@/types'
-// import { addQuestToProfile } from '@/hooks/addQuestToProfile'
+import { Prize, Sponsor, Task, Profile, UserQuest } from '@/types'
 import RemoteImage from './RemoteImage'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
 import useEmblaCarousel from 'embla-carousel-react'
@@ -28,7 +30,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@radix-ui/react-tooltip'
-// import { parseQuestTasks } from '@/tools/questTasks'
 import { Toolbar } from './Toolbar'
 import TaskPreview from './TaskPreview'
 import { GetProfileQuery, QuestStatus } from '@/graphql/API'
@@ -61,7 +62,8 @@ export default function QuestDetailPage() {
   const { data: userQuests, refetch: refetchUserQuests } = useUserQuests(
     currentUserProfile?.id,
   )
-
+  const { data: questParticipants } = useQuestParticipants(quest?.id)
+  const participantIds = questParticipants?.map((uq) => uq.profileId) ?? []
   const [participantProfiles, setParticipantProfiles] = useState<Profile[]>([])
   const [participantsLoaded, setParticipantsLoaded] = useState(false)
   const [tasks, setTasks] = useState<Task[]>([])
@@ -159,10 +161,6 @@ export default function QuestDetailPage() {
     }
   }
 
-  const participantsArray: string[] = quest.participants
-    ? JSON.parse(quest.participants)
-    : []
-
   const isOwner =
     currentUserProfile?.id === quest.creator_id &&
     currentUserProfile?.role === 'creator'
@@ -218,51 +216,58 @@ export default function QuestDetailPage() {
     }
   })()
 
-  // 🔜 Phase 4: Replace with UserQuest GSI query (listUsersByQuest)
-  // Currently still reads from my_quests on participant profiles
+  // 🔜 REMOVE MyQuest dependency — now uses UserQuest status
   const completedParticipants = participantProfiles.filter((profile) => {
-    const myQuestsRaw = profile.my_quests ?? []
-    const myQuests: MyQuest[] =
-      typeof myQuestsRaw === 'string' ? JSON.parse(myQuestsRaw) : myQuestsRaw
-    const questEntry = myQuests.find((q) => q.quest_id === quest.id)
-    if (!questEntry) return false
-    if (questEntry.completed) return true
-    const taskCount = questEntry.tasks?.length ?? 0
+    const userQuest = questParticipants?.find(
+      (uq) => uq.profileId === profile.id,
+    )
+    if (!userQuest) return false
+    if (userQuest.status === 'COMPLETED') return true
+
+    // Fallback: check if all tasks are completed
+    const tasks = Array.isArray(userQuest.tasks)
+      ? userQuest.tasks
+      : (() => {
+          try {
+            return typeof userQuest.tasks === 'string'
+              ? JSON.parse(userQuest.tasks)
+              : []
+          } catch {
+            return []
+          }
+        })()
+
+    const taskCount = tasks.length
     if (taskCount === 0) return false
-    const completedCount =
-      questEntry.tasks?.filter((t) => t.completed).length ?? 0
-    return completedCount === taskCount
+    return (
+      tasks.filter((t: { completed: boolean }) => t.completed).length ===
+      taskCount
+    )
   })
 
   const displayedSponsors = sponsors.slice(0, 2)
 
   const handleOpenParticipants = async () => {
     if (participantsLoaded) return
-
     try {
       const profiles = await Promise.all(
-        participantsArray.map(async (id) => {
+        participantIds.map(async (id) => {
           const res = await client.graphql<GraphQLResult<GetProfileQuery>>({
             query: getProfile,
             variables: { id },
             authMode: 'userPool',
           })
-
-          // Type guard: only access 'data' if it exists
-          if ('data' in res) {
-            return res.data?.getProfile ?? null
-          }
-
+          if ('data' in res) return res.data?.getProfile ?? null
           return null
         }),
       )
-
       setParticipantProfiles(profiles.filter(Boolean) as Profile[])
       setParticipantsLoaded(true)
     } catch (err) {
       console.error('Failed to fetch participant profiles:', err)
     }
   }
+
   return (
     <div
       className="relative min-h-screen flex items-center justify-center bg-cover bg-center px-4"
@@ -562,7 +567,7 @@ export default function QuestDetailPage() {
                   {/* Participant count block remains */}
                   <p className="text-sm text-gray-500">
                     People joined:
-                    {participantsArray.length > 0 && (
+                    {participantIds.length > 0 && (
                       <Dialog
                         onOpenChange={(open) =>
                           open && handleOpenParticipants()
@@ -570,8 +575,8 @@ export default function QuestDetailPage() {
                       >
                         <DialogTrigger asChild>
                           <button className="text-blue-600 underline font-medium text-sm">
-                            {participantsArray.length} participant
-                            {participantsArray.length > 1 ? 's' : ''}
+                            {participantIds.length} participant
+                            {participantIds.length > 1 ? 's' : ''}
                           </button>
                         </DialogTrigger>
 
@@ -761,7 +766,7 @@ export default function QuestDetailPage() {
                       questId={quest.id}
                       tasks={seekerTasks}
                       userTasks={
-                        joinedQuestEntry ? ([joinedQuestEntry] as any) : []
+                        joinedQuestEntry ? [joinedQuestEntry as UserQuest] : []
                       }
                       readOnly={isOwner}
                       onTasksUpdated={async () => {
@@ -783,7 +788,7 @@ export default function QuestDetailPage() {
           <div className="mt-4 flex items-center justify-between w-full gap-4">
             {/* Left: Delete / Join */}
             <div className="flex items-center gap-2">
-              {isOwner && participantsArray.length < 1 && (
+              {isOwner && participantIds.length < 1 && (
                 <Button
                   onClick={() => deleteQuest(quest)}
                   className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"

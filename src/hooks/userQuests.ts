@@ -145,3 +145,18 @@ export const useUserQuests = (profileId?: string) => {
     staleTime: 1000 * 60 * 2,
   })
 }
+
+export const useQuestParticipants = (questId?: string) => {
+  return useQuery({
+    queryKey: ['questParticipants', questId],
+    queryFn: async () => {
+      if (!questId) return []
+      const { data, errors } = await dataClient.models.UserQuest.list({
+        filter: { questId: { eq: questId } },
+      })
+      if (errors?.length) throw new Error(errors[0].message)
+      return data ?? []
+    },
+    enabled: !!questId,
+  })
+}

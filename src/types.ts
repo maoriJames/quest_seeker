@@ -1,5 +1,6 @@
 import { Dispatch, SetStateAction, ImgHTMLAttributes } from 'react'
 import { QuestStatus } from './graphql/API'
+import { Schema } from 'amplify/data/resource'
 
 // ---------------- Quests ----------------
 export type Status =
@@ -8,7 +9,7 @@ export type Status =
   | 'expired'
   | 'archived'
   | 'upcoming'
-  | 'occurrring'
+  | 'occurring'
   | 'completed'
 
 export type Quest = {
@@ -24,10 +25,9 @@ export type Quest = {
   region?: string | null
   creator_id?: string | null
   status?: QuestStatus | null
-  participants?: string | null
   quest_sponsor?: string | null
   quest_prize_info?: string | null
-  quest_tasks?: string | unknown
+  quest_tasks?: string | null
   createdAt: string
   updatedAt: string
 }
@@ -55,7 +55,6 @@ export type Profile = {
   image: string
   image_thumbnail: string
   role: Role
-  my_quests?: MyQuest[]
   points: number
 }
 
@@ -88,18 +87,6 @@ export interface TaskCreatorButtonProps {
 }
 
 export type OnNewTaskFunction = (updatedTasks: Task[]) => void
-
-export type MyQuest = {
-  quest_id: string
-  creator_id?: string
-  title: string | undefined
-  tasks: Task[]
-  progress?: number
-  completed: boolean
-  // quest_status: QuestStatus
-
-  quest?: Quest // 👈 NEW: linked full quest object
-}
 
 // ---------------- Remote Image ----------------
 export type RemoteImageProps = {
@@ -144,3 +131,5 @@ export type PdfUser = {
   email?: string | null
   image_thumbnail?: string | null
 }
+
+export type UserQuest = Schema['UserQuest']['type'] & { tasks: Task[] }

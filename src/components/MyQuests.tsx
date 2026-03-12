@@ -219,10 +219,7 @@ export default function MyQuests({ profile }: MyQuestsProps) {
 
                       {/* Decide when to show the bin */}
                       <div className="w-10 flex justify-center">
-                        {(quest.status === 'draft' ||
-                          ((quest.status === 'published' ||
-                            quest.status === 'expired') &&
-                            Number(quest.participants) === 0)) && (
+                        {quest.status === 'draft' && (
                           <Button
                             variant="ghost"
                             size="icon"

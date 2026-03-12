@@ -97,7 +97,6 @@ export const schema = a
         quest_tasks: a.json(),
         creator_id: a.string(),
         status: a.ref('QuestStatus'),
-        participants: a.json(),
       })
       .authorization((allow) => [
         allow.groups(['creator']).to(['create', 'update', 'delete', 'read']),
@@ -126,7 +125,6 @@ export const schema = a
         secondary_contact_phone: a.string(),
         image: a.string(),
         image_thumbnail: a.string(),
-        my_quests: a.json(),
         points: a.integer(),
         leaderboard: a.string().default('GLOBAL'),
         role: a.enum(['seeker', 'creator']),

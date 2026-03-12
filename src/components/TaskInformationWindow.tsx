@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Task } from '@/types'
-import { Schema } from 'amplify/data/resource'
+import { Task, UserQuest } from '@/types'
+
 import {
   Dialog,
   DialogClose,
@@ -19,8 +19,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@radix-ui/react-tooltip'
-
-type UserQuest = Schema['UserQuest']['type'] & { tasks: Task[] }
 
 interface TaskInformationWindowProps {
   questId: string

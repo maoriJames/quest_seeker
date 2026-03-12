@@ -30,7 +30,6 @@ export const createProfile = /* GraphQL */ `mutation CreateProfile(
     image
     image_thumbnail
     leaderboard
-    my_quests
     organization_description
     organization_name
     owner
@@ -60,7 +59,6 @@ export const createQuest = /* GraphQL */ `mutation CreateQuest(
     createdAt
     creator_id
     id
-    participants
     quest_details
     quest_end_at
     quest_entry
@@ -97,6 +95,28 @@ export const createStripeSession = /* GraphQL */ `mutation CreateStripeSession(
   APITypes.CreateStripeSessionMutationVariables,
   APITypes.CreateStripeSessionMutation
 >;
+export const createUserQuest = /* GraphQL */ `mutation CreateUserQuest(
+  $condition: ModelUserQuestConditionInput
+  $input: CreateUserQuestInput!
+) {
+  createUserQuest(condition: $condition, input: $input) {
+    createdAt
+    id
+    joinedAt
+    owner
+    points
+    profileId
+    questId
+    status
+    tasks
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.CreateUserQuestMutationVariables,
+  APITypes.CreateUserQuestMutation
+>;
 export const deleteProfile = /* GraphQL */ `mutation DeleteProfile(
   $condition: ModelProfileConditionInput
   $input: DeleteProfileInput!
@@ -112,7 +132,6 @@ export const deleteProfile = /* GraphQL */ `mutation DeleteProfile(
     image
     image_thumbnail
     leaderboard
-    my_quests
     organization_description
     organization_name
     owner
@@ -142,7 +161,6 @@ export const deleteQuest = /* GraphQL */ `mutation DeleteQuest(
     createdAt
     creator_id
     id
-    participants
     quest_details
     quest_end_at
     quest_entry
@@ -163,6 +181,28 @@ export const deleteQuest = /* GraphQL */ `mutation DeleteQuest(
 ` as GeneratedMutation<
   APITypes.DeleteQuestMutationVariables,
   APITypes.DeleteQuestMutation
+>;
+export const deleteUserQuest = /* GraphQL */ `mutation DeleteUserQuest(
+  $condition: ModelUserQuestConditionInput
+  $input: DeleteUserQuestInput!
+) {
+  deleteUserQuest(condition: $condition, input: $input) {
+    createdAt
+    id
+    joinedAt
+    owner
+    points
+    profileId
+    questId
+    status
+    tasks
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.DeleteUserQuestMutationVariables,
+  APITypes.DeleteUserQuestMutation
 >;
 export const joinQuest = /* GraphQL */ `mutation JoinQuest($profileId: String!, $questId: String!) {
   joinQuest(profileId: $profileId, questId: $questId)
@@ -225,7 +265,6 @@ export const updateProfile = /* GraphQL */ `mutation UpdateProfile(
     image
     image_thumbnail
     leaderboard
-    my_quests
     organization_description
     organization_name
     owner
@@ -255,7 +294,6 @@ export const updateQuest = /* GraphQL */ `mutation UpdateQuest(
     createdAt
     creator_id
     id
-    participants
     quest_details
     quest_end_at
     quest_entry
@@ -276,4 +314,26 @@ export const updateQuest = /* GraphQL */ `mutation UpdateQuest(
 ` as GeneratedMutation<
   APITypes.UpdateQuestMutationVariables,
   APITypes.UpdateQuestMutation
+>;
+export const updateUserQuest = /* GraphQL */ `mutation UpdateUserQuest(
+  $condition: ModelUserQuestConditionInput
+  $input: UpdateUserQuestInput!
+) {
+  updateUserQuest(condition: $condition, input: $input) {
+    createdAt
+    id
+    joinedAt
+    owner
+    points
+    profileId
+    questId
+    status
+    tasks
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.UpdateUserQuestMutationVariables,
+  APITypes.UpdateUserQuestMutation
 >;
