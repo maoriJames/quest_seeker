@@ -9,6 +9,7 @@ import {
   GetCommand,
 } from '@aws-sdk/lib-dynamodb'
 import { randomUUID } from 'crypto'
+import { sendJoinEmails, sendPublishedEmail } from '../joinQuest/sendEmails'
 
 const stripe = new Stripe(env.STRIPE_SECRET_KEY!)
 const client = new DynamoDBClient({})
@@ -62,6 +63,11 @@ export const handler = async (event: LambdaFunctionURLEvent) => {
 
     // ✅ Quest publication payment
     if (type !== 'quest_entry' && questId) {
+      // Fetch quest for name
+      const { Item: quest } = await ddb.send(
+        new GetCommand({ TableName: QUEST_TABLE, Key: { id: questId } }),
+      )
+
       await ddb.send(
         new UpdateCommand({
           TableName: QUEST_TABLE,
@@ -74,6 +80,20 @@ export const handler = async (event: LambdaFunctionURLEvent) => {
         }),
       )
       console.log(`Quest ${questId} successfully published`)
+
+      // ✅ Send published email to creator
+      try {
+        const creatorId = quest?.creator_id
+        if (creatorId) {
+          await sendPublishedEmail(
+            creatorId, // 👈 creatorId not questId
+            quest?.quest_name ?? 'your quest',
+            PROFILE_TABLE,
+          )
+        }
+      } catch (err) {
+        console.error('Failed to send published email:', err)
+      }
     }
 
     // ✅ Quest entry payment
@@ -155,7 +175,12 @@ export const handler = async (event: LambdaFunctionURLEvent) => {
           ExpressionAttributeValues: { ':pts': 10, ':zero': 0, ':now': now },
         }),
       )
-      console.log(`Awarded 10 points to profile ${profileId}`)
+
+      try {
+        await sendJoinEmails(questId, profileId, PROFILE_TABLE, QUEST_TABLE)
+      } catch (err) {
+        console.error('Failed to send join emails:', err)
+      }
     }
   }
 
