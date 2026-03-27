@@ -12,6 +12,7 @@ import { Toolbar } from '@/components/Toolbar'
 import { Home } from 'lucide-react'
 import SignOutButton from '@/components/SignOutButton'
 import { Button } from '@/components/ui/button'
+import { QuestStatus } from '@/graphql/API'
 
 export default function QuestPage() {
   const location = useLocation()
@@ -62,7 +63,7 @@ export default function QuestPage() {
   }, [profiles])
 
   const validQuests = useMemo(() => {
-    const now = new Date() // current moment
+    const now = new Date()
 
     return allQuests.filter((quest) => {
       if (!quest.quest_end_at) return false
@@ -72,9 +73,13 @@ export default function QuestPage() {
       const matchesRegion =
         selectedRegion === 'Browse all' || quest.region === selectedRegion
 
-      return matchesRegion && questEnd >= now
+      // ✅ Only show published quests to non-creators
+      const isPublished = quest.status === QuestStatus.published
+      const isOwner = quest.creator_id === currentProfile?.id
+
+      return matchesRegion && questEnd >= now && (isPublished || isOwner)
     })
-  }, [allQuests, selectedRegion])
+  }, [allQuests, selectedRegion, currentProfile?.id])
 
   // 🔍 Filter quests by search term (name, region, organisation)
   const filteredQuests = useMemo(() => {
