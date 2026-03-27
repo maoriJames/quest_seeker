@@ -75,12 +75,6 @@ export const sendJoinEmails = async (
     creatorId ? getEmailFromCognito(creatorId) : Promise.resolve(undefined),
   ])
 
-  console.log('sendJoinEmails:', {
-    questName,
-    joinerName,
-    joinerEmail,
-    creatorEmail,
-  })
   // ... rest of sending logic unchanged
   // Email creator
   if (creatorId) {
@@ -90,8 +84,6 @@ export const sendJoinEmails = async (
     const creatorEmail = creatorProfile?.email
     const creatorName = creatorProfile?.full_name ?? 'there'
 
-    console.log('Creator email:', creatorEmail)
-    console.log('Raw creatorProfile:', JSON.stringify(creatorProfile))
     if (creatorEmail) {
       await safeSend(
         new SendEmailCommand({
@@ -109,10 +101,6 @@ export const sendJoinEmails = async (
       )
     }
   }
-
-  // Email joiner
-  console.log('Joiner email:', joinerEmail)
-  console.log('Raw joinerProfile:', JSON.stringify(joinerProfile))
 
   if (joinerEmail) {
     await safeSend(
