@@ -40,12 +40,10 @@ const PrizeCreatorButton: React.FC<PrizeCreatorButtonProps> = ({
     let imagePath = editIndex !== -1 ? updatedPrizes[editIndex].image : ''
 
     if (prizeImage && imageFile) {
+      // ✅ New image uploaded — delete old one
       const uploadedPath = await uploadImage(imageFile)
-
       if (uploadedPath) {
         imagePath = uploadedPath
-
-        // Delete old image if editing and image changed
         if (
           editIndex !== -1 &&
           currentImageFile &&
@@ -54,6 +52,10 @@ const PrizeCreatorButton: React.FC<PrizeCreatorButtonProps> = ({
           await deleteS3Object(currentImageFile)
         }
       }
+    } else if (!prizeImage && editIndex !== -1 && currentImageFile) {
+      // ✅ Prize image unchecked — delete old image and clear path
+      await deleteS3Object(currentImageFile)
+      imagePath = ''
     }
 
     const newPrize: Prize = {

@@ -1,5 +1,8 @@
 import React from 'react'
 import { Prize } from '@/types'
+import RemoteImage from './RemoteImage'
+import placeHold from '@/assets/images/placeholder_view_vector.svg'
+import { deleteS3Object } from '@/tools/deleteS3Object'
 
 interface PrizeModalProps {
   prizes: Prize[]
@@ -17,9 +20,6 @@ interface PrizeModalProps {
 export const PrizeModal: React.FC<PrizeModalProps> = ({
   prizes,
   setPrizes,
-  // setSponsor,
-  // setPreview,
-  // setEditIndex,
   visible,
   onClose,
   onNewPrize,
@@ -27,7 +27,14 @@ export const PrizeModal: React.FC<PrizeModalProps> = ({
 }) => {
   if (!visible) return null
 
-  const handleDelete = (index: number) => {
+  const handleDelete = async (index: number) => {
+    const prize = prizes[index]
+
+    // ✅ Delete prize image from S3 if it exists
+    if (prize.image) {
+      await deleteS3Object(prize.image)
+    }
+
     const updated = [...prizes]
     updated.splice(index, 1)
     setPrizes(updated)
@@ -46,9 +53,9 @@ export const PrizeModal: React.FC<PrizeModalProps> = ({
             >
               <div className="flex items-center gap-2">
                 {p.image && (
-                  <img
-                    src={p.image}
-                    alt={p.name}
+                  <RemoteImage
+                    path={p.image}
+                    fallback={placeHold}
                     className="h-10 w-10 rounded object-cover"
                   />
                 )}

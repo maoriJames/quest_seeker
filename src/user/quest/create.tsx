@@ -255,7 +255,10 @@ export default function CreateQuestPage() {
       setLoading(true)
       const imagePaths = imageFile
         ? await uploadImage(imageFile)
-        : { fullPath: previewImage, thumbPath: '' }
+        : {
+            fullPath: previewImage,
+            thumbPath: updatingQuest?.quest_image_thumb ?? '',
+          }
 
       // ✅ Delete old images if a new one was uploaded
       if (
@@ -314,7 +317,7 @@ export default function CreateQuestPage() {
       // 3. Logic Branch
       // If the status passed is specifically 'draft', it means the user clicked the "Save as Draft" button.
       if (status === QuestStatus.draft) {
-        navigate('/user/quests')
+        navigate('/user/account')
         return null
       }
 

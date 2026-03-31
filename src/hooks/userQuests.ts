@@ -28,8 +28,6 @@ export const useQuestList = (region?: string) => {
         throw err
       }
 
-      // console.log('[useQuestList] raw result:', result)
-
       if ('errors' in result && result.errors?.length) {
         console.error('[useQuestList] GraphQL errors:', result.errors)
         throw new Error(result.errors[0].message)
@@ -40,8 +38,6 @@ export const useQuestList = (region?: string) => {
       }
 
       const items = result.data?.listQuests?.items ?? []
-
-      // console.log('[useQuestList] items:', items)
 
       return items
     },

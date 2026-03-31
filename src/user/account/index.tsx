@@ -42,10 +42,6 @@ export default function AccountPage() {
   // 🔜 Phase 3: Replace with UserQuest cleanup logic
   // Previously cleaned up deleted quests from my_quests JSON blob
   // Will need to instead delete UserQuest items where quest no longer exists
-  // useEffect(() => {
-  //   if (!currentProfile?.my_quests?.length) return
-  //   ... cleanup logic ...
-  // }, [currentProfile?.id])
 
   // ✅ EARLY RETURN COMES AFTER ALL HOOKS
   if (isLoading || !currentProfile) return null

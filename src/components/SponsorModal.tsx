@@ -1,5 +1,8 @@
 import React from 'react'
 import { Sponsor } from '@/types'
+import { deleteS3Object } from '@/tools/deleteS3Object'
+import RemoteImage from './RemoteImage'
+import placeHold from '@/assets/images/placeholder_view_vector.svg'
 
 interface SponsorModalProps {
   sponsors: Sponsor[]
@@ -16,9 +19,6 @@ interface SponsorModalProps {
 export const SponsorModal: React.FC<SponsorModalProps> = ({
   sponsors,
   setSponsors,
-  // setSponsor,
-  // setPreview,
-  // setEditIndex,
   visible,
   onClose,
   onNewSponsor,
@@ -26,7 +26,14 @@ export const SponsorModal: React.FC<SponsorModalProps> = ({
 }) => {
   if (!visible) return null
 
-  const handleDelete = (index: number) => {
+  const handleDelete = async (index: number) => {
+    const sponsor = sponsors[index]
+
+    // ✅ Delete sponsor image from S3 if it exists
+    if (sponsor.image) {
+      await deleteS3Object(sponsor.image)
+    }
+
     const updated = [...sponsors]
     updated.splice(index, 1)
     setSponsors(updated)
@@ -45,9 +52,9 @@ export const SponsorModal: React.FC<SponsorModalProps> = ({
             >
               <div className="flex items-center gap-2">
                 {s.image && (
-                  <img
-                    src={s.image}
-                    alt={s.name}
+                  <RemoteImage
+                    path={s.image}
+                    fallback={placeHold}
                     className="h-10 w-10 rounded object-cover"
                   />
                 )}
