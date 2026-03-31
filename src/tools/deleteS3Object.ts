@@ -10,7 +10,7 @@ export const deleteS3Object = async (path: string) => {
     } catch {
       // already a valid key
     }
-    // console.log('🗑️ Deleting S3 object:', key)
+    console.log('🗑️ Deleting S3 object:', key)
     await remove({ path: key })
   } catch (err) {
     console.error('Failed to delete S3 object:', err)

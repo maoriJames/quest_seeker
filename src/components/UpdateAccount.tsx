@@ -63,7 +63,11 @@ export default function UpdateAccount({
       if (!fullPath || !thumbPath) return
 
       // 2️⃣ Delete old images if needed
-      if (oldImagePath && !oldImagePath.startsWith('http')) {
+      if (
+        oldImagePath &&
+        !oldImagePath.startsWith('http') &&
+        oldImagePath !== fullPath // ← guard against same path
+      ) {
         try {
           const cleanFull = oldImagePath.startsWith('/')
             ? oldImagePath.slice(1)
@@ -73,7 +77,6 @@ export default function UpdateAccount({
             : oldImageThumbPath
           if (cleanFull) await remove({ path: cleanFull })
           if (cleanThumb) await remove({ path: cleanThumb })
-          // console.log('✅ Old images removed')
         } catch (err) {
           console.error('Error deleting old images:', err)
         }
@@ -141,9 +144,14 @@ export default function UpdateAccount({
         {/* Profile Image */}
         <div className="flex flex-col items-center gap-2">
           {previewImage ? (
-            <img
-              src={previewImage}
-              alt="Profile preview"
+            // <img
+            //   src={previewImage}
+            //   alt="Profile preview"
+            //   className="w-32 h-32 rounded-full object-cover"
+            // />
+            <RemoteImage
+              path={previewImage || profile.image_thumbnail}
+              fallback={placeHold}
               className="w-32 h-32 rounded-full object-cover"
             />
           ) : (
