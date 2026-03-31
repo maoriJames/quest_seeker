@@ -42,6 +42,22 @@ export default function Leader() {
             </p>
           </div>
 
+          {/* Points Key */}
+          <div className="flex justify-center gap-6 text-sm text-muted-foreground bg-white/50 rounded-xl px-4 py-3">
+            <div className="flex items-center gap-2">
+              <span className="text-yellow-500 font-bold text-base">
+                Join a Quest = 10 Points
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-yellow-500 font-bold text-base">
+                Complete a Quest Task = 1 Point
+              </span>
+            </div>
+          </div>
+
+          {/* Content */}
+
           {/* Content */}
           {loading ? (
             <p className="text-center text-muted-foreground">Loading…</p>

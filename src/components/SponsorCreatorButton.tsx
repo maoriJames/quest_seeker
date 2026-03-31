@@ -16,7 +16,7 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
   const [sponsor, setSponsor] = useState('')
   const [sponsorImage, setSponsorImage] = useState(false)
   const [currentSponsorImage, setCurrentSponsorImage] = useState<string | null>(
-    null
+    null,
   )
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -57,6 +57,10 @@ const SponsorCreatorButton: React.FC<SponsorCreatorButtonProps> = ({
           await deleteS3Object(currentSponsorImage)
         }
       }
+    } else if (!sponsorImage && editIndex !== -1 && currentSponsorImage) {
+      // ✅ Sponsor image unchecked — delete old image and clear path
+      await deleteS3Object(currentSponsorImage)
+      sponsorImagePath = ''
     }
 
     const newSponsor: Sponsor = {
