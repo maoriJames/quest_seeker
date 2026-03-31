@@ -17,8 +17,6 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   onClose,
   onNewTask,
 }) => {
-  // console.log('tasks type:', typeof tasks, 'isArray:', Array.isArray(tasks))
-  // console.log('tasks value:', tasks)
   const handleEditTask = (index: number) => {
     const task = tasks[index]
     if (!task) return
