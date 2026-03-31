@@ -21,8 +21,12 @@ export function useQuestDeletion(options?: UseDeleteQuestOptions) {
     setLoading(true)
     try {
       // Delete main quest image
+      // Delete main quest image and thumbnail
       if (quest.quest_image) {
         await deleteS3Object(quest.quest_image)
+      }
+      if (quest.quest_image_thumb) {
+        await deleteS3Object(quest.quest_image_thumb)
       }
 
       // Delete sponsor images

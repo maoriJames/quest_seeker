@@ -22,10 +22,9 @@ import bg from '@/assets/images/background_main.png'
 import { useMutateQuest, useQuest } from '@/hooks/userQuests'
 import { Prize, Sponsor, Task } from '@/types'
 import { useCurrentUserProfile } from '@/hooks/userProfiles'
-// import { getCurrentUser } from 'aws-amplify/auth'
 import { DialogTitle } from '@radix-ui/react-dialog'
 import { VisuallyHidden } from '@aws-amplify/ui-react'
-import { uploadData } from 'aws-amplify/storage'
+import { remove, uploadData } from 'aws-amplify/storage'
 import imageCompression from 'browser-image-compression'
 import { MutateQuestAction, QuestStatus } from '@/graphql/API'
 import { toZonedTime } from 'date-fns-tz'
@@ -52,6 +51,8 @@ export default function CreateQuestPage() {
   const [details, setDetails] = useState('')
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [previewImage, setPreviewImage] = useState<string>('')
+  const [oldImagePath, setOldImagePath] = useState<string>('')
+  const [oldImageThumbPath, setOldImageThumbPath] = useState<string>('')
   const [startDateTime, setStartDateTime] = useState<string>('')
   const [endDateTime, setEndDateTime] = useState<string>('')
   const [sponsorsEnabled, setSponsorsEnabled] = useState(false)
@@ -72,9 +73,6 @@ export default function CreateQuestPage() {
 
   const { mutateAsync: mutateQuest } = useMutateQuest()
 
-  // const { data: currentUser } = useCurrentUserProfile()
-  // const creatorId = currentUser?.id ?? ''
-
   const { data: updatingQuest } = useQuest(questId)
 
   // --- Prefill fields if editing ---
@@ -82,6 +80,9 @@ export default function CreateQuestPage() {
     if (!isUpdating) return
     if (!updatingQuest) return
 
+    // In the prefill useEffect, add:
+    setOldImagePath(updatingQuest.quest_image ?? '')
+    setOldImageThumbPath(updatingQuest.quest_image_thumb ?? '')
     setName(updatingQuest.quest_name ?? '')
     setDetails(updatingQuest.quest_details ?? '')
     setPreviewImage(updatingQuest.quest_image ?? '')
@@ -256,6 +257,28 @@ export default function CreateQuestPage() {
         ? await uploadImage(imageFile)
         : { fullPath: previewImage, thumbPath: '' }
 
+      // ✅ Delete old images if a new one was uploaded
+      if (
+        imageFile &&
+        oldImagePath &&
+        !oldImagePath.startsWith('http') &&
+        oldImagePath !== imagePaths.fullPath
+      ) {
+        try {
+          const cleanFull = oldImagePath.startsWith('/')
+            ? oldImagePath.slice(1)
+            : oldImagePath
+          const cleanThumb = oldImageThumbPath?.startsWith('/')
+            ? oldImageThumbPath.slice(1)
+            : oldImageThumbPath
+          if (cleanFull) await remove({ path: cleanFull })
+          if (cleanThumb) await remove({ path: cleanThumb })
+          console.log('✅ Old quest images removed')
+        } catch (err) {
+          console.error('Error deleting old quest images:', err)
+        }
+      }
+
       const basePayload = {
         name,
         details,
@@ -271,11 +294,7 @@ export default function CreateQuestPage() {
       }
 
       let currentQuestId = effectiveQuestId
-      console.log(
-        'basePayload tasks type:',
-        typeof basePayload.tasks,
-        basePayload.tasks,
-      )
+
       // 2. Create or Update Draft (Always save as draft first)
       if (!currentQuestId) {
         const draftResult = await mutateQuest({

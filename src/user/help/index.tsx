@@ -4,7 +4,10 @@ import logo from '@/assets/images/no_ordinary.svg'
 import { helpSections } from '@/assets/helpSections'
 import { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { useNavigate } from 'react-router-dom'
 export default function Help() {
+  const navigate = useNavigate()
   const [openIndex, setOpenIndex] = useState<number | null>(null)
   const toggle = (index: number) => {
     setOpenIndex(openIndex === index ? null : index)
@@ -55,6 +58,9 @@ export default function Help() {
               </li>
             ))}
           </ul>
+          <Button variant="yellow" onClick={() => navigate(-1)}>
+            Back to Quests
+          </Button>
         </CardContent>
       </Card>
     </div>
