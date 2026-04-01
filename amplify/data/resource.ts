@@ -40,7 +40,12 @@ export const schema = a
       'completed',
     ]),
 
-    MutateQuestAction: a.enum(['CREATE_DRAFT', 'UPDATE_DRAFT', 'PUBLISH']),
+    MutateQuestAction: a.enum([
+      'CREATE_DRAFT',
+      'UPDATE_DRAFT',
+      'PUBLISH',
+      'UPDATE_PUBLISHED',
+    ]),
 
     // Return type for mutateQuest
     MutateQuestResponse: a.customType({

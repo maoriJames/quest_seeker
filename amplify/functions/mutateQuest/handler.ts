@@ -23,7 +23,11 @@ const QUEST_TABLE = process.env.QUEST_TABLE_NAME!
 // -----------------------------
 // Types
 // -----------------------------
-type QuestAction = 'CREATE_DRAFT' | 'UPDATE_DRAFT' | 'PUBLISH'
+type QuestAction =
+  | 'CREATE_DRAFT'
+  | 'UPDATE_DRAFT'
+  | 'PUBLISH'
+  | 'UPDATE_PUBLISHED'
 
 interface QuestTask {
   id: string
@@ -171,8 +175,12 @@ export const handler = async (event: AppSyncEvent) => {
     throw new Error('Not allowed to modify this quest')
   }
 
-  // Published quests are immutable (except admin)
-  if (quest.status === 'published' && !isAdmin) {
+  // Published quests are immutable (except admin or UPDATE_PUBLISHED)
+  if (
+    quest.status === 'published' &&
+    !isAdmin &&
+    input.action !== 'UPDATE_PUBLISHED'
+  ) {
     throw new Error('Published quests cannot be edited')
   }
 
