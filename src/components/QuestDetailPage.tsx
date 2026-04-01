@@ -307,6 +307,10 @@ export default function QuestDetailPage() {
     }
   }
 
+  const canEdit =
+    quest.status === QuestStatus.draft ||
+    (quest.status === QuestStatus.published && participantIds.length === 0)
+
   return (
     <div
       className="relative min-h-screen flex items-center justify-center bg-cover bg-center px-4"
@@ -355,99 +359,107 @@ export default function QuestDetailPage() {
           </div>
 
           {/* Banner Image with overlayed quest title + floating sponsors card */}
-          <div className="relative w-full mb-20">
-            {' '}
-            {/* Increased bottom margin for the overlap */}
+          <div className="relative w-full mb-4 md:mb-20">
             {/* Banner Image */}
             <RemoteImage
               path={quest.quest_image || placeHold}
               fallback={placeHold}
               className="w-full h-[250px] md:h-[350px] object-cover rounded-t-2xl"
             />
+
             {/* Gradient overlay at bottom for contrast */}
             <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black/70 to-transparent rounded-b-2xl" />
+
             {/* Overlayed quest name (left) */}
             <div className="absolute bottom-8 left-6 z-10">
               <h1 className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg">
                 {quest.quest_name}
               </h1>
             </div>
-            {/* Floating white sponsors card (right) */}
+
+            {/* Sponsors card */}
             {displayedSponsors.length > 0 && (
-              <div className="absolute left-1/2 md:left-auto md:right-10 bottom-[-60px] transform -translate-x-1/2 md:translate-x-0 bg-white rounded-2xl shadow-xl border border-gray-200 p-4 md:p-5 flex flex-col items-center md:items-end gap-3 w-[90%] md:w-auto z-20">
-                {/* Featured Sponsors link */}
+              <div
+                className="
+      absolute top-2 right-2 flex flex-col items-end gap-1 z-20
+      md:top-auto md:right-10 md:bottom-[-60px]
+      md:bg-white md:rounded-2xl md:shadow-xl md:border md:border-gray-200
+      md:p-5 md:gap-3
+    "
+              >
+                {/* Featured Sponsors link — desktop only */}
                 {sponsors.length >= 3 && (
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <span className="text-sm text-blue-600 font-medium underline cursor-pointer hover:text-blue-800">
-                        Featured Sponsors
-                      </span>
-                    </DialogTrigger>
-                    <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
-                    <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
-                      <DialogTitle className="text-lg font-bold mb-4">
-                        Featured Sponsors
-                      </DialogTitle>
-
-                      <div className="overflow-hidden" ref={emblaRef}>
-                        <div className="flex">
-                          {sponsors.map((sponsor) => (
-                            <div
-                              key={sponsor.id}
-                              className="flex-[0_0_100%] flex flex-col items-center justify-center p-4"
-                            >
-                              <RemoteImage
-                                path={sponsor.image || placeHold}
-                                fallback={placeHold}
-                                className="w-24 h-24 object-contain rounded-full mb-2"
-                              />
-                              <p className="font-semibold text-sm text-gray-700">
-                                {sponsor.name}
-                              </p>
-                            </div>
-                          ))}
+                  <div className="hidden md:block">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <span className="text-sm text-blue-600 font-medium underline cursor-pointer hover:text-blue-800">
+                          Featured Sponsors
+                        </span>
+                      </DialogTrigger>
+                      <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
+                      <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-lg bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
+                        <DialogTitle className="text-lg font-bold mb-4">
+                          Featured Sponsors
+                        </DialogTitle>
+                        <div className="overflow-hidden" ref={emblaRef}>
+                          <div className="flex">
+                            {sponsors.map((sponsor) => (
+                              <div
+                                key={sponsor.id}
+                                className="flex-[0_0_100%] flex flex-col items-center justify-center p-4"
+                              >
+                                <RemoteImage
+                                  path={sponsor.image || placeHold}
+                                  fallback={placeHold}
+                                  className="w-24 h-24 object-contain rounded-full mb-2"
+                                />
+                                <p className="font-semibold text-sm text-gray-700">
+                                  {sponsor.name}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-
-                      <div className="flex justify-between items-center mt-4">
-                        <button
-                          onClick={scrollPrev}
-                          className="text-sm text-blue-600 hover:underline"
-                        >
-                          Previous
-                        </button>
-                        <button
-                          onClick={scrollNext}
-                          className="text-sm text-blue-600 hover:underline"
-                        >
-                          Next
-                        </button>
-                      </div>
-
-                      <DialogClose asChild>
-                        <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
-                          Close
-                        </button>
-                      </DialogClose>
-                    </DialogContent>
-                  </Dialog>
+                        <div className="flex justify-between items-center mt-4">
+                          <button
+                            onClick={scrollPrev}
+                            className="text-sm text-blue-600 hover:underline"
+                          >
+                            Previous
+                          </button>
+                          <button
+                            onClick={scrollNext}
+                            className="text-sm text-blue-600 hover:underline"
+                          >
+                            Next
+                          </button>
+                        </div>
+                        <DialogClose asChild>
+                          <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
+                            Close
+                          </button>
+                        </DialogClose>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 )}
 
                 {/* Sponsor Avatars */}
-                <div className="flex gap-4 flex-wrap justify-center md:justify-end">
+                <div className="flex gap-2 md:gap-4 flex-wrap justify-end">
                   {displayedSponsors.map((sponsor) => (
                     <div
                       key={sponsor.id}
-                      className="flex flex-col items-center w-20 text-center"
+                      className="flex flex-col items-center w-10 md:w-20 text-center"
                     >
-                      <div className="p-[3px] bg-gradient-to-b from-gray-100 to-gray-200 rounded-full shadow-inner">
+                      <div className="p-[2px] md:p-[3px] bg-white/80 md:bg-gradient-to-b md:from-gray-100 md:to-gray-200 rounded-full shadow">
                         <RemoteImage
                           path={sponsor.image || placeHold}
                           fallback={placeHold}
-                          className="w-14 h-14 object-contain rounded-full border border-gray-300 shadow-sm bg-white"
+                          className="w-8 h-8 md:w-14 md:h-14 object-contain rounded-full border border-gray-300 shadow-sm bg-white"
                         />
                       </div>
-                      <span className="text-xs mt-1 font-semibold text-gray-700">
+                      {/* Sponsor name — desktop only */}
+                      <span className="hidden md:block text-xs mt-1 font-semibold text-gray-700">
                         {sponsor.name}
                       </span>
                     </div>
@@ -455,7 +467,9 @@ export default function QuestDetailPage() {
                 </div>
               </div>
             )}
+
             {/* Edit Button (top right of banner) */}
+
             {isOwner && (
               <TooltipProvider>
                 <Tooltip>
@@ -463,11 +477,11 @@ export default function QuestDetailPage() {
                     <button
                       onClick={() => navigate(`/user/quest/${id}/edit`)}
                       className={`absolute top-4 right-4 p-2 rounded-full bg-white/80 shadow z-20 ${
-                        quest.status === QuestStatus.published
+                        !canEdit
                           ? 'cursor-not-allowed opacity-50 hover:bg-white/80'
                           : 'hover:bg-white'
                       }`}
-                      disabled={quest.status === QuestStatus.published}
+                      disabled={!canEdit}
                     >
                       <Pencil className="w-5 h-5 text-gray-700" />
                     </button>
@@ -476,9 +490,13 @@ export default function QuestDetailPage() {
                     side="top"
                     className="bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg"
                   >
-                    {quest.status === QuestStatus.published
-                      ? 'Only draft Quests can be edited'
-                      : 'Edit quest'}
+                    {quest.status === QuestStatus.expired
+                      ? 'Expired quests cannot be edited'
+                      : participantIds.length > 0
+                        ? 'Quests with participants cannot be edited'
+                        : !canEdit
+                          ? 'Only draft and published quests with no participants can be edited'
+                          : 'Edit quest'}
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>

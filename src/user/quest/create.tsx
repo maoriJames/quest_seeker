@@ -19,7 +19,11 @@ import RemoteImage from '@/components/RemoteImage'
 import PickRegion from '@/components/PickRegion'
 import placeHold from '@/assets/images/placeholder_view_vector.svg'
 import bg from '@/assets/images/background_main.png'
-import { useMutateQuest, useQuest } from '@/hooks/userQuests'
+import {
+  useMutateQuest,
+  useQuest,
+  useQuestParticipants,
+} from '@/hooks/userQuests'
 import { Prize, Sponsor, Task } from '@/types'
 import { useCurrentUserProfile } from '@/hooks/userProfiles'
 import { DialogTitle } from '@radix-ui/react-dialog'
@@ -41,6 +45,9 @@ export default function CreateQuestPage() {
   const isUpdating = !!questId
   const { data: profile, isLoading: isProfileLoading } = useCurrentUserProfile()
   const [createdQuestId, setCreatedQuestId] = useState<string | null>(null)
+
+  const { data: questParticipants } = useQuestParticipants(questId ?? undefined)
+  const participantIds = questParticipants?.map((uq) => uq.profileId) ?? []
 
   const effectiveQuestId = questId ?? createdQuestId
   // const isEffectivelyUpdating = !!effectiveQuestId
@@ -116,8 +123,11 @@ export default function CreateQuestPage() {
 
   // --- Helpers ---
 
-  const isPublishedQuest =
-    isUpdating && updatingQuest?.status === QuestStatus.published
+  const canEdit =
+    !isUpdating ||
+    updatingQuest?.status === QuestStatus.draft ||
+    (updatingQuest?.status === QuestStatus.published &&
+      participantIds.length === 0)
 
   const isDraftBeingPublished =
     isUpdating && updatingQuest?.status === QuestStatus.draft
@@ -364,7 +374,7 @@ export default function CreateQuestPage() {
             <div className="flex justify-between mt-4">
               <Button
                 variant="outline"
-                disabled={isPublishedQuest}
+                disabled={!canEdit}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
                 Save as Draft
@@ -413,7 +423,7 @@ export default function CreateQuestPage() {
               <Button onClick={prev}>Back</Button>
               <Button
                 variant="outline"
-                disabled={isPublishedQuest}
+                disabled={!canEdit}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
                 Save as Draft
@@ -448,7 +458,7 @@ export default function CreateQuestPage() {
               <Button onClick={prev}>Back</Button>
               <Button
                 variant="outline"
-                disabled={isPublishedQuest}
+                disabled={!canEdit}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
                 Save as Draft
@@ -487,7 +497,7 @@ export default function CreateQuestPage() {
               <Button onClick={prev}>Back</Button>
               <Button
                 variant="outline"
-                disabled={isPublishedQuest}
+                disabled={!canEdit}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
                 Save as Draft
@@ -534,7 +544,7 @@ export default function CreateQuestPage() {
               <Button onClick={prev}>Back</Button>
               <Button
                 variant="outline"
-                disabled={isPublishedQuest}
+                disabled={!canEdit}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
                 Save as Draft
@@ -708,7 +718,7 @@ export default function CreateQuestPage() {
               <Button onClick={prev}>Back</Button>
               <Button
                 variant="outline"
-                disabled={isPublishedQuest}
+                disabled={!canEdit}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
                 Save as Draft
@@ -742,7 +752,7 @@ export default function CreateQuestPage() {
               <Button onClick={prev}>Back</Button>
               <Button
                 variant="outline"
-                disabled={isPublishedQuest}
+                disabled={!canEdit}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
                 Save as Draft
@@ -783,7 +793,7 @@ export default function CreateQuestPage() {
 
               <Button
                 variant="outline"
-                disabled={isPublishedQuest}
+                disabled={!canEdit}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
                 Save as Draft
@@ -830,7 +840,7 @@ export default function CreateQuestPage() {
               </Button>
               <Button
                 variant="outline"
-                disabled={isPublishedQuest}
+                disabled={!canEdit}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
                 Save as Draft
@@ -871,7 +881,7 @@ export default function CreateQuestPage() {
               <Button onClick={prev}>Back</Button>
               <Button
                 variant="outline"
-                disabled={isPublishedQuest}
+                disabled={!canEdit}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
                 {isDraftBeingPublished ? 'Save Draft' : 'Save as Draft'}
@@ -898,14 +908,14 @@ export default function CreateQuestPage() {
               </Button>
               <Button
                 variant="outline"
-                disabled={isPublishedQuest}
+                disabled={!canEdit}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
                 Save as Draft
               </Button>
               <Button
                 variant="yellow"
-                disabled={loading || isProfileLoading || isPublishedQuest}
+                disabled={loading || isProfileLoading || !canEdit}
                 onClick={handlePayAndPublish} // 👈 Updated
               >
                 {loading
