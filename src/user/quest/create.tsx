@@ -316,6 +316,15 @@ export default function CreateQuestPage() {
         })
         currentQuestId = draftResult?.questId
         setCreatedQuestId(currentQuestId)
+      } else if (updatingQuest?.status === QuestStatus.published) {
+        // ✅ Updating a published quest with no participants
+        await mutateQuest({
+          action: MutateQuestAction.UPDATE_PUBLISHED,
+          questId: currentQuestId,
+          ...basePayload,
+        })
+        navigate(-1)
+        return null
       } else {
         await mutateQuest({
           action: MutateQuestAction.UPDATE_DRAFT,
@@ -377,7 +386,9 @@ export default function CreateQuestPage() {
                 disabled={!canEdit}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
-                Save as Draft
+                {updatingQuest?.status === QuestStatus.published
+                  ? 'Save Changes'
+                  : 'Save as Draft'}
               </Button>
               <Button onClick={next}>Next</Button>
             </div>
@@ -426,7 +437,9 @@ export default function CreateQuestPage() {
                 disabled={!canEdit}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
-                Save as Draft
+                {updatingQuest?.status === QuestStatus.published
+                  ? 'Save Changes'
+                  : 'Save as Draft'}
               </Button>
               <Button onClick={next}>Next</Button>
             </div>
@@ -461,7 +474,9 @@ export default function CreateQuestPage() {
                 disabled={!canEdit}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
-                Save as Draft
+                {updatingQuest?.status === QuestStatus.published
+                  ? 'Save Changes'
+                  : 'Save as Draft'}
               </Button>
               <Button onClick={next}>Next</Button>
             </div>
@@ -500,7 +515,9 @@ export default function CreateQuestPage() {
                 disabled={!canEdit}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
-                Save as Draft
+                {updatingQuest?.status === QuestStatus.published
+                  ? 'Save Changes'
+                  : 'Save as Draft'}
               </Button>
               <Button onClick={next}>Next</Button>
             </div>
@@ -547,7 +564,9 @@ export default function CreateQuestPage() {
                 disabled={!canEdit}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
-                Save as Draft
+                {updatingQuest?.status === QuestStatus.published
+                  ? 'Save Changes'
+                  : 'Save as Draft'}
               </Button>
               <Button onClick={next}>Next</Button>
             </div>
@@ -721,7 +740,9 @@ export default function CreateQuestPage() {
                 disabled={!canEdit}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
-                Save as Draft
+                {updatingQuest?.status === QuestStatus.published
+                  ? 'Save Changes'
+                  : 'Save as Draft'}
               </Button>
               <Button onClick={next}>Next</Button>
             </div>
@@ -755,7 +776,9 @@ export default function CreateQuestPage() {
                 disabled={!canEdit}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
-                Save as Draft
+                {updatingQuest?.status === QuestStatus.published
+                  ? 'Save Changes'
+                  : 'Save as Draft'}
               </Button>
               <div className="flex gap-4">
                 <Button
@@ -790,15 +813,15 @@ export default function CreateQuestPage() {
 
             <div className="flex justify-between mt-4">
               <Button onClick={() => setStep(6)}>Back</Button>
-
               <Button
                 variant="outline"
                 disabled={!canEdit}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
-                Save as Draft
+                {updatingQuest?.status === QuestStatus.published
+                  ? 'Save Changes'
+                  : 'Save as Draft'}
               </Button>
-
               <Button onClick={next}>Next</Button>
             </div>
           </>
@@ -843,7 +866,9 @@ export default function CreateQuestPage() {
                 disabled={!canEdit}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
-                Save as Draft
+                {updatingQuest?.status === QuestStatus.published
+                  ? 'Save Changes'
+                  : 'Save as Draft'}
               </Button>
               {/* Yes / No buttons – grouped on right */}
               <div className="flex gap-4">
@@ -884,7 +909,9 @@ export default function CreateQuestPage() {
                 disabled={!canEdit}
                 onClick={() => saveQuest(QuestStatus.draft)}
               >
-                {isDraftBeingPublished ? 'Save Draft' : 'Save as Draft'}
+                {updatingQuest?.status === QuestStatus.published
+                  ? 'Save Changes'
+                  : 'Save as Draft'}
               </Button>
               <Button onClick={next}>Next</Button>
             </div>
@@ -906,25 +933,33 @@ export default function CreateQuestPage() {
               >
                 Back
               </Button>
-              <Button
-                variant="outline"
-                disabled={!canEdit}
-                onClick={() => saveQuest(QuestStatus.draft)}
-              >
-                Save as Draft
-              </Button>
+              {updatingQuest?.status !== QuestStatus.published && (
+                <Button
+                  variant="outline"
+                  disabled={!canEdit}
+                  onClick={() => saveQuest(QuestStatus.draft)}
+                >
+                  Save as Draft
+                </Button>
+              )}
               <Button
                 variant="yellow"
                 disabled={loading || isProfileLoading || !canEdit}
-                onClick={handlePayAndPublish} // 👈 Updated
+                onClick={
+                  updatingQuest?.status === QuestStatus.published
+                    ? () => saveQuest(QuestStatus.published) // ← save published directly
+                    : handlePayAndPublish
+                }
               >
                 {loading
                   ? 'Processing...'
-                  : isDraftBeingPublished
-                    ? 'Pay and Publish Quest'
-                    : isUpdating
-                      ? 'Save and Publish Changes'
-                      : 'Finish & Create Quest'}
+                  : updatingQuest?.status === QuestStatus.published
+                    ? 'Save Changes'
+                    : isDraftBeingPublished
+                      ? 'Pay and Publish Quest'
+                      : isUpdating
+                        ? 'Save and Publish Changes'
+                        : 'Finish & Create Quest'}
               </Button>
             </div>
           </>
