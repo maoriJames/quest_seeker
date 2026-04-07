@@ -85,3 +85,19 @@
   font-weight: 600 !important;
   color: #333 !important;
 }
+
+[data-amplify-authenticator] {
+  --amplify-colors-brand-primary-10: #fefce8;
+  --amplify-colors-brand-primary-20: #fef9c3;
+  --amplify-colors-brand-primary-40: #fde047;
+  --amplify-colors-brand-primary-60: #facc15;
+  --amplify-colors-brand-primary-80: #eab308;
+  --amplify-colors-brand-primary-90: #ca8a04;
+  --amplify-colors-brand-primary-100: #a16207;
+  --amplify-radii-medium: 0.75rem;
+  --amplify-radii-large: 1rem;
+}
+
+[data-amplify-authenticator] [data-amplify-form] {
+  padding: 1.5rem;
+}
