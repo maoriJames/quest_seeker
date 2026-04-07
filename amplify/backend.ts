@@ -50,6 +50,8 @@ const stripeWebhookLambda = backend.stripeWebhook.resources
 const stripeSessionLambda = backend.createStripeSession.resources
   .lambda as lambda.Function
 const joinQuestLambda = backend.joinQuest.resources.lambda as lambda.Function
+const expiredQuestsLambda = backend.expiredQuests.resources
+  .lambda as lambda.Function
 
 // 1. Unified Function URL Configuration
 stripeWebhookLambda.addFunctionUrl({
@@ -122,6 +124,7 @@ const sesPolicy = new iam.PolicyStatement({
 
 joinQuestLambda.addToRolePolicy(sesPolicy)
 stripeWebhookLambda.addToRolePolicy(sesPolicy)
+expiredQuestsLambda.addToRolePolicy(sesPolicy)
 
 const cognitoPolicy = new iam.PolicyStatement({
   actions: ['cognito-idp:AdminGetUser'],
@@ -130,8 +133,14 @@ const cognitoPolicy = new iam.PolicyStatement({
 
 joinQuestLambda.addToRolePolicy(cognitoPolicy)
 stripeWebhookLambda.addToRolePolicy(cognitoPolicy)
+expiredQuestsLambda.addToRolePolicy(cognitoPolicy)
 
 joinQuestLambda.addEnvironment(
+  'AMPLIFY_USER_POOL_ID',
+  backend.auth.resources.userPool.userPoolId,
+)
+
+expiredQuestsLambda.addEnvironment(
   'AMPLIFY_USER_POOL_ID',
   backend.auth.resources.userPool.userPoolId,
 )

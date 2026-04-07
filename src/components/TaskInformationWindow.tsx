@@ -169,7 +169,11 @@ export default function TaskInformationWindow({
 
       // 🔥 1. Determine if this specific task is now complete
       const taskIsCompleted = (() => {
-        if (selectedTask.isImage) return !!uploadedPath
+        if (selectedTask.isImage)
+          return !!(
+            uploadedPath ||
+            editableTasks.find((t) => t.id === selectedTask.id)?.answer
+          )
         if (selectedTask.requiresCaption) return caption.trim().length > 0
         if (selectedTask.isLocation) return location.trim().length > 0
         return true
@@ -197,7 +201,9 @@ export default function TaskInformationWindow({
           ? {
               ...t,
               caption,
-              answer: uploadedPath,
+              answer: selectedTask.isImage
+                ? uploadedPath || t.answer // ✅ keep existing if no new upload
+                : t.answer,
               location,
               completed: taskIsCompleted,
             }

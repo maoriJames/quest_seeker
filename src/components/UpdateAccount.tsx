@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Card } from '@aws-amplify/ui-react'
 import { CardContent } from './ui/card'
 import InlineEditField from './InlineEditField'
@@ -30,6 +30,10 @@ export default function UpdateAccount({
   isProfileComplete,
 }: ProfileProps) {
   const navigate = useNavigate()
+
+  const location = useLocation()
+  const forceNameUpdate = (location.state as { forceNameUpdate?: boolean })
+    ?.forceNameUpdate
 
   const [previewImage, setPreviewImage] = useState(profile.image || '')
   const [oldImagePath, setOldImagePath] = useState(profile.image || '')
@@ -141,14 +145,14 @@ export default function UpdateAccount({
   return (
     <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl p-8 max-w-md w-full text-center">
       <CardContent className="flex flex-col gap-4">
+        {forceNameUpdate && (
+          <div className="w-full bg-yellow-100 border border-yellow-300 text-yellow-800 rounded-lg px-4 py-3 text-sm font-medium mb-2">
+            👋 Welcome! Please update your name before continuing.
+          </div>
+        )}
         {/* Profile Image */}
         <div className="flex flex-col items-center gap-2">
           {previewImage ? (
-            // <img
-            //   src={previewImage}
-            //   alt="Profile preview"
-            //   className="w-32 h-32 rounded-full object-cover"
-            // />
             <RemoteImage
               path={previewImage || profile.image_thumbnail}
               fallback={placeHold}

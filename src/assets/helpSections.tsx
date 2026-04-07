@@ -103,13 +103,13 @@ export const helpSections: HelpSection[] = [
         </strong>
       </>,
       <>
-        <strong>Download the QuestSeeker App and Sign Up:</strong> Get the app
-        on your smartphone or tablet (available on iOS, Android, and via web
-        browser) and create your free account. Once logged in, you can browse
-        the app to see available Quests. Quests are listed by name or region,
-        and you can sort by title (A–Z) or by start date (newest to oldest).
-        Feel free to explore upcoming and ongoing Quests to find one that
-        interests you.
+        <strong>Sign Up to the QuestSeeker App:</strong> Get the app on your
+        smartphone or tablet by saving the app to your homescreen on ios or
+        Android via your browser (chrome, safari etc.) and then create your free
+        account. Once logged in, you can browse the app to see available Quests.
+        Quests are listed by name or region, and you can sort by title (A–Z) or
+        by start date (newest to oldest). Feel free to explore upcoming and
+        ongoing Quests to find one that interests you.
       </>,
       <>
         <strong>Find and Join a Quest:</strong> Look through the list of current
@@ -138,7 +138,7 @@ export const helpSections: HelpSection[] = [
         by the Quest Creator. Enjoy the process – this is where the exploration
         and family fun really shine! If you’re playing with friends or family,
         you can work together to tackle the tasks (just make sure each person
-        submits on their own device if they registered separately).
+        submits on their own device if they are registered separately).
       </>,
       <>
         <strong>Submit Answers and Track Your Progress:</strong> Using the app,

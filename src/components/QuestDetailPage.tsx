@@ -692,104 +692,153 @@ export default function QuestDetailPage() {
 
             {isExpired ? (
               <div className="lg:w-[450px] w-full bg-white/70 p-4 rounded-xl shadow">
-                <h3 className="text-lg font-bold mb-3">
-                  Participants Who Completed This Quest
-                </h3>
-
-                {/* SHOW “loading” if profiles haven't loaded yet */}
-                {!participantsLoaded ? (
-                  <p className="text-gray-500">Loading participants...</p>
-                ) : completedParticipants.length === 0 ? (
-                  <p className="text-gray-500">
-                    No participants have completed all tasks for this quest.
-                  </p>
-                ) : (
+                {isOwner ? (
+                  // 👑 CREATOR VIEW
                   <>
-                    <div className="flex flex-col gap-3 mb-4">
-                      {completedParticipants.map((profile) => (
-                        <div
-                          key={profile.id}
-                          className="flex items-center gap-3 bg-white p-2 rounded-lg shadow-sm"
-                        >
-                          <RemoteImage
-                            path={profile.image_thumbnail || placeHold}
-                            fallback={placeHold}
-                            className="w-12 h-12 rounded-full object-cover"
-                          />
+                    <h3 className="text-lg font-bold mb-3">
+                      Participants Who Completed This Quest
+                    </h3>
 
-                          <div className="flex flex-col">
-                            <span className="font-semibold text-gray-800">
-                              {profile.full_name || 'Unknown User'}
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              {profile.about_me || ''}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                      {hasJoined && !isOwner && currentUserProfile && (
-                        <div className="mt-4">
-                          <button
-                            onClick={preparePdfTasks}
-                            className="mb-2 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg"
-                          >
-                            Prepare PDF
-                          </button>
-
-                          {!pdfLoading && pdfTasks.length > 0 && (
-                            <PDFDownloadLink
-                              document={
-                                <SeekerTaskPdfButton
-                                  quest={quest}
-                                  seekerTasks={pdfTasks}
-                                  user={currentUserProfile}
-                                />
+                    {!participantsLoaded ? (
+                      <p className="text-gray-500">Loading participants...</p>
+                    ) : completedParticipants.length === 0 ? (
+                      <p className="text-gray-500">
+                        No participants have completed all tasks for this quest.
+                      </p>
+                    ) : (
+                      <>
+                        {/* Scrollable participant list */}
+                        <div className="flex flex-col gap-3 mb-4 max-h-72 overflow-y-auto pr-1">
+                          {completedParticipants.map((profile) => {
+                            const uq = questParticipants?.find(
+                              (q) => q.profileId === profile.id,
+                            )
+                            const uqTasks = (() => {
+                              try {
+                                return typeof uq?.tasks === 'string'
+                                  ? JSON.parse(uq.tasks)
+                                  : (uq?.tasks ?? [])
+                              } catch {
+                                return []
                               }
-                              fileName={`${quest.quest_name}-your-answers.pdf`}
-                            >
-                              {({ loading }) => (
-                                <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
-                                  {loading
-                                    ? 'Generating PDF…'
-                                    : 'Download My Quest PDF'}
-                                </button>
-                              )}
-                            </PDFDownloadLink>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                            })()
 
-                    {/* 🎯 Only quest creator sees this button */}
-                    {isOwner && completedParticipants.length > 0 && (
-                      <button
-                        onClick={pickRandomWinner}
-                        className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 rounded-lg shadow"
-                      >
-                        Pick Random Winner
-                      </button>
+                            return (
+                              <PDFDownloadLink
+                                key={profile.id}
+                                document={
+                                  <SeekerTaskPdfButton
+                                    quest={quest}
+                                    seekerTasks={uqTasks}
+                                    user={profile}
+                                  />
+                                }
+                                fileName={`${quest.quest_name}-${profile.full_name ?? 'participant'}.pdf`}
+                              >
+                                {({ loading }) => (
+                                  <div className="flex items-center gap-3 bg-white p-3 rounded-lg shadow-sm hover:bg-yellow-50 transition cursor-pointer border border-gray-100">
+                                    <RemoteImage
+                                      path={
+                                        profile.image_thumbnail || placeHold
+                                      }
+                                      fallback={placeHold}
+                                      className="w-12 h-12 rounded-full object-cover shrink-0"
+                                    />
+                                    <div className="flex flex-col flex-1 min-w-0">
+                                      <span className="font-semibold text-gray-800 truncate">
+                                        {profile.full_name || 'Unknown User'}
+                                      </span>
+                                      <span className="text-xs text-gray-500 truncate">
+                                        {profile.email || ''}
+                                      </span>
+                                    </div>
+                                    <span className="text-xs text-blue-600 font-medium shrink-0">
+                                      {loading
+                                        ? 'Generating...'
+                                        : '⬇ Download PDF'}
+                                    </span>
+                                  </div>
+                                )}
+                              </PDFDownloadLink>
+                            )
+                          })}
+                        </div>
+
+                        <button
+                          onClick={pickRandomWinner}
+                          className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 rounded-lg shadow"
+                        >
+                          Pick Random Winner
+                        </button>
+
+                        {winner && (
+                          <div className="mt-4 p-3 bg-green-100 border border-green-300 rounded-lg flex items-center gap-3">
+                            <RemoteImage
+                              path={winner.image_thumbnail || placeHold}
+                              fallback={placeHold}
+                              className="w-12 h-12 rounded-full object-cover"
+                            />
+                            <div>
+                              <p className="font-bold text-green-800 text-lg">
+                                🎉 Winner!
+                              </p>
+                              <p className="font-semibold">
+                                {winner.full_name}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </>
                     )}
+                  </>
+                ) : (
+                  // 🧭 SEEKER VIEW
+                  <>
+                    <h3 className="text-lg font-bold mb-3">
+                      Your Completed Quest
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      This quest has ended. See your completed quest details
+                      below.
+                    </p>
 
-                    {/* 🏆 WINNER DISPLAY */}
-                    {winner && (
-                      <div className="mt-4 p-3 bg-green-100 border border-green-300 rounded-lg flex items-center gap-3">
-                        <RemoteImage
-                          path={winner.image_thumbnail || placeHold}
-                          fallback={placeHold}
-                          className="w-12 h-12 rounded-full object-cover"
-                        />
-                        <div>
-                          <p className="font-bold text-green-800 text-lg">
-                            🎉 Winner!
-                          </p>
-                          <p className="font-semibold">{winner.full_name}</p>
-                        </div>
+                    {currentUserProfile && (
+                      <div className="flex flex-col gap-3">
+                        <button
+                          onClick={preparePdfTasks}
+                          disabled={pdfLoading}
+                          className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg"
+                        >
+                          {pdfLoading ? 'Preparing...' : 'Prepare PDF'}
+                        </button>
+
+                        {!pdfLoading && pdfTasks.length > 0 && (
+                          <PDFDownloadLink
+                            document={
+                              <SeekerTaskPdfButton
+                                quest={quest}
+                                seekerTasks={pdfTasks}
+                                user={currentUserProfile}
+                              />
+                            }
+                            fileName={`${quest.quest_name}-your-answers.pdf`}
+                          >
+                            {({ loading }) => (
+                              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                                {loading
+                                  ? 'Generating PDF…'
+                                  : 'Download My Quest PDF'}
+                              </button>
+                            )}
+                          </PDFDownloadLink>
+                        )}
                       </div>
                     )}
                   </>
                 )}
               </div>
             ) : (
+              // ... non-expired JSX unchanged
               <>
                 {(isOwner || hasJoined) && (
                   <div className="lg:w-[450px] w-full bg-white/80 p-4 rounded-xl shadow flex flex-col gap-4">

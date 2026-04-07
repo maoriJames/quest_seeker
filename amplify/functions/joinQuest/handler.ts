@@ -102,6 +102,7 @@ export const handler: AppSyncResolverHandler<Args, boolean> = async (event) => {
           tasks: tasksForSave,
           createdAt: now,
           updatedAt: now,
+          owner: `${profileId}::${profileId}`,
         },
         ConditionExpression: 'attribute_not_exists(id)',
       }),

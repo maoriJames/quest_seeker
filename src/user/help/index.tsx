@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card'
 import bg from '@/assets/images/background_main.png'
-import logo from '@/assets/images/no_ordinary.svg'
+import logo from '@/assets/images/no_ordinary.png'
 import { helpSections } from '@/assets/helpSections'
 import { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
