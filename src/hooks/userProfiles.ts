@@ -81,6 +81,7 @@ export const useCurrentUserProfile = () => {
             input: {
               id: userId,
               full_name: signInDetails?.loginId ?? 'New User',
+              email: signInDetails?.loginId,
               role: 'seeker',
             },
           },
