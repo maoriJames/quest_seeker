@@ -1,4 +1,5 @@
 import { generateClient, GraphQLResult } from 'aws-amplify/data'
+import { getCurrentUser } from 'aws-amplify/auth'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   useQuest,
@@ -64,6 +65,7 @@ export default function QuestDetailPage() {
   )
   const { data: questParticipants } = useQuestParticipants(quest?.id)
   const participantIds = questParticipants?.map((uq) => uq.profileId) ?? []
+  console.log('Participant IDs:', participantIds)
   const [participantProfiles, setParticipantProfiles] = useState<Profile[]>([])
   const [participantsLoaded, setParticipantsLoaded] = useState(false)
   const [tasks, setTasks] = useState<Task[]>([])
@@ -83,10 +85,10 @@ export default function QuestDetailPage() {
   }, [quest])
 
   useEffect(() => {
-    if (isExpired && !participantsLoaded) {
+    if (isExpired && !participantsLoaded && participantIds.length > 0) {
       handleOpenParticipants()
     }
-  }, [isExpired])
+  }, [isExpired, participantsLoaded, participantIds])
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -142,7 +144,34 @@ export default function QuestDetailPage() {
     setPdfTasks(resolved)
     setPdfLoading(false)
   }
+  // 🔜 REMOVE MyQuest dependency — now uses UserQuest status
+  const completedParticipants = participantProfiles.filter((profile) => {
+    const userQuest = questParticipants?.find(
+      (uq) => uq.profileId === profile.id,
+    )
+    if (!userQuest) return false
+    if (userQuest.status === 'COMPLETED') return true
 
+    // Fallback: check if all tasks are completed
+    const tasks = Array.isArray(userQuest.tasks)
+      ? userQuest.tasks
+      : (() => {
+          try {
+            return typeof userQuest.tasks === 'string'
+              ? JSON.parse(userQuest.tasks)
+              : []
+          } catch {
+            return []
+          }
+        })()
+
+    const taskCount = tasks.length
+    if (taskCount === 0) return false
+    return (
+      tasks.filter((t: { completed: boolean }) => t.completed).length ===
+      taskCount
+    )
+  })
   const pickRandomWinner = () => {
     if (completedParticipants.length === 0) return
 
@@ -255,52 +284,35 @@ export default function QuestDetailPage() {
     }
   })()
 
-  // 🔜 REMOVE MyQuest dependency — now uses UserQuest status
-  const completedParticipants = participantProfiles.filter((profile) => {
-    const userQuest = questParticipants?.find(
-      (uq) => uq.profileId === profile.id,
-    )
-    if (!userQuest) return false
-    if (userQuest.status === 'COMPLETED') return true
-
-    // Fallback: check if all tasks are completed
-    const tasks = Array.isArray(userQuest.tasks)
-      ? userQuest.tasks
-      : (() => {
-          try {
-            return typeof userQuest.tasks === 'string'
-              ? JSON.parse(userQuest.tasks)
-              : []
-          } catch {
-            return []
-          }
-        })()
-
-    const taskCount = tasks.length
-    if (taskCount === 0) return false
-    return (
-      tasks.filter((t: { completed: boolean }) => t.completed).length ===
-      taskCount
-    )
-  })
-
   const displayedSponsors = sponsors.slice(0, 2)
 
   const handleOpenParticipants = async () => {
     if (participantsLoaded) return
+    console.log('Fetching profiles for IDs:', participantIds)
     try {
+      const { signInDetails } = await getCurrentUser()
+      console.log('signInDetails', signInDetails)
+      const currentEmail = signInDetails?.loginId ?? ''
+
       const profiles = await Promise.all(
         participantIds.map(async (id) => {
+          console.log('Fetching profile for ID:', id)
           const res = await client.graphql<GraphQLResult<GetProfileQuery>>({
             query: getProfile,
             variables: { id },
             authMode: 'userPool',
           })
-          if ('data' in res) return res.data?.getProfile ?? null
-          return null
+          console.log('Profile response for', id, ':', res)
+          const profile = 'data' in res ? (res.data?.getProfile ?? null) : null
+
+          if (profile && id === currentUserProfile?.id) {
+            return { ...profile, email: currentEmail }
+          }
+          return profile
         }),
       )
       setParticipantProfiles(profiles.filter(Boolean) as Profile[])
+      console.log('Participant Profiles: ', profiles.filter(Boolean))
       setParticipantsLoaded(true)
     } catch (err) {
       console.error('Failed to fetch participant profiles:', err)
@@ -710,6 +722,7 @@ export default function QuestDetailPage() {
                         {/* Scrollable participant list */}
                         <div className="flex flex-col gap-3 mb-4 max-h-72 overflow-y-auto pr-1">
                           {completedParticipants.map((profile) => {
+                            console.log('Profile', profile)
                             const uq = questParticipants?.find(
                               (q) => q.profileId === profile.id,
                             )

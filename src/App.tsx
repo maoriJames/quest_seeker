@@ -136,9 +136,15 @@ const components = {
 
   SignIn: {
     Footer() {
-      const { toSignUp } = useAuthenticator()
+      const { toSignUp, toForgotPassword } = useAuthenticator()
       return (
         <div className="flex flex-col items-center gap-2 pb-4">
+          <button
+            onClick={toForgotPassword}
+            className="text-sm text-gray-500 hover:text-gray-700 underline"
+          >
+            Forgot password?
+          </button>
           <p className="text-sm text-gray-600">
             No account?{' '}
             <button
