@@ -609,8 +609,71 @@ export default function QuestDetailPage() {
                   </div>
 
                   <p className="text-sm text-gray-500">
-                    Ends on:{' '}
+                    Ended on:{' '}
                     <strong>{formatNzDateTime(quest.quest_end_at)}</strong>
+                  </p>
+                  {/* Participant count block remains */}
+                  <p className="text-sm text-gray-500">
+                    People who joined:
+                    {participantIds.length > 0 && (
+                      <Dialog
+                        onOpenChange={(open) =>
+                          open && handleOpenParticipants()
+                        }
+                      >
+                        <DialogTrigger asChild>
+                          <button className="text-blue-600 underline font-medium text-sm">
+                            {participantIds.length} participant
+                            {participantIds.length > 1 ? 's' : ''}
+                          </button>
+                        </DialogTrigger>
+
+                        <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
+                        <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[70vh] w-full max-w-md bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
+                          <DialogTitle className="text-lg font-bold mb-4">
+                            Participants
+                          </DialogTitle>
+
+                          <div className="flex flex-col gap-3">
+                            {participantProfiles.map((profile) => (
+                              <div
+                                key={profile.id}
+                                className="flex items-center gap-3"
+                              >
+                                <RemoteImage
+                                  path={profile.image_thumbnail || placeHold}
+                                  fallback={placeHold}
+                                  className="w-32 h-32 rounded-full object-cover"
+                                />
+
+                                {/* Text stacked vertically */}
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-medium">
+                                    <strong>
+                                      {profile.full_name || 'Unknown'}
+                                    </strong>
+                                  </span>
+
+                                  <span className="text-xs text-gray-600">
+                                    {profile.about_me || ''}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+
+                            {participantProfiles.length === 0 && (
+                              <p className="text-gray-500">Loading...</p>
+                            )}
+                          </div>
+
+                          <DialogClose asChild>
+                            <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
+                              Close
+                            </button>
+                          </DialogClose>
+                        </DialogContent>
+                      </Dialog>
+                    )}
                   </p>
                 </>
               ) : (
@@ -765,70 +828,67 @@ export default function QuestDetailPage() {
                         {/* Scrollable participant list */}
                         <div className="flex flex-col gap-3 mb-4 max-h-72 overflow-y-auto pr-1">
                           {completedParticipants.map((profile) => {
+                            if (!profile?.id) return null
+
                             return (
-                              <>
-                                {profile?.id && (
-                                  <div className="flex items-center gap-3 bg-white p-3 rounded-lg shadow-sm hover:bg-yellow-50 transition border border-gray-100">
-                                    <RemoteImage
-                                      path={
-                                        profile.image_thumbnail || placeHold
-                                      }
-                                      fallback={placeHold}
-                                      className="w-12 h-12 rounded-full object-cover shrink-0"
-                                    />
+                              <div
+                                key={profile.id}
+                                className="flex items-center gap-3 bg-white p-3 rounded-lg shadow-sm hover:bg-yellow-50 transition border border-gray-100"
+                              >
+                                <RemoteImage
+                                  path={profile.image_thumbnail || placeHold}
+                                  fallback={placeHold}
+                                  className="w-12 h-12 rounded-full object-cover shrink-0"
+                                />
 
-                                    <div className="flex flex-col flex-1 min-w-0">
-                                      <span className="font-semibold text-gray-800 truncate">
-                                        {profile.full_name || 'Unknown User'}
-                                      </span>
-                                      <span className="text-xs text-gray-500 truncate">
-                                        {profile.email || ''}
-                                      </span>
-                                    </div>
+                                <div className="flex flex-col flex-1 min-w-0">
+                                  <span className="font-semibold text-gray-800 truncate">
+                                    {profile.full_name || 'Unknown User'}
+                                  </span>
+                                  <span className="text-xs text-gray-500 truncate">
+                                    {profile.email || ''}
+                                  </span>
+                                </div>
 
-                                    {!pdfLoading && pdfTasks.length > 0 ? (
-                                      /* The actual PDF Link */
-                                      <PDFDownloadLink
-                                        key={profile.id}
-                                        document={
-                                          <SeekerTaskPdfButton
-                                            quest={quest}
-                                            seekerTasks={pdfTasks}
-                                            user={profile}
-                                          />
-                                        }
-                                        fileName={`${quest.quest_name}-${profile.full_name ?? 'participant'}.pdf`}
-                                      >
-                                        {({ loading }) => (
-                                          <span className="text-xs text-blue-600 font-medium shrink-0 cursor-pointer">
-                                            {loading
-                                              ? 'Generating...'
-                                              : '⬇ Download PDF'}
-                                          </span>
-                                        )}
-                                      </PDFDownloadLink>
-                                    ) : (
-                                      /* The Initial "Prepare" Button */
-                                      <button
-                                        onClick={() =>
-                                          preparePdfTasks(profile.id)
-                                        } // ✅ Pass participant ID
-                                        disabled={pdfLoading}
-                                        className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg w-full transition-colors"
-                                      >
-                                        {pdfLoading ? (
-                                          <span className="flex items-center justify-center gap-2">
-                                            <span className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-                                            Preparing Tasks...
-                                          </span>
-                                        ) : (
-                                          'Prepare PDF'
-                                        )}
-                                      </button>
+                                {!pdfLoading && pdfTasks.length > 0 ? (
+                                  /* The actual PDF Link */
+                                  <PDFDownloadLink
+                                    key={profile.id}
+                                    document={
+                                      <SeekerTaskPdfButton
+                                        quest={quest}
+                                        seekerTasks={pdfTasks}
+                                        user={profile}
+                                      />
+                                    }
+                                    fileName={`${quest.quest_name}-${profile.full_name ?? 'participant'}.pdf`}
+                                  >
+                                    {({ loading }) => (
+                                      <span className="text-xs text-blue-600 font-medium shrink-0 cursor-pointer">
+                                        {loading
+                                          ? 'Generating...'
+                                          : '⬇ Download PDF'}
+                                      </span>
                                     )}
-                                  </div>
+                                  </PDFDownloadLink>
+                                ) : (
+                                  /* The Initial "Prepare" Button */
+                                  <button
+                                    onClick={() => preparePdfTasks(profile.id)}
+                                    disabled={pdfLoading}
+                                    className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg w-full transition-colors"
+                                  >
+                                    {pdfLoading ? (
+                                      <span className="flex items-center justify-center gap-2">
+                                        <span className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                                        Preparing Tasks...
+                                      </span>
+                                    ) : (
+                                      'Prepare PDF'
+                                    )}
+                                  </button>
                                 )}
-                              </>
+                              </div>
                             )
                           })}
                         </div>
