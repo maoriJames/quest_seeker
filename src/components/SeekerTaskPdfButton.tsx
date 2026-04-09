@@ -71,8 +71,8 @@ export default function SeekerTaskPdfButton({
               task.isImage && task.answer
                 ? await normalizeImage(task.answer)
                 : null,
-          })
-        )
+          }),
+        ),
       )
 
       if (mounted) setTasks(normalized)
@@ -82,8 +82,16 @@ export default function SeekerTaskPdfButton({
       mounted = false
     }
   }, [seekerTasks])
+  console.log('Seeker tasks: ', tasks)
 
-  if (!tasks.length) return null // or loading indicator
+  if (!tasks.length)
+    return (
+      <Document>
+        <Page>
+          <Text>No Tasks Found</Text>
+        </Page>
+      </Document>
+    )
 
   return (
     <Document>

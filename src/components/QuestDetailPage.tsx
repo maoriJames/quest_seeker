@@ -65,7 +65,7 @@ export default function QuestDetailPage() {
   )
   const { data: questParticipants } = useQuestParticipants(quest?.id)
   const participantIds = questParticipants?.map((uq) => uq.profileId) ?? []
-  console.log('Participant IDs:', participantIds)
+  // console.log('Participant IDs:', participantIds)
   const [participantProfiles, setParticipantProfiles] = useState<Profile[]>([])
   const [participantsLoaded, setParticipantsLoaded] = useState(false)
   const [tasks, setTasks] = useState<Task[]>([])
@@ -118,11 +118,53 @@ export default function QuestDetailPage() {
     })
   }
 
-  const preparePdfTasks = async () => {
+  const preparePdfTasks = async (participantId?: string) => {
     setPdfLoading(true)
 
+    // Determine which tasks to prepare
+    let tasksToResolve: Task[]
+
+    if (participantId) {
+      // CREATOR VIEW: Get specific participant's tasks
+      const participantQuest = questParticipants?.find(
+        (uq) => uq.profileId === participantId,
+      )
+
+      if (!participantQuest) {
+        setPdfLoading(false)
+        return []
+      }
+
+      const participantTasks = Array.isArray(participantQuest.tasks)
+        ? participantQuest.tasks
+        : (() => {
+            try {
+              return typeof participantQuest.tasks === 'string'
+                ? JSON.parse(participantQuest.tasks)
+                : []
+            } catch {
+              return []
+            }
+          })()
+
+      tasksToResolve = tasks.map((task) => {
+        const existingAnswer = participantTasks.find(
+          (t: { id: string }) => t.id === task.id,
+        )
+        return {
+          ...task,
+          caption: existingAnswer?.caption || '',
+          answer: existingAnswer?.answer || '',
+        }
+      })
+    } else {
+      // SEEKER VIEW: Use current user's tasks
+      tasksToResolve = seekerTasks
+    }
+
+    // Resolve image URLs
     const resolved = await Promise.all(
-      seekerTasks.map(async (task) => {
+      tasksToResolve.map(async (task) => {
         if (!task.isImage || !task.answer) return task
 
         try {
@@ -143,6 +185,7 @@ export default function QuestDetailPage() {
 
     setPdfTasks(resolved)
     setPdfLoading(false)
+    return resolved // Return for immediate use
   }
   // 🔜 REMOVE MyQuest dependency — now uses UserQuest status
   const completedParticipants = participantProfiles.filter((profile) => {
@@ -288,21 +331,21 @@ export default function QuestDetailPage() {
 
   const handleOpenParticipants = async () => {
     if (participantsLoaded) return
-    console.log('Fetching profiles for IDs:', participantIds)
+    // console.log('Fetching profiles for IDs:', participantIds)
     try {
       const { signInDetails } = await getCurrentUser()
-      console.log('signInDetails', signInDetails)
+      // console.log('signInDetails', signInDetails)
       const currentEmail = signInDetails?.loginId ?? ''
 
       const profiles = await Promise.all(
         participantIds.map(async (id) => {
-          console.log('Fetching profile for ID:', id)
+          // console.log('Fetching profile for ID:', id)
           const res = await client.graphql<GraphQLResult<GetProfileQuery>>({
             query: getProfile,
             variables: { id },
             authMode: 'userPool',
           })
-          console.log('Profile response for', id, ':', res)
+          // console.log('Profile response for', id, ':', res)
           const profile = 'data' in res ? (res.data?.getProfile ?? null) : null
 
           if (profile && id === currentUserProfile?.id) {
@@ -312,7 +355,7 @@ export default function QuestDetailPage() {
         }),
       )
       setParticipantProfiles(profiles.filter(Boolean) as Profile[])
-      console.log('Participant Profiles: ', profiles.filter(Boolean))
+      // console.log('Participant Profiles: ', profiles.filter(Boolean))
       setParticipantsLoaded(true)
     } catch (err) {
       console.error('Failed to fetch participant profiles:', err)
@@ -722,34 +765,10 @@ export default function QuestDetailPage() {
                         {/* Scrollable participant list */}
                         <div className="flex flex-col gap-3 mb-4 max-h-72 overflow-y-auto pr-1">
                           {completedParticipants.map((profile) => {
-                            console.log('Profile', profile)
-                            const uq = questParticipants?.find(
-                              (q) => q.profileId === profile.id,
-                            )
-                            const uqTasks = (() => {
-                              try {
-                                return typeof uq?.tasks === 'string'
-                                  ? JSON.parse(uq.tasks)
-                                  : (uq?.tasks ?? [])
-                              } catch {
-                                return []
-                              }
-                            })()
-
                             return (
-                              <PDFDownloadLink
-                                key={profile.id}
-                                document={
-                                  <SeekerTaskPdfButton
-                                    quest={quest}
-                                    seekerTasks={uqTasks}
-                                    user={profile}
-                                  />
-                                }
-                                fileName={`${quest.quest_name}-${profile.full_name ?? 'participant'}.pdf`}
-                              >
-                                {({ loading }) => (
-                                  <div className="flex items-center gap-3 bg-white p-3 rounded-lg shadow-sm hover:bg-yellow-50 transition cursor-pointer border border-gray-100">
+                              <>
+                                {profile?.id && (
+                                  <div className="flex items-center gap-3 bg-white p-3 rounded-lg shadow-sm hover:bg-yellow-50 transition border border-gray-100">
                                     <RemoteImage
                                       path={
                                         profile.image_thumbnail || placeHold
@@ -757,6 +776,7 @@ export default function QuestDetailPage() {
                                       fallback={placeHold}
                                       className="w-12 h-12 rounded-full object-cover shrink-0"
                                     />
+
                                     <div className="flex flex-col flex-1 min-w-0">
                                       <span className="font-semibold text-gray-800 truncate">
                                         {profile.full_name || 'Unknown User'}
@@ -765,14 +785,50 @@ export default function QuestDetailPage() {
                                         {profile.email || ''}
                                       </span>
                                     </div>
-                                    <span className="text-xs text-blue-600 font-medium shrink-0">
-                                      {loading
-                                        ? 'Generating...'
-                                        : '⬇ Download PDF'}
-                                    </span>
+
+                                    {!pdfLoading && pdfTasks.length > 0 ? (
+                                      /* The actual PDF Link */
+                                      <PDFDownloadLink
+                                        key={profile.id}
+                                        document={
+                                          <SeekerTaskPdfButton
+                                            quest={quest}
+                                            seekerTasks={pdfTasks}
+                                            user={profile}
+                                          />
+                                        }
+                                        fileName={`${quest.quest_name}-${profile.full_name ?? 'participant'}.pdf`}
+                                      >
+                                        {({ loading }) => (
+                                          <span className="text-xs text-blue-600 font-medium shrink-0 cursor-pointer">
+                                            {loading
+                                              ? 'Generating...'
+                                              : '⬇ Download PDF'}
+                                          </span>
+                                        )}
+                                      </PDFDownloadLink>
+                                    ) : (
+                                      /* The Initial "Prepare" Button */
+                                      <button
+                                        onClick={() =>
+                                          preparePdfTasks(profile.id)
+                                        } // ✅ Pass participant ID
+                                        disabled={pdfLoading}
+                                        className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg w-full transition-colors"
+                                      >
+                                        {pdfLoading ? (
+                                          <span className="flex items-center justify-center gap-2">
+                                            <span className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                                            Preparing Tasks...
+                                          </span>
+                                        ) : (
+                                          'Prepare PDF'
+                                        )}
+                                      </button>
+                                    )}
                                   </div>
                                 )}
-                              </PDFDownloadLink>
+                              </>
                             )
                           })}
                         </div>
@@ -806,6 +862,7 @@ export default function QuestDetailPage() {
                   </>
                 ) : (
                   // 🧭 SEEKER VIEW
+
                   <>
                     <h3 className="text-lg font-bold mb-3">
                       Your Completed Quest
@@ -817,15 +874,7 @@ export default function QuestDetailPage() {
 
                     {currentUserProfile && (
                       <div className="flex flex-col gap-3">
-                        <button
-                          onClick={preparePdfTasks}
-                          disabled={pdfLoading}
-                          className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg"
-                        >
-                          {pdfLoading ? 'Preparing...' : 'Prepare PDF'}
-                        </button>
-
-                        {!pdfLoading && pdfTasks.length > 0 && (
+                        {!pdfLoading && pdfTasks.length > 0 ? (
                           <PDFDownloadLink
                             document={
                               <SeekerTaskPdfButton
@@ -837,13 +886,28 @@ export default function QuestDetailPage() {
                             fileName={`${quest.quest_name}-your-answers.pdf`}
                           >
                             {({ loading }) => (
-                              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg w-full">
                                 {loading
-                                  ? 'Generating PDF…'
-                                  : 'Download My Quest PDF'}
+                                  ? 'Generating PDF...'
+                                  : '⬇ Download My Quest PDF'}
                               </button>
                             )}
                           </PDFDownloadLink>
+                        ) : (
+                          <button
+                            onClick={() => preparePdfTasks()}
+                            disabled={pdfLoading}
+                            className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg w-full transition-colors"
+                          >
+                            {pdfLoading ? (
+                              <span className="flex items-center justify-center gap-2">
+                                <span className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                                Preparing Tasks...
+                              </span>
+                            ) : (
+                              'Prepare PDF'
+                            )}
+                          </button>
                         )}
                       </div>
                     )}
