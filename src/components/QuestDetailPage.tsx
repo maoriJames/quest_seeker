@@ -900,6 +900,22 @@ export default function QuestDetailPage() {
                           Pick Random Winner
                         </button>
 
+                        {/* 🧩 Task Window */}
+                        <TaskInformationWindow
+                          questId={quest.id}
+                          tasks={seekerTasks}
+                          userTasks={
+                            joinedQuestEntry
+                              ? [joinedQuestEntry as UserQuest]
+                              : []
+                          }
+                          readOnly={isOwner}
+                          onTasksUpdated={async () => {
+                            await refetch()
+                            await refetchUserQuests()
+                          }}
+                        />
+
                         {winner && (
                           <div className="mt-4 p-3 bg-green-100 border border-green-300 rounded-lg flex items-center gap-3">
                             <RemoteImage
@@ -1074,7 +1090,10 @@ export default function QuestDetailPage() {
               {/* Right: Back + Prize Info */}
               <div className="flex items-center gap-3 ml-auto">
                 {/* ⬅️ Back to Quests */}
-                <Button onClick={() => navigate(-1)} variant="yellow">
+                <Button
+                  onClick={() => navigate('/user/home?region=')}
+                  variant="yellow"
+                >
                   Back to Quests
                 </Button>
 

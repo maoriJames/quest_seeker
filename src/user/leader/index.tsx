@@ -11,12 +11,26 @@ import bg from '@/assets/images/background_main.png'
 import { useCurrentUserProfile } from '@/hooks/userProfiles'
 import { useLeaderboardProfiles } from '@/hooks/useLeaderboardProfiles'
 import { Button } from '@/components/ui/button'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { Toolbar } from '@/components/Toolbar'
+import SignOutButton from '@/components/SignOutButton'
+import { Home } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 export default function Leader() {
   const { currentProfile } = useCurrentUserProfile()
-
+  const location = useLocation()
   const navigate = useNavigate()
+
+  const [activeTab, setActiveTab] = useState(
+    location.state?.defaultTab || 'leader',
+  )
+
+  useEffect(() => {
+    if (location.state?.defaultTab) {
+      setActiveTab(location.state.defaultTab)
+    }
+  }, [location.state])
 
   const { topTen, userRank, loading, error } = useLeaderboardProfiles(
     currentProfile?.id,
@@ -26,11 +40,53 @@ export default function Leader() {
 
   return (
     <div
-      className="relative min-h-screen flex items-center justify-center bg-cover bg-center px-4"
+      className="relative h-screen flex items-center justify-center bg-cover bg-center p-4"
       style={{ backgroundImage: `url(${bg})` }}
     >
-      <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl max-w-5xl w-full">
-        <CardContent className="flex flex-col gap-6 p-6">
+      <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl max-w-5xl w-full h-full max-h-full flex flex-col overflow-hidden">
+        <CardContent className="flex flex-col gap-4 flex-1 min-h-0 p-0">
+          <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-md p-4 shadow-sm border-b">
+            <Toolbar>
+              <Button
+                variant="yellow"
+                onClick={() => navigate('/user/region')}
+                size="icon"
+                aria-label="Home"
+              >
+                <Home />
+              </Button>
+
+              <Button
+                variant="yellow"
+                onClick={() => navigate('/user/account')}
+              >
+                My Account
+              </Button>
+
+              <Button
+                variant="yellow"
+                onClick={() =>
+                  navigate('/user/account', {
+                    state: { defaultTab: 'my-quests' },
+                  })
+                }
+              >
+                My Quests
+              </Button>
+
+              <Button
+                variant={activeTab === 'leader' ? 'default' : 'yellow'}
+                onClick={() => navigate('/user/leader')}
+              >
+                Leader Board
+              </Button>
+
+              <Button variant="yellow" onClick={() => navigate('/user/help')}>
+                Help
+              </Button>
+              <SignOutButton />
+            </Toolbar>
+          </div>
           {/* Header */}
           <div className="text-center">
             <h1 className="text-3xl font-bold">Leaderboard</h1>
@@ -56,64 +112,64 @@ export default function Leader() {
             </div>
           </div>
 
-          {/* Content */}
+          <div className="flex-1 overflow-y-auto p-6 scroll-smooth">
+            <div className="w-full max-w-3xl mx-auto">
+              {loading ? (
+                <p className="text-center text-muted-foreground">Loading…</p>
+              ) : error ? (
+                <p className="text-center text-destructive">{error}</p>
+              ) : (
+                <>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-16">Rank</TableHead>
+                        <TableHead>User</TableHead>
+                        <TableHead className="text-right">Points</TableHead>
+                      </TableRow>
+                    </TableHeader>
 
-          {/* Content */}
-          {loading ? (
-            <p className="text-center text-muted-foreground">Loading…</p>
-          ) : error ? (
-            <p className="text-center text-destructive">{error}</p>
-          ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-16">Rank</TableHead>
-                    <TableHead>User</TableHead>
-                    <TableHead className="text-right">Points</TableHead>
-                  </TableRow>
-                </TableHeader>
+                    <TableBody>
+                      {topTen.map((profile, index) => (
+                        <TableRow
+                          key={profile.id}
+                          className={
+                            profile.id === currentProfile?.id
+                              ? 'bg-primary/10'
+                              : undefined
+                          }
+                        >
+                          <TableCell className="font-medium">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell>
+                            {profile.full_name}
+                            {profile.id === currentProfile?.id && (
+                              <span className="ml-2 text-xs text-primary">
+                                (You)
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">
+                            {profile.points}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
 
-                <TableBody>
-                  {topTen.map((profile, index) => (
-                    <TableRow
-                      key={profile.id}
-                      className={
-                        profile.id === currentProfile?.id
-                          ? 'bg-primary/10'
-                          : undefined
-                      }
-                    >
-                      <TableCell className="font-medium">{index + 1}</TableCell>
-                      <TableCell>
-                        {profile.full_name}
-                        {profile.id === currentProfile?.id && (
-                          <span className="ml-2 text-xs text-primary">
-                            (You)
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right font-semibold">
-                        {profile.points}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-
-              {userRank && userRank > 10 && (
-                <div className="mt-4 text-center text-sm text-muted-foreground">
-                  You are currently ranked{' '}
-                  <span className="font-semibold text-foreground">
-                    #{userRank}
-                  </span>
-                </div>
+                  {userRank && userRank > 10 && (
+                    <div className="mt-4 text-center text-sm text-muted-foreground">
+                      You are currently ranked{' '}
+                      <span className="font-semibold text-foreground">
+                        #{userRank}
+                      </span>
+                    </div>
+                  )}
+                </>
               )}
-              <Button variant="yellow" onClick={() => navigate(-1)}>
-                Back to Quests
-              </Button>
-            </>
-          )}
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

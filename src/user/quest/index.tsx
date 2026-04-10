@@ -158,12 +158,12 @@ export default function QuestPage() {
   // console.log('Quest: ', allQuests)
   return (
     <div
-      className="relative min-h-screen flex items-center justify-center bg-cover bg-center px-4"
+      className="relative h-screen flex items-center justify-center bg-cover bg-center p-4"
       style={{ backgroundImage: `url(${bg})` }}
     >
-      <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl max-w-5xl w-full flex flex-col">
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex items-center justify-between w-full sticky top-0 z-50 bg-white/80 backdrop-blur-md p-2 rounded-md shadow-md">
+      <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl max-w-5xl w-full h-full max-h-full flex flex-col overflow-hidden">
+        <CardContent className="flex flex-col gap-4 flex-1 min-h-0 p-0">
+          <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-md p-4 shadow-sm border-b">
             <Toolbar>
               <Button
                 variant="yellow"
@@ -205,67 +205,66 @@ export default function QuestPage() {
             </Toolbar>
           </div>
           {/* Search + Sort Controls */}
-          <div className="flex flex-col sm:flex-row gap-2 justify-between items-center mb-2">
-            {/* Search */}
-            <input
-              type="text"
-              placeholder="Search quests by name or region..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full sm:w-1/2 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-indigo-200"
-            />
+          <div className="flex-1 overflow-y-auto p-6 scroll-smooth">
+            <div className="w-full max-w-3xl mx-auto">
+              {/* Search */}
+              <input
+                type="text"
+                placeholder="Search quests by name or region..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full sm:w-1/2 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-indigo-200"
+              />
 
-            {/* Sort Dropdown */}
-            <select
-              value={sortOption}
-              onChange={(e) => setSortOption(e.target.value)}
-              className="w-full sm:w-1/3 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-indigo-200"
-            >
-              <option value="title">Title A–Z</option>
-              <option value="newest">Newest First</option>
-              <option value="oldest">Oldest First</option>
-              <option value="recently-added">Recently Added</option>
-              <option value="expiry-soonest">Expiry — Soonest First</option>
-              <option value="expiry-furthest">Expiry — Furthest First</option>
-            </select>
-          </div>
-
-          {/* Loading / error / empty states */}
-          {isLoading && <p>Loading quests...</p>}
-          {error && <p>Failed to fetch quests.</p>}
-          {!isLoading && !error && sortedQuests.length === 0 && (
-            <p>No quests match your search or filters.</p>
-          )}
-
-          <InfiniteScroll
-            dataLength={visibleQuests.length}
-            next={fetchMoreQuests}
-            hasMore={visibleCount < sortedQuests.length}
-            loader={<p className="text-center py-3">Loading more quests...</p>}
-            scrollThreshold={0.9} // triggers at 90% scroll
-          >
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {visibleQuests.map((quest: Quest) => (
-                <QuestListItem
-                  key={quest.id}
-                  quest={{
-                    ...quest,
-                    quest_name: quest.quest_name ?? 'Untitled Quest',
-                    quest_image: quest.quest_image ?? undefined,
-                    quest_start_at: quest.quest_start_at ?? undefined,
-                    quest_end_at: quest.quest_end_at ?? undefined,
-                    region: quest.region ?? 'Unknown',
-                  }}
-                  userQuests={userQuests}
-                />
-              ))}
+              {/* Sort Dropdown */}
+              <select
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value)}
+                className="w-full sm:w-1/3 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-indigo-200"
+              >
+                <option value="title">Title A–Z</option>
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="recently-added">Recently Added</option>
+                <option value="expiry-soonest">Expiry — Soonest First</option>
+                <option value="expiry-furthest">Expiry — Furthest First</option>
+              </select>
             </div>
-          </InfiniteScroll>
 
-          {/* Bottom: Home button centered */}
-          {/* <div className="flex justify-center mt-4">
-            <HomeButton />
-          </div> */}
+            {/* Loading / error / empty states */}
+            {isLoading && <p>Loading quests...</p>}
+            {error && <p>Failed to fetch quests.</p>}
+            {!isLoading && !error && sortedQuests.length === 0 && (
+              <p>No quests match your search or filters.</p>
+            )}
+
+            <InfiniteScroll
+              dataLength={visibleQuests.length}
+              next={fetchMoreQuests}
+              hasMore={visibleCount < sortedQuests.length}
+              loader={
+                <p className="text-center py-3">Loading more quests...</p>
+              }
+              scrollThreshold={0.9} // triggers at 90% scroll
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {visibleQuests.map((quest: Quest) => (
+                  <QuestListItem
+                    key={quest.id}
+                    quest={{
+                      ...quest,
+                      quest_name: quest.quest_name ?? 'Untitled Quest',
+                      quest_image: quest.quest_image ?? undefined,
+                      quest_start_at: quest.quest_start_at ?? undefined,
+                      quest_end_at: quest.quest_end_at ?? undefined,
+                      region: quest.region ?? 'Unknown',
+                    }}
+                    userQuests={userQuests}
+                  />
+                ))}
+              </div>
+            </InfiniteScroll>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Card } from '@aws-amplify/ui-react'
-import { CardContent } from './ui/card'
+// import { Card } from '@aws-amplify/ui-react'
+// import { CardContent } from './ui/card'
 import InlineEditField from './InlineEditField'
 import InlineEditTextarea from './InlineEditTextarea'
 import RemoteImage from './RemoteImage'
@@ -143,224 +143,216 @@ export default function UpdateAccount({
   }
   // console.log('Current Profile: ', profile)
   return (
-    <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl p-8 max-w-md w-full text-center">
-      <CardContent className="flex flex-col gap-4">
-        {forceNameUpdate && (
-          <div className="w-full bg-yellow-100 border border-yellow-300 text-yellow-800 rounded-lg px-4 py-3 text-sm font-medium mb-2">
-            👋 Welcome! Please update your name before continuing.
-          </div>
+    // <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl p-8 max-w-md w-full text-center">
+    //   <CardContent className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 w-full max-w-md mx-auto mb-2">
+      {forceNameUpdate && (
+        <div className="w-full bg-yellow-100 border border-yellow-300 text-yellow-800 rounded-lg px-4 py-3 text-sm font-medium mb-2">
+          👋 Welcome! Please update your name before continuing.
+        </div>
+      )}
+      {/* Profile Image */}
+      <div className="flex flex-col items-center gap-2">
+        {previewImage ? (
+          <RemoteImage
+            path={previewImage || profile.image_thumbnail}
+            fallback={placeHold}
+            className="w-32 h-32 rounded-full object-cover"
+          />
+        ) : (
+          <RemoteImage
+            path={profile.image_thumbnail || placeHold}
+            fallback={placeHold}
+            className="w-32 h-32 rounded-full object-cover"
+          />
         )}
-        {/* Profile Image */}
-        <div className="flex flex-col items-center gap-2">
-          {previewImage ? (
-            <RemoteImage
-              path={previewImage || profile.image_thumbnail}
-              fallback={placeHold}
-              className="w-32 h-32 rounded-full object-cover"
-            />
-          ) : (
-            <RemoteImage
-              path={profile.image_thumbnail || placeHold}
-              fallback={placeHold}
-              className="w-32 h-32 rounded-full object-cover"
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleImageChange}
+          className="mt-2"
+        />
+      </div>
+
+      <InlineEditField
+        label="Name"
+        value={profile.full_name || ''}
+        onSave={(newValue) => onUpdate({ full_name: newValue })}
+        required
+      />
+
+      <InlineEditField
+        label="Phone"
+        value={profile.phone || ''}
+        onSave={(newValue) => onUpdate({ phone: newValue })}
+        required
+      />
+
+      <InlineEditTextarea
+        label="About me"
+        value={profile.about_me || ''}
+        onSave={(newValue) => {
+          // console.log('ABOUT ME SAVING:', newValue)
+          onUpdate({ about_me: newValue })
+        }}
+        required
+      />
+
+      {/* Creator-only fields */}
+      {profile.role === 'creator' && (
+        <>
+          <InlineEditField
+            label="Organisation Name"
+            value={profile.organization_name || ''}
+            onSave={(newValue) => onUpdate({ organization_name: newValue })}
+            required
+          />
+
+          <label className="text-base font-bold">Business Type</label>
+
+          <Select
+            key={profile.business_type ?? 'empty'}
+            value={profile.business_type || ''}
+            onValueChange={(newValue) => onUpdate({ business_type: newValue })}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select Business Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Registered Company">
+                Registered Company
+              </SelectItem>
+              <SelectItem value="Small Business">Small Business</SelectItem>
+              <SelectItem value="Charitable Trust">Charitable Trust</SelectItem>
+              <SelectItem value="Not for Profit">Not for Profit</SelectItem>
+              <SelectItem value="Whanau Fund Raising">
+                Whanau Fund Raising
+              </SelectItem>
+              <SelectItem value="Registered Charity">
+                Registered Charity
+              </SelectItem>
+            </SelectContent>
+          </Select>
+
+          {profile.business_type === 'Registered Company' && (
+            <InlineEditField
+              label="Registration Number"
+              value={profile.registration_number || ''}
+              onSave={(newValue) => onUpdate({ registration_number: newValue })}
+              required
             />
           )}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="mt-2"
+
+          {profile.business_type === 'Registered Charity' && (
+            <InlineEditField
+              label="Registered Charity Number"
+              value={profile.charity_number || ''}
+              onSave={(newValue) => onUpdate({ charity_number: newValue })}
+              required
+            />
+          )}
+
+          <InlineEditTextarea
+            label="Organisation Description"
+            value={profile.organization_description || ''}
+            onSave={(newValue) =>
+              onUpdate({ organization_description: newValue })
+            }
+            required
           />
+
+          <InlineEditField
+            label="Primary Contact Name"
+            value={profile.primary_contact_name || ''}
+            onSave={(newValue) => onUpdate({ primary_contact_name: newValue })}
+            required
+          />
+          <InlineEditField
+            label="Primary Contact Position"
+            value={profile.primary_contact_position || ''}
+            onSave={(newValue) =>
+              onUpdate({ primary_contact_position: newValue })
+            }
+            required
+          />
+          <InlineEditField
+            label="Primary Contact Phone"
+            value={profile.primary_contact_phone || ''}
+            onSave={(newValue) => onUpdate({ primary_contact_phone: newValue })}
+            required
+          />
+          <InlineEditField
+            label="Secondary Contact Name"
+            value={profile.secondary_contact_name || ''}
+            onSave={(newValue) =>
+              onUpdate({ secondary_contact_name: newValue })
+            }
+          />
+          <InlineEditField
+            label="Secondary Contact Position"
+            value={profile.secondary_contact_position || ''}
+            onSave={(newValue) =>
+              onUpdate({ secondary_contact_position: newValue })
+            }
+          />
+          <InlineEditField
+            label="Secondary Contact Phone"
+            value={profile.secondary_contact_phone || ''}
+            onSave={(newValue) =>
+              onUpdate({ secondary_contact_phone: newValue })
+            }
+          />
+        </>
+      )}
+      {!isProfileComplete && (
+        <div className="mb-3 rounded bg-red-100 p-2 text-sm text-red-700">
+          Please complete:
+          <ul className="list-disc ml-5">
+            {!profile.full_name && <li>Name</li>}
+            {!profile.phone && <li>Phone</li>}
+            {!profile.about_me && <li>About Me</li>}
+            {profile.role === 'creator' && !profile.organization_name && (
+              <li>Organisation Name</li>
+            )}
+            {profile.role === 'creator' && !profile.business_type && (
+              <li>Business Type</li>
+            )}
+            {profile.role === 'creator' &&
+              profile.business_type === 'Registered Company' &&
+              !profile.registration_number && <li>Registration Number</li>}
+
+            {profile.role === 'creator' &&
+              profile.business_type === 'Registered Charity' &&
+              !profile.charity_number && <li>Registered Charity Number</li>}
+            {profile.role === 'creator' &&
+              !profile.organization_description && (
+                <li>Organization Description</li>
+              )}
+            {profile.role === 'creator' && !profile.primary_contact_name && (
+              <li>Primary Contact Name</li>
+            )}
+            {profile.role === 'creator' &&
+              !profile.primary_contact_position && (
+                <li>Primary Contact Position</li>
+              )}
+            {profile.role === 'creator' && !profile.primary_contact_phone && (
+              <li>Primary Contact Phone</li>
+            )}
+          </ul>
         </div>
+      )}
 
-        <InlineEditField
-          label="Name"
-          value={profile.full_name || ''}
-          onSave={(newValue) => onUpdate({ full_name: newValue })}
-          required
-        />
-
-        <InlineEditField
-          label="Phone"
-          value={profile.phone || ''}
-          onSave={(newValue) => onUpdate({ phone: newValue })}
-          required
-        />
-
-        <InlineEditTextarea
-          label="About me"
-          value={profile.about_me || ''}
-          onSave={(newValue) => {
-            // console.log('ABOUT ME SAVING:', newValue)
-            onUpdate({ about_me: newValue })
-          }}
-          required
-        />
-
-        {/* Creator-only fields */}
-        {profile.role === 'creator' && (
-          <>
-            <InlineEditField
-              label="Organisation Name"
-              value={profile.organization_name || ''}
-              onSave={(newValue) => onUpdate({ organization_name: newValue })}
-              required
-            />
-
-            <label className="text-base font-bold">Business Type</label>
-
-            <Select
-              key={profile.business_type ?? 'empty'}
-              value={profile.business_type || ''}
-              onValueChange={(newValue) =>
-                onUpdate({ business_type: newValue })
-              }
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select Business Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Registered Company">
-                  Registered Company
-                </SelectItem>
-                <SelectItem value="Small Business">Small Business</SelectItem>
-                <SelectItem value="Charitable Trust">
-                  Charitable Trust
-                </SelectItem>
-                <SelectItem value="Not for Profit">Not for Profit</SelectItem>
-                <SelectItem value="Whanau Fund Raising">
-                  Whanau Fund Raising
-                </SelectItem>
-                <SelectItem value="Registered Charity">
-                  Registered Charity
-                </SelectItem>
-              </SelectContent>
-            </Select>
-
-            {profile.business_type === 'Registered Company' && (
-              <InlineEditField
-                label="Registration Number"
-                value={profile.registration_number || ''}
-                onSave={(newValue) =>
-                  onUpdate({ registration_number: newValue })
-                }
-                required
-              />
-            )}
-
-            {profile.business_type === 'Registered Charity' && (
-              <InlineEditField
-                label="Registered Charity Number"
-                value={profile.charity_number || ''}
-                onSave={(newValue) => onUpdate({ charity_number: newValue })}
-                required
-              />
-            )}
-
-            <InlineEditTextarea
-              label="Organisation Description"
-              value={profile.organization_description || ''}
-              onSave={(newValue) =>
-                onUpdate({ organization_description: newValue })
-              }
-              required
-            />
-
-            <InlineEditField
-              label="Primary Contact Name"
-              value={profile.primary_contact_name || ''}
-              onSave={(newValue) =>
-                onUpdate({ primary_contact_name: newValue })
-              }
-              required
-            />
-            <InlineEditField
-              label="Primary Contact Position"
-              value={profile.primary_contact_position || ''}
-              onSave={(newValue) =>
-                onUpdate({ primary_contact_position: newValue })
-              }
-              required
-            />
-            <InlineEditField
-              label="Primary Contact Phone"
-              value={profile.primary_contact_phone || ''}
-              onSave={(newValue) =>
-                onUpdate({ primary_contact_phone: newValue })
-              }
-              required
-            />
-            <InlineEditField
-              label="Secondary Contact Name"
-              value={profile.secondary_contact_name || ''}
-              onSave={(newValue) =>
-                onUpdate({ secondary_contact_name: newValue })
-              }
-            />
-            <InlineEditField
-              label="Secondary Contact Position"
-              value={profile.secondary_contact_position || ''}
-              onSave={(newValue) =>
-                onUpdate({ secondary_contact_position: newValue })
-              }
-            />
-            <InlineEditField
-              label="Secondary Contact Phone"
-              value={profile.secondary_contact_phone || ''}
-              onSave={(newValue) =>
-                onUpdate({ secondary_contact_phone: newValue })
-              }
-            />
-          </>
-        )}
-        {!isProfileComplete && (
-          <div className="mb-3 rounded bg-red-100 p-2 text-sm text-red-700">
-            Please complete:
-            <ul className="list-disc ml-5">
-              {!profile.full_name && <li>Name</li>}
-              {!profile.phone && <li>Phone</li>}
-              {!profile.about_me && <li>About Me</li>}
-              {profile.role === 'creator' && !profile.organization_name && (
-                <li>Organisation Name</li>
-              )}
-              {profile.role === 'creator' && !profile.business_type && (
-                <li>Business Type</li>
-              )}
-              {profile.role === 'creator' &&
-                profile.business_type === 'Registered Company' &&
-                !profile.registration_number && <li>Registration Number</li>}
-
-              {profile.role === 'creator' &&
-                profile.business_type === 'Registered Charity' &&
-                !profile.charity_number && <li>Registered Charity Number</li>}
-              {profile.role === 'creator' &&
-                !profile.organization_description && (
-                  <li>Organization Description</li>
-                )}
-              {profile.role === 'creator' && !profile.primary_contact_name && (
-                <li>Primary Contact Name</li>
-              )}
-              {profile.role === 'creator' &&
-                !profile.primary_contact_position && (
-                  <li>Primary Contact Position</li>
-                )}
-              {profile.role === 'creator' && !profile.primary_contact_phone && (
-                <li>Primary Contact Phone</li>
-              )}
-            </ul>
-          </div>
-        )}
-
-        <Button
-          type="button"
-          variant="yellow"
-          disabled={!isProfileComplete}
-          className={!isProfileComplete ? 'opacity-50 cursor-not-allowed' : ''}
-          onClick={() => navigate('/user/region')}
-        >
-          Back to Home
-        </Button>
-      </CardContent>
-    </Card>
+      {/* <Button
+        type="button"
+        variant="yellow"
+        disabled={!isProfileComplete}
+        className={!isProfileComplete ? 'opacity-50 cursor-not-allowed' : ''}
+        onClick={() => navigate('/user/region')}
+      >
+        Back to Home
+      </Button> */}
+    </div>
+    //   </CardContent>
+    // </Card>
   )
 }
