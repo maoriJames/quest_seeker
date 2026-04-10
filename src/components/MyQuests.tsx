@@ -1,6 +1,6 @@
-import { Card } from '@aws-amplify/ui-react'
+// import { Card } from '@aws-amplify/ui-react'
 import { Link, useNavigate } from 'react-router-dom'
-import { CardContent } from './ui/card'
+// import { CardContent } from './ui/card'
 import { Profile, Quest } from '@/types'
 import { Button } from './ui/button'
 import { useQuestList, useUserQuests } from '@/hooks/userQuests'
@@ -81,170 +81,172 @@ export default function MyQuests({ profile }: MyQuestsProps) {
   })
 
   return (
-    <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl p-8 max-w-md w-full">
-      <CardContent className="flex flex-col gap-4">
-        <div className="space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-1">
-            <h2 className="font-semibold text-lg">Joined Quests</h2>
+    // <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl p-8 max-w-md w-full">
+    //   <CardContent className="flex flex-col gap-4">
+    <>
+      <div className="space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-1">
+          <h2 className="font-semibold text-lg">Joined Quests</h2>
 
-            <h2 className="font-semibold text-lg text-yellow-600">
-              ⭐ {profile.points} points
-            </h2>
-          </div>
-          {questsLoading && <p className="text-gray-500">Loading quests...</p>}
-          {!questsLoading && normalizedQuests.length === 0 && (
-            <p className="text-gray-500">You haven't joined any quests yet.</p>
-          )}
-          {normalizedQuests.map((myQuest) => (
-            <Link
-              to={`/user/quest/${myQuest.quest_id}`}
-              className="text-blue-600 hover:underline font-medium"
-              key={myQuest.quest_id}
-            >
-              <div className="flex items-start gap-3 w-full">
-                <RemoteImage
-                  path={myQuest.quest?.quest_image_thumb || placeHold}
-                  fallback={placeHold}
-                  className="w-14 h-14 object-contain rounded-full border border-gray-300 shadow-sm bg-white"
-                />
-
-                {/* Middle content */}
-                <div className="flex flex-col flex-1 gap-1">
-                  <span className="font-semibold text-gray-800">
-                    {myQuest.title}
-                  </span>
-
-                  {/* 🔵 Progress bar (only if not completed) */}
-                  {
-                    <>
-                      <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                        <div
-                          className="h-2 bg-green-500 transition-all duration-300"
-                          style={{ width: `${myQuest.progressPercent}%` }}
-                        />
-                      </div>
-
-                      <span className="text-xs text-gray-500">
-                        {myQuest.completedTasks} / {myQuest.totalTasks} tasks
-                        completed
-                      </span>
-                    </>
-                  }
-                </div>
-
-                <Button
-                  variant="secondary"
-                  className={`ml-auto pointer-events-none text-white ${
-                    myQuest.expired
-                      ? myQuest.completed
-                        ? 'bg-red-600'
-                        : 'bg-gray-500'
-                      : myQuest.isUpcoming
-                        ? 'bg-blue-500'
-                        : 'bg-green-600'
-                  }`}
-                >
-                  {myQuest.expired
-                    ? myQuest.completed
-                      ? 'Quest Ended'
-                      : 'Incomplete'
-                    : myQuest.isUpcoming
-                      ? 'Upcoming'
-                      : 'In Progress'}
-                </Button>
-              </div>
-            </Link>
-          ))}
+          <h2 className="font-semibold text-lg text-yellow-600">
+            ⭐ {profile.points} points
+          </h2>
         </div>
+        {questsLoading && <p className="text-gray-500">Loading quests...</p>}
+        {!questsLoading && normalizedQuests.length === 0 && (
+          <p className="text-gray-500">You haven't joined any quests yet.</p>
+        )}
+        {normalizedQuests.map((myQuest) => (
+          <Link
+            to={`/user/quest/${myQuest.quest_id}`}
+            className="text-blue-600 hover:underline font-medium"
+            key={myQuest.quest_id}
+          >
+            <div className="flex items-start gap-3 w-full">
+              <RemoteImage
+                path={myQuest.quest?.quest_image_thumb || placeHold}
+                fallback={placeHold}
+                className="w-14 h-14 object-contain rounded-full border border-gray-300 shadow-sm bg-white"
+              />
 
-        <div className="space-y-3">
-          <h2 className="font-semibold text-lg mb-2">Quests I've Created</h2>
-          {myCreatedQuests.length === 0 ? (
-            <p className="text-gray-500">You haven’t created any quests yet.</p>
-          ) : (
-            <ul className="list-disc pl-5 space-y-1">
-              {myCreatedQuests.map((quest) => {
-                const startDate = quest.quest_start_at
-                  ? toZonedTime(
-                      new Date(quest.quest_start_at),
-                      'Pacific/Auckland',
-                    )
-                  : null
+              {/* Middle content */}
+              <div className="flex flex-col flex-1 gap-1">
+                <span className="font-semibold text-gray-800">
+                  {myQuest.title}
+                </span>
 
-                const isUpcoming =
-                  quest.status === 'published' && startDate && startDate > now
-
-                return (
-                  <Link
-                    to={`/user/quest/${quest.id}`}
-                    className="text-blue-600 hover:underline font-medium"
-                    key={quest.id}
-                  >
-                    <div className="flex items-center gap-3 w-full">
-                      <RemoteImage
-                        path={quest.quest_image_thumb || placeHold}
-                        fallback={placeHold}
-                        className="w-14 h-14 object-contain rounded-full border border-gray-300 shadow-sm bg-white"
+                {/* 🔵 Progress bar (only if not completed) */}
+                {
+                  <>
+                    <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="h-2 bg-green-500 transition-all duration-300"
+                        style={{ width: `${myQuest.progressPercent}%` }}
                       />
-
-                      {/* Left content */}
-                      <div className="flex flex-col">
-                        {quest.quest_name}
-                        <span className="text-sm text-gray-500">
-                          {quest.status ?? 'unknown'}
-                        </span>
-                      </div>
-
-                      {/* Right-aligned status button */}
-                      <Button
-                        variant="secondary"
-                        className={`ml-auto pointer-events-none px-3 py-1 rounded text-white ${
-                          quest.status === 'expired'
-                            ? 'bg-red-600'
-                            : isUpcoming
-                              ? 'bg-blue-500'
-                              : quest.status === 'published'
-                                ? 'bg-green-600'
-                                : 'bg-gray-400'
-                        }`}
-                      >
-                        {quest.status === 'expired'
-                          ? 'Quest Ended'
-                          : isUpcoming
-                            ? 'Upcoming'
-                            : quest.status === 'published'
-                              ? 'In Progress'
-                              : 'Draft'}
-                      </Button>
-
-                      {/* Decide when to show the bin */}
-                      <div className="w-10 flex justify-center">
-                        {quest.status === 'draft' && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) => {
-                              e.preventDefault()
-                              e.stopPropagation()
-                              deleteQuest(quest, { stayHere: true })
-                            }}
-                          >
-                            <Trash2 className="w-5 h-5 text-red-600" />
-                          </Button>
-                        )}
-                      </div>
                     </div>
-                  </Link>
-                )
-              })}
-            </ul>
-          )}
-        </div>
 
-        <Button variant="yellow" onClick={() => navigate('/user/region')}>
-          Back to Home
-        </Button>
-      </CardContent>
-    </Card>
+                    <span className="text-xs text-gray-500">
+                      {myQuest.completedTasks} / {myQuest.totalTasks} tasks
+                      completed
+                    </span>
+                  </>
+                }
+              </div>
+
+              <Button
+                variant="secondary"
+                className={`ml-auto pointer-events-none text-white ${
+                  myQuest.expired
+                    ? myQuest.completed
+                      ? 'bg-red-600'
+                      : 'bg-gray-500'
+                    : myQuest.isUpcoming
+                      ? 'bg-blue-500'
+                      : 'bg-green-600'
+                }`}
+              >
+                {myQuest.expired
+                  ? myQuest.completed
+                    ? 'Quest Ended'
+                    : 'Incomplete'
+                  : myQuest.isUpcoming
+                    ? 'Upcoming'
+                    : 'In Progress'}
+              </Button>
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      <div className="space-y-3">
+        <h2 className="font-semibold text-lg mb-2">Quests I've Created</h2>
+        {myCreatedQuests.length === 0 ? (
+          <p className="text-gray-500">You haven’t created any quests yet.</p>
+        ) : (
+          <ul className="list-disc pl-5 space-y-1">
+            {myCreatedQuests.map((quest) => {
+              const startDate = quest.quest_start_at
+                ? toZonedTime(
+                    new Date(quest.quest_start_at),
+                    'Pacific/Auckland',
+                  )
+                : null
+
+              const isUpcoming =
+                quest.status === 'published' && startDate && startDate > now
+
+              return (
+                <Link
+                  to={`/user/quest/${quest.id}`}
+                  className="text-blue-600 hover:underline font-medium"
+                  key={quest.id}
+                >
+                  <div className="flex items-center gap-3 w-full">
+                    <RemoteImage
+                      path={quest.quest_image_thumb || placeHold}
+                      fallback={placeHold}
+                      className="w-14 h-14 object-contain rounded-full border border-gray-300 shadow-sm bg-white"
+                    />
+
+                    {/* Left content */}
+                    <div className="flex flex-col">
+                      {quest.quest_name}
+                      <span className="text-sm text-gray-500">
+                        {quest.status ?? 'unknown'}
+                      </span>
+                    </div>
+
+                    {/* Right-aligned status button */}
+                    <Button
+                      variant="secondary"
+                      className={`ml-auto pointer-events-none px-3 py-1 rounded text-white ${
+                        quest.status === 'expired'
+                          ? 'bg-red-600'
+                          : isUpcoming
+                            ? 'bg-blue-500'
+                            : quest.status === 'published'
+                              ? 'bg-green-600'
+                              : 'bg-gray-400'
+                      }`}
+                    >
+                      {quest.status === 'expired'
+                        ? 'Quest Ended'
+                        : isUpcoming
+                          ? 'Upcoming'
+                          : quest.status === 'published'
+                            ? 'In Progress'
+                            : 'Draft'}
+                    </Button>
+
+                    {/* Decide when to show the bin */}
+                    <div className="w-10 flex justify-center">
+                      {quest.status === 'draft' && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            deleteQuest(quest, { stayHere: true })
+                          }}
+                        >
+                          <Trash2 className="w-5 h-5 text-red-600" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              )
+            })}
+          </ul>
+        )}
+      </div>
+      {/* 
+      <Button variant="yellow" onClick={() => navigate('/user/region')}>
+        Back to Home
+      </Button> */}
+    </>
+    //     </CardContent>
+    //   </Card>
   )
 }

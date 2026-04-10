@@ -1,47 +1,37 @@
 import bg from '@/assets/images/background_main.png'
 import UpdateAccount from '@/components/UpdateAccount'
-import MyQuests from '@/components/MyQuests'
-import ExpiredQuests from '@/components/ExpiredQuests'
+// import MyQuests from '@/components/MyQuests'
+// import ExpiredQuests from '@/components/ExpiredQuests'
 import { useCurrentUserProfile, useUpdateProfile } from '@/hooks/userProfiles'
-import { useLocation } from 'react-router-dom'
-import { cn } from '@/lib/utils'
+import { useLocation, useNavigate } from 'react-router-dom'
+// import { cn } from '@/lib/utils'
 import { isProfileComplete } from '@/tools/profileValidation'
 import { toProfileRole } from '@/hooks/toProfileTole'
 import type { Profile } from '@/types'
 // import type { UpdateProfileInput } from '@/graphql/API'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Toolbar } from '@/components/Toolbar'
+import { Button } from '@/components/ui/button'
+import { Home } from 'lucide-react'
+import SignOutButton from '@/components/SignOutButton'
+import MyQuests from '@/components/MyQuests'
 
 export default function AccountPage() {
   const { data: currentProfile, isLoading } = useCurrentUserProfile()
   const updateProfile = useUpdateProfile()
   const location = useLocation()
+  const navigate = useNavigate()
 
-  const defaultTab = (
-    location.state as {
-      defaultTab?: 'account' | 'my-quests' | 'expired-quests'
+  const [activeTab, setActiveTab] = useState(
+    location.state?.defaultTab || 'account',
+  )
+
+  useEffect(() => {
+    if (location.state?.defaultTab) {
+      setActiveTab(location.state.defaultTab)
     }
-  )?.defaultTab
-
-  const [activeTab, setActiveTab] = useState<
-    'account' | 'my-quests' | 'expired-quests'
-  >(defaultTab || 'account')
-
-  // if (isLoading || !currentProfile) return null
-
-  // const isComplete = isProfileComplete(currentProfile)
-
-  const confirmLeaveIfIncomplete = () => {
-    if (!isComplete) {
-      return window.confirm(
-        'Your profile is incomplete. Please fill in all required fields before leaving this page.',
-      )
-    }
-    return true
-  }
-
-  // 🔜 Phase 3: Replace with UserQuest cleanup logic
-  // Previously cleaned up deleted quests from my_quests JSON blob
-  // Will need to instead delete UserQuest items where quest no longer exists
+  }, [location.state])
 
   // ✅ EARLY RETURN COMES AFTER ALL HOOKS
   if (isLoading || !currentProfile) return null
@@ -76,55 +66,63 @@ export default function AccountPage() {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-start bg-cover bg-center py-8"
+      className="relative h-screen flex items-center justify-center bg-cover bg-center p-4"
       style={{ backgroundImage: `url(${bg})` }}
     >
-      {/* Tabs */}
-      <div className="flex gap-2 mb-6">
-        <button
-          className={cn(
-            'px-4 py-2 rounded transition-colors',
-            activeTab === 'account'
-              ? 'bg-yellow-500 text-black hover:bg-yellow-600'
-              : 'bg-gray-800 text-gray-300 hover:bg-yellow-500 hover:text-black',
-          )}
-          onClick={() => setActiveTab('account')}
-        >
-          My Account
-        </button>
+      <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl max-w-5xl w-full h-full max-h-full flex flex-col overflow-hidden">
+        <CardContent className="flex flex-col gap-4 flex-1 min-h-0 p-0">
+          <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-md p-4 shadow-sm border-b">
+            <Toolbar>
+              <Button
+                variant="yellow"
+                onClick={() => navigate('/user/region')}
+                size="icon"
+              >
+                <Home />
+              </Button>
 
-        <button
-          className={cn(
-            'px-4 py-2 rounded transition-colors',
-            activeTab === 'my-quests'
-              ? 'bg-yellow-500 text-black hover:bg-yellow-600'
-              : 'bg-gray-800 text-gray-300 hover:bg-yellow-500 hover:text-black',
-          )}
-          onClick={() => {
-            if (!confirmLeaveIfIncomplete()) return
-            setActiveTab('my-quests')
-          }}
-        >
-          My Quests
-        </button>
-      </div>
+              {/* 3. Update onClick to set the state and add visual feedback */}
+              <Button
+                variant={activeTab === 'account' ? 'default' : 'yellow'}
+                onClick={() => setActiveTab('account')}
+              >
+                My Account
+              </Button>
 
-      {/* Content */}
-      <div className="w-full max-w-3xl">
-        {activeTab === 'account' && (
-          <UpdateAccount
-            profile={currentProfile}
-            onUpdate={handleUpdate}
-            isProfileComplete={isComplete}
-          />
-        )}
+              <Button
+                variant={activeTab === 'my-quests' ? 'default' : 'yellow'}
+                onClick={() => setActiveTab('my-quests')}
+              >
+                My Quests
+              </Button>
 
-        {activeTab === 'my-quests' && <MyQuests profile={currentProfile} />}
+              <Button variant="yellow" onClick={() => navigate('/user/leader')}>
+                Leader Board
+              </Button>
 
-        {activeTab === 'expired-quests' && (
-          <ExpiredQuests profile={currentProfile} />
-        )}
-      </div>
+              <Button variant="yellow" onClick={() => navigate('/user/help')}>
+                Help
+              </Button>
+              <SignOutButton />
+            </Toolbar>
+          </div>
+          <div className="flex-1 overflow-y-auto p-6 scroll-smooth">
+            <div className="w-full max-w-3xl mx-auto">
+              {activeTab === 'account' && (
+                <UpdateAccount
+                  profile={currentProfile}
+                  onUpdate={handleUpdate}
+                  isProfileComplete={isComplete}
+                />
+              )}
+
+              {activeTab === 'my-quests' && (
+                <MyQuests profile={currentProfile} />
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
