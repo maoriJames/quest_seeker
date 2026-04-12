@@ -570,6 +570,7 @@ export default function QuestDetailPage() {
                     Region: <strong>{quest.region}</strong>
                   </p>
 
+                  {/* Changed from <p> to <div> */}
                   <div className="text-sm mb-1">
                     Organisation:{' '}
                     {questCreatorProfile?.data?.organization_name ? (
@@ -608,73 +609,77 @@ export default function QuestDetailPage() {
                     )}
                   </div>
 
-                  <p className="text-sm text-gray-500">
+                  {/* Changed from <p> to <div> */}
+                  <div className="text-sm text-gray-500">
                     Ended on:{' '}
                     <strong>{formatNzDateTime(quest.quest_end_at)}</strong>
-                  </p>
-                  {/* Participant count block remains */}
-                  <p className="text-sm text-gray-500">
-                    People who joined:
-                    {participantIds.length > 0 && (
-                      <Dialog
-                        onOpenChange={(open) =>
-                          open && handleOpenParticipants()
-                        }
-                      >
-                        <DialogTrigger asChild>
-                          <button className="text-blue-600 underline font-medium text-sm">
-                            {participantIds.length} participant
-                            {participantIds.length > 1 ? 's' : ''}
-                          </button>
-                        </DialogTrigger>
+                  </div>
 
-                        <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
-                        <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[70vh] w-full max-w-md bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
-                          <DialogTitle className="text-lg font-bold mb-4">
-                            Participants
-                          </DialogTitle>
-
-                          <div className="flex flex-col gap-3">
-                            {participantProfiles.map((profile) => (
-                              <div
-                                key={profile.id}
-                                className="flex items-center gap-3"
-                              >
-                                <RemoteImage
-                                  path={profile.image_thumbnail || placeHold}
-                                  fallback={placeHold}
-                                  className="w-32 h-32 rounded-full object-cover"
-                                />
-
-                                {/* Text stacked vertically */}
-                                <div className="flex flex-col">
-                                  <span className="text-sm font-medium">
-                                    <strong>
-                                      {profile.full_name || 'Unknown'}
-                                    </strong>
-                                  </span>
-
-                                  <span className="text-xs text-gray-600">
-                                    {profile.about_me || ''}
-                                  </span>
-                                </div>
-                              </div>
-                            ))}
-
-                            {participantProfiles.length === 0 && (
-                              <p className="text-gray-500">Loading...</p>
-                            )}
-                          </div>
-
-                          <DialogClose asChild>
-                            <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
-                              Close
+                  {/* Changed from <p> to <div> */}
+                  <div>
+                    <div className="text-sm text-gray-500">
+                      People who joined:
+                      {participantIds.length > 0 && (
+                        <Dialog
+                          onOpenChange={(open) =>
+                            open && handleOpenParticipants()
+                          }
+                        >
+                          <DialogTrigger asChild>
+                            <button className="text-blue-600 underline font-medium text-sm">
+                              {participantIds.length} participant
+                              {participantIds.length > 1 ? 's' : ''}
                             </button>
-                          </DialogClose>
-                        </DialogContent>
-                      </Dialog>
-                    )}
-                  </p>
+                          </DialogTrigger>
+
+                          <DialogOverlay className="fixed inset-0 bg-black/30 z-40" />
+                          <DialogContent className="fixed top-1/2 left-1/2 z-50 max-h-[70vh] w-full max-w-md bg-white rounded-xl p-6 shadow-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto">
+                            <DialogTitle className="text-lg font-bold mb-4">
+                              Participants
+                            </DialogTitle>
+
+                            <div className="flex flex-col gap-3">
+                              {participantProfiles.map((profile) => (
+                                <div
+                                  key={profile.id}
+                                  className="flex items-center gap-3"
+                                >
+                                  <RemoteImage
+                                    path={profile.image_thumbnail || placeHold}
+                                    fallback={placeHold}
+                                    className="w-32 h-32 rounded-full object-cover"
+                                  />
+
+                                  {/* Text stacked vertically */}
+                                  <div className="flex flex-col">
+                                    <span className="text-sm font-medium">
+                                      <strong>
+                                        {profile.full_name || 'Unknown'}
+                                      </strong>
+                                    </span>
+
+                                    <span className="text-xs text-gray-600">
+                                      {profile.about_me || ''}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+
+                              {participantProfiles.length === 0 && (
+                                <p className="text-gray-500">Loading...</p>
+                              )}
+                            </div>
+
+                            <DialogClose asChild>
+                              <button className="mt-6 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
+                                Close
+                              </button>
+                            </DialogClose>
+                          </DialogContent>
+                        </Dialog>
+                      )}
+                    </div>
+                  </div>
                 </>
               ) : (
                 /* ---------- NORMAL VERSION (NOT EXPIRED) ---------- */

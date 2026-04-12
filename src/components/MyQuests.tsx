@@ -1,5 +1,5 @@
 // import { Card } from '@aws-amplify/ui-react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 // import { CardContent } from './ui/card'
 import { Profile, Quest } from '@/types'
 import { Button } from './ui/button'
@@ -18,7 +18,6 @@ export default function MyQuests({ profile }: MyQuestsProps) {
   const { data: quests } = useQuestList()
   const allQuests: Quest[] = quests ?? []
   const { deleteQuest } = useQuestDeletion()
-  const navigate = useNavigate()
 
   const now = new Date()
 
