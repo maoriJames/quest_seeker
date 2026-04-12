@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 // import { Card } from '@aws-amplify/ui-react'
 // import { CardContent } from './ui/card'
 import InlineEditField from './InlineEditField'
@@ -16,7 +16,6 @@ import {
   SelectValue,
 } from './ui/select'
 import imageCompression from 'browser-image-compression'
-import { Button } from './ui/button'
 
 type ProfileProps = {
   profile: Profile
@@ -29,8 +28,6 @@ export default function UpdateAccount({
   onUpdate,
   isProfileComplete,
 }: ProfileProps) {
-  const navigate = useNavigate()
-
   const location = useLocation()
   const forceNameUpdate = (location.state as { forceNameUpdate?: boolean })
     ?.forceNameUpdate
