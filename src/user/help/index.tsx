@@ -65,7 +65,7 @@ export default function Help() {
               </Button>
             </div>
           ) : (
-            <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-md p-4 shadow-sm border-b">
+            <div className="sticky top-0 z-50 bg-black/90 backdrop-blur-md p-4 shadow-sm border-b">
               <Toolbar>
                 <Button
                   variant="yellow"

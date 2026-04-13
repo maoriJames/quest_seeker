@@ -163,7 +163,7 @@ export default function QuestPage() {
     >
       <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl max-w-5xl w-full h-full max-h-full flex flex-col overflow-hidden">
         <CardContent className="flex flex-col gap-4 flex-1 min-h-0 p-0">
-          <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-md p-4 shadow-sm border-b">
+          <div className="sticky top-0 z-50 bg-black/90 backdrop-blur-md p-4 shadow-sm border-b">
             <Toolbar>
               <Button
                 variant="yellow"
@@ -206,21 +206,21 @@ export default function QuestPage() {
           </div>
           {/* Search + Sort Controls */}
           <div className="flex-1 overflow-y-auto p-6 scroll-smooth">
-            <div className="w-full max-w-3xl mx-auto">
+            <div className="w-full max-w-3xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
               {/* Search */}
               <input
                 type="text"
-                placeholder="Search quests by name or region..."
+                placeholder="Search quests..."
+                className="w-full sm:w-1/2 p-2 border border-gray-300 rounded-lg"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full sm:w-1/2 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-indigo-200"
               />
 
               {/* Sort Dropdown */}
               <select
                 value={sortOption}
                 onChange={(e) => setSortOption(e.target.value)}
-                className="w-full sm:w-1/3 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-indigo-200"
+                className="w-full sm:w-auto p-2 border border-gray-300 rounded-lg"
               >
                 <option value="title">Title A–Z</option>
                 <option value="newest">Newest First</option>
