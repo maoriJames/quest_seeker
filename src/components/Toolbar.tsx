@@ -13,7 +13,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ children, className }) => {
   return (
     <div className={cn('w-full', className)}>
       {/* Desktop */}
-      <div className="hidden md:flex justify-evenly items-center w-full p-2 border rounded-md bg-black shadow-sm">
+      <div className="hidden md:flex justify-evenly items-center w-full p-2 rounded-md bg-black shadow-sm">
         {children}
       </div>
 
@@ -32,7 +32,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ children, className }) => {
       <div
         className={cn(
           'fixed inset-0 z-40 md:hidden transition-all',
-          isOpen ? 'pointer-events-auto' : 'pointer-events-none'
+          isOpen ? 'pointer-events-auto' : 'pointer-events-none',
         )}
       >
         {/* Backdrop */}
@@ -40,7 +40,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ children, className }) => {
           onClick={() => setIsOpen(false)}
           className={cn(
             'absolute inset-0 bg-black/50 transition-opacity',
-            isOpen ? 'opacity-100' : 'opacity-0'
+            isOpen ? 'opacity-100' : 'opacity-0',
           )}
         />
 
@@ -48,7 +48,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ children, className }) => {
         <div
           className={cn(
             'absolute top-[56px] left-0 w-64 p-4 bg-black rounded-r-xl shadow-xl transition-transform duration-300 ease-in-out',
-            isOpen ? 'translate-x-0' : '-translate-x-[120%]'
+            isOpen ? 'translate-x-0' : '-translate-x-[120%]',
           )}
         >
           <div className="flex flex-col gap-2" onClick={() => setIsOpen(false)}>

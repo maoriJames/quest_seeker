@@ -45,7 +45,7 @@ export default function Leader() {
     >
       <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl max-w-5xl w-full h-full max-h-full flex flex-col overflow-hidden">
         <CardContent className="flex flex-col gap-4 flex-1 min-h-0 p-0">
-          <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-md p-4 shadow-sm border-b">
+          <div className="sticky top-0 z-50 bg-black/90 backdrop-blur-md p-4 shadow-sm border-b">
             <Toolbar>
               <Button
                 variant="yellow"
