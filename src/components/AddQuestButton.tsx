@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useBecomeCreator } from '@/hooks/useBecomeCreator'
+import { useBecomePending } from '@/hooks/useBecomePending'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,
@@ -28,18 +28,12 @@ export default function AddQuestButton({ to }: AddQuestButtonProps) {
   const navigate = useNavigate()
   const { data: currentProfile, isLoading } = useCurrentUserProfile()
 
-  const { becomeCreator } = useBecomeCreator()
+  const { becomePending } = useBecomePending()
   const [modalOpen, setModalOpen] = useState(false)
   const [loading, setLoading] = useState(false)
 
   // Treat missing role as "seeker" by default
   const role = currentProfile?.role ?? ProfileRole.seeker
-
-  // console.log({
-  //   currentProfile,
-  //   role: currentProfile?.role,
-  //   isLoading,
-  // })
 
   const handleClick = () => {
     if (!currentProfile) return
@@ -54,9 +48,10 @@ export default function AddQuestButton({ to }: AddQuestButtonProps) {
   const handleBecomeCreator = async () => {
     setLoading(true)
     try {
-      await becomeCreator()
+      await becomePending()
       setModalOpen(false)
-      navigate(to)
+      // Pass the state object here:
+      navigate('/user/account', { state: { defaultTab: 'status' } })
     } catch (err) {
       console.error('Failed to become creator:', err)
       alert('Something went wrong — please try again.')

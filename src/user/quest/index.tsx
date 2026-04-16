@@ -155,7 +155,7 @@ export default function QuestPage() {
       setVisibleCount((prev) => prev + pageSize)
     }, 500) // simulates load time
   }
-  // console.log('Quest: ', allQuests)
+
   return (
     <div
       className="relative h-screen flex items-center justify-center bg-cover bg-center p-4"
@@ -200,13 +200,12 @@ export default function QuestPage() {
                 Help
               </Button>
 
-              <AddQuestButton to="/user/quest/create" />
               <SignOutButton />
             </Toolbar>
           </div>
           {/* Search + Sort Controls */}
           <div className="flex-1 overflow-y-auto p-6 scroll-smooth">
-            <div className="w-full max-w-3xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="w-full mx-auto flex flex-col sm:flex-row justify-between items-center gap-6">
               {/* Search */}
               <input
                 type="text"
@@ -229,6 +228,8 @@ export default function QuestPage() {
                 <option value="expiry-soonest">Expiry — Soonest First</option>
                 <option value="expiry-furthest">Expiry — Furthest First</option>
               </select>
+
+              <AddQuestButton to="/user/quest/create" />
             </div>
 
             {/* Loading / error / empty states */}

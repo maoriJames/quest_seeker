@@ -1,10 +1,5 @@
-import { useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
 import InlineEditField from './InlineEditField'
 import InlineEditTextarea from './InlineEditTextarea'
-import RemoteImage from './RemoteImage'
-import placeHold from '@/assets/images/placeholder_view_vector.svg'
-import { uploadData, remove } from 'aws-amplify/storage'
 import type { Profile } from '@/types'
 import {
   Select,
@@ -13,7 +8,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select'
-import imageCompression from 'browser-image-compression'
 
 type ProfileProps = {
   profile: Profile
@@ -21,178 +15,24 @@ type ProfileProps = {
   isProfileComplete: boolean
 }
 
-export default function UpdateAccount({
+export default function CurrentUserStatus({
   profile,
   onUpdate,
   isProfileComplete,
 }: ProfileProps) {
-  const location = useLocation()
-  const forceNameUpdate = (location.state as { forceNameUpdate?: boolean })
-    ?.forceNameUpdate
-
-  const [previewImage, setPreviewImage] = useState(profile.image || '')
-  const [oldImagePath, setOldImagePath] = useState(profile.image || '')
-  const [oldImageThumbPath, setOldImageThumbPath] = useState(
-    profile.image_thumbnail || '',
-  )
-
-  // ✅ Keep oldImagePath updated when profile changes
-  useEffect(() => {
-    if (profile.image) {
-      setOldImagePath(profile.image)
-    }
-  }, [profile.image])
-
-  useEffect(() => {
-    if (profile.image_thumbnail) {
-      setOldImageThumbPath(profile.image_thumbnail)
-    }
-  }, [profile.image_thumbnail])
-
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file || !profile.id) return
-
-    // Show local preview immediately
-    setPreviewImage(URL.createObjectURL(file))
-
-    try {
-      // 1️⃣ Upload full image + thumbnail
-      const { fullPath, thumbPath } = await uploadImageWithThumbnail(file)
-      if (!fullPath || !thumbPath) return
-
-      // 2️⃣ Delete old images if needed
-      if (
-        oldImagePath &&
-        !oldImagePath.startsWith('http') &&
-        oldImagePath !== fullPath // ← guard against same path
-      ) {
-        try {
-          const cleanFull = oldImagePath.startsWith('/')
-            ? oldImagePath.slice(1)
-            : oldImagePath
-          const cleanThumb = oldImageThumbPath?.startsWith('/')
-            ? oldImageThumbPath.slice(1)
-            : oldImageThumbPath
-          if (cleanFull) await remove({ path: cleanFull })
-          if (cleanThumb) await remove({ path: cleanThumb })
-        } catch (err) {
-          console.error('Error deleting old images:', err)
-        }
-      }
-
-      // 3️⃣ Update state & profile
-      setOldImagePath(fullPath)
-      setOldImageThumbPath(thumbPath)
-      onUpdate({ image: fullPath, image_thumbnail: thumbPath })
-    } catch (err) {
-      console.error('Error uploading image:', err)
-    }
-  }
-
-  // Helper function to upload full + thumbnail
-  const uploadImageWithThumbnail = async (
-    file: File,
-  ): Promise<{ fullPath: string; thumbPath: string }> => {
-    const fullPath = `public/${crypto.randomUUID()}-${file.name}`
-    const thumbPath = `public/thumbnails/${crypto.randomUUID()}-${file.name}`
-
-    try {
-      // 1️⃣ Convert + upload FULL image (WebP)
-      const compressedFullFile = await imageCompression(file, {
-        maxWidthOrHeight: 1400, // good balance for quality
-        maxSizeMB: 1, // ~1MB max
-        fileType: 'image/webp',
-        useWebWorker: true,
-      })
-
-      await uploadData({
-        path: fullPath,
-        data: compressedFullFile,
-        options: {
-          contentType: 'image/webp',
-        },
-      })
-
-      // 2️⃣ Convert + upload THUMBNAIL (WebP)
-      const compressedThumbFile = await imageCompression(file, {
-        maxWidthOrHeight: 300,
-        maxSizeMB: 0.2,
-        fileType: 'image/webp',
-        useWebWorker: true,
-      })
-
-      await uploadData({
-        path: thumbPath,
-        data: compressedThumbFile,
-        options: {
-          contentType: 'image/webp',
-        },
-      })
-
-      return { fullPath, thumbPath }
-    } catch (err) {
-      console.error('Error uploading image or thumbnail:', err)
-      return { fullPath: '', thumbPath: '' }
-    }
-  }
-  // console.log('Current Profile: ', profile)
   return (
-    // <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl p-8 max-w-md w-full text-center">
-    //   <CardContent className="flex flex-col gap-4">
     <div className="flex flex-col gap-4 w-full max-w-md mx-auto mb-2">
-      {forceNameUpdate && (
-        <div className="w-full bg-yellow-100 border border-yellow-300 text-yellow-800 rounded-lg px-4 py-3 text-sm font-medium mb-2">
-          👋 Welcome! Please update your name before continuing.
-        </div>
+      {/* Pending-only fields */}
+      {profile.role === 'pending' && (
+        <>
+          <div>
+            <p>
+              Thanks, your application is under review and you will be notified
+              when it is reviewed as soon as possible.
+            </p>
+          </div>
+        </>
       )}
-      {/* Profile Image */}
-      <div className="flex flex-col items-center gap-2">
-        {previewImage ? (
-          <RemoteImage
-            path={previewImage || profile.image_thumbnail}
-            fallback={placeHold}
-            className="w-32 h-32 rounded-full object-cover"
-          />
-        ) : (
-          <RemoteImage
-            path={profile.image_thumbnail || placeHold}
-            fallback={placeHold}
-            className="w-32 h-32 rounded-full object-cover"
-          />
-        )}
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImageChange}
-          className="mt-2"
-        />
-      </div>
-
-      <InlineEditField
-        label="Name"
-        value={profile.full_name || ''}
-        onSave={(newValue) => onUpdate({ full_name: newValue })}
-        required
-      />
-
-      <InlineEditField
-        label="Phone"
-        value={profile.phone || ''}
-        onSave={(newValue) => onUpdate({ phone: newValue })}
-        required
-      />
-
-      <InlineEditTextarea
-        label="About me"
-        value={profile.about_me || ''}
-        onSave={(newValue) => {
-          // console.log('ABOUT ME SAVING:', newValue)
-          onUpdate({ about_me: newValue })
-        }}
-        required
-      />
-
       {/* Creator-only fields */}
       {profile.role === 'creator' && (
         <>
