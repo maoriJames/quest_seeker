@@ -15,6 +15,13 @@ export const becomeCreator = /* GraphQL */ `mutation BecomeCreator($profileId: S
   APITypes.BecomeCreatorMutationVariables,
   APITypes.BecomeCreatorMutation
 >;
+export const becomePending = /* GraphQL */ `mutation BecomePending($profileId: String!) {
+  becomePending(profileId: $profileId)
+}
+` as GeneratedMutation<
+  APITypes.BecomePendingMutationVariables,
+  APITypes.BecomePendingMutation
+>;
 export const createProfile = /* GraphQL */ `mutation CreateProfile(
   $condition: ModelProfileConditionInput
   $input: CreateProfileInput!

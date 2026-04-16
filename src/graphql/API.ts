@@ -32,6 +32,7 @@ export type Profile = {
 
 export enum ProfileRole {
   creator = "creator",
+  pending = "pending",
   seeker = "seeker",
 }
 
@@ -886,6 +887,14 @@ export type BecomeCreatorMutationVariables = {
 
 export type BecomeCreatorMutation = {
   becomeCreator?: string | null,
+};
+
+export type BecomePendingMutationVariables = {
+  profileId: string,
+};
+
+export type BecomePendingMutation = {
+  becomePending?: string | null,
 };
 
 export type CreateProfileMutationVariables = {

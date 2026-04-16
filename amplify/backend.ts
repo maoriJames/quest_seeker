@@ -9,6 +9,7 @@ import { expiredQuests } from './functions/expiredQuests/resource'
 import { postRegistration } from './functions/postRegistration/resource'
 import { joinQuest } from './functions/joinQuest/resource'
 import { becomeCreator } from './functions/becomeCreator/resource'
+import { becomePending } from './functions/becomePending/resource'
 import { mutateQuest } from './functions/mutateQuest/resource'
 import { createQuestEntrySession } from './functions/createQuestEntrySession/resource'
 import { createStripeSession } from './functions/createStripeSession/resource'
@@ -22,6 +23,7 @@ const backend = defineBackend({
   postRegistration,
   joinQuest,
   becomeCreator,
+  becomePending,
   mutateQuest,
   createQuestEntrySession,
   createStripeSession,
