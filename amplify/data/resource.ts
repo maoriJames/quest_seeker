@@ -32,7 +32,11 @@ export const schema = a
     becomePending: a
       .mutation()
       .arguments({
-        profileId: a.string().required(),
+        type: a.string().required(),
+        userId: a.string().required(),
+        accountName: a.string().required(),
+        bankAccount: a.string().required(),
+        profileData: a.json().required(),
       })
       .returns(a.json())
       .authorization((allow) => [allow.authenticated()])

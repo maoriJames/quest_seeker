@@ -1,111 +1,67 @@
-import type { AppSyncResolverEvent } from 'aws-lambda'
 import type { Schema } from '../../data/resource'
-import { Amplify } from 'aws-amplify'
-import { generateClient } from 'aws-amplify/data'
-import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtime'
-import { env } from '$amplify/env/becomePending'
-import {
-  CognitoIdentityProviderClient,
-  AdminAddUserToGroupCommand,
-  UserNotFoundException,
-  CognitoIdentityProviderServiceException,
-} from '@aws-sdk/client-cognito-identity-provider'
+import { updateUserRole } from './updateRole'
+import { sendCreatorApplicationEmail, sendBankUpdateEmail } from './sendEmail'
 
-const cognitoClient = new CognitoIdentityProviderClient({})
+type Role = 'seeker' | 'creator' | 'pending'
 
-let dataClient: ReturnType<typeof generateClient<Schema>>
-
-async function initializeAmplify() {
-  if (dataClient) return // Already initialized
-  const { resourceConfig, libraryOptions } =
-    await getAmplifyDataClientConfig(env)
-  Amplify.configure(resourceConfig, libraryOptions)
-  dataClient = generateClient<Schema>({ authMode: 'iam' })
+type Profile = {
+  id: string
+  full_name: string
+  email: string
+  phone: string
+  organization_name: string
+  registration_number: string
+  charity_number: string
+  business_type: string
+  organization_description: string
+  primary_contact_name: string
+  primary_contact_position: string
+  primary_contact_phone: string
+  secondary_contact_name: string
+  secondary_contact_position: string
+  secondary_contact_phone: string
+  about_me: string
+  image: string
+  image_thumbnail: string
+  role: Role
+  points: number
 }
 
-type Args = {
-  profileId: string
-}
+export const handler: Schema['becomePending']['functionHandler'] = async (
+  event,
+) => {
+  const { type, userId, accountName, bankAccount, profileData } =
+    event.arguments
 
-interface ExtendedEnv {
-  AMPLIFY_AUTH_USERPOOL_ID?: string
-}
-
-export const handler = async (event: AppSyncResolverEvent<Args>) => {
-  await initializeAmplify()
-
-  const typedEnv = env as typeof env & ExtendedEnv
-  const userPoolId = typedEnv.AMPLIFY_AUTH_USERPOOL_ID
-
-  if (!userPoolId) {
-    throw new Error(
-      'Missing User Pool ID. Ensure you granted access in auth/resource.ts',
-    )
+  const isProfile = (data: any): data is Profile => {
+    return data && typeof data === 'object' && 'role' in data
   }
 
-  // 3. Identity Validation
-  if (!event.identity || !('sub' in event.identity)) {
-    throw new Error('Unauthorized')
-  }
-
-  const { sub, claims } = event.identity
-  const { profileId } = event.arguments
-
-  // 4. Fetch Profile
-  const { data: profile, errors } = await dataClient.models.Profile.get({
-    id: profileId,
-  })
-
-  if (errors || !profile) {
-    console.error('Profile not found:', errors)
-    throw new Error('Profile not found')
-  }
-
-  // 5. Ownership Safety Check
-  const callerEmail = 'email' in claims ? (claims.email as string) : undefined
-  if (callerEmail && profile.email !== callerEmail) {
-    throw new Error('Forbidden: You do not own this profile')
-  }
-
-  // 6. Role Update (only if necessary)
-  if (profile.role !== 'pending') {
-    const { errors: updateErrors } = await dataClient.models.Profile.update({
-      id: profile.id,
-      role: 'pending',
-    })
-
-    if (updateErrors) {
-      console.error('Failed to update profile role:', updateErrors)
-      throw new Error('Database update failed')
-    }
-  }
-
-  // 7. Cognito Group Assignment with Type-Safe Errors
   try {
-    await cognitoClient.send(
-      new AdminAddUserToGroupCommand({
-        UserPoolId: userPoolId,
-        Username: sub,
-        GroupName: 'pending',
-      }),
-    )
-  } catch (err) {
-    if (err instanceof UserNotFoundException) {
-      console.error('User does not exist in Cognito.')
-      throw err
-    }
-
-    if (err instanceof CognitoIdentityProviderServiceException) {
-      // If the user is already in the group, we can consider this a success
-      if (err.name === 'ResourceNotFoundException') {
-        // Group doesn't exist
-        throw new Error(`Cognito Group 'pending' does not exist.`)
+    if (type === 'CREATOR_APPLICATION' && isProfile(profileData)) {
+      // TypeScript now knows profileData has a .role property
+      if (profileData.role === 'seeker') {
+        await updateUserRole(userId, 'pending', process.env.PROFILE_TABLE_NAME!)
       }
-      console.warn(`Cognito note [${err.name}]: ${err.message}`)
-    } else {
-      throw err // Re-throw unknown errors
-    }
-  }
 
-  return { success: true }
+      await sendCreatorApplicationEmail(
+        userId,
+        accountName,
+        bankAccount,
+        profileData,
+      )
+    } else if (type === 'BANK_ACCOUNT_UPDATE') {
+      await sendBankUpdateEmail(
+        userId,
+        accountName,
+        bankAccount,
+        process.env.PROFILE_TABLE_NAME!,
+      )
+    }
+
+    return { success: true, message: 'Application submitted successfully' }
+  } catch (error) {
+    console.error('Error in becomePending:', error)
+    throw error
+  }
 }

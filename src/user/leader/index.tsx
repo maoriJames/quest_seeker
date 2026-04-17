@@ -7,6 +7,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import bg from '@/assets/images/background_main.png'
 import { useCurrentUserProfile } from '@/hooks/userProfiles'
 import { useLeaderboardProfiles } from '@/hooks/useLeaderboardProfiles'
@@ -16,12 +22,16 @@ import { Toolbar } from '@/components/Toolbar'
 import SignOutButton from '@/components/SignOutButton'
 import { Home } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import RemoteImage from '@/components/RemoteImage'
+import placeHold from '@/assets/images/placeholder_view_vector.svg'
+import { Profile } from '@/types'
 
 export default function Leader() {
   const { currentProfile } = useCurrentUserProfile()
   const location = useLocation()
   const navigate = useNavigate()
 
+  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null)
   const [activeTab, setActiveTab] = useState(
     location.state?.defaultTab || 'leader',
   )
@@ -130,7 +140,7 @@ export default function Leader() {
                     </TableHeader>
 
                     <TableBody>
-                      {topTen.map((profile, index) => (
+                      {(topTen as Profile[]).map((profile, index) => (
                         <TableRow
                           key={profile.id}
                           className={
@@ -138,6 +148,7 @@ export default function Leader() {
                               ? 'bg-primary/10'
                               : undefined
                           }
+                          onClick={() => setSelectedProfile(profile)}
                         >
                           <TableCell className="font-medium">
                             {index + 1}
@@ -172,6 +183,45 @@ export default function Leader() {
           </div>
         </CardContent>
       </Card>
+      {/* Profile Detail Modal */}
+      <Dialog
+        open={!!selectedProfile}
+        onOpenChange={() => setSelectedProfile(null)}
+      >
+        <DialogContent className="sm:max-w-[425px] bg-white">
+          <DialogHeader>
+            <DialogTitle>User Profile</DialogTitle>
+          </DialogHeader>
+
+          {selectedProfile && (
+            <div className="flex flex-col items-center gap-4 py-4">
+              <RemoteImage
+                path={selectedProfile.image_thumbnail || placeHold}
+                fallback={placeHold}
+                className="w-32 h-32 rounded-full object-cover border-4 border-yellow-500"
+              />
+              <div className="text-center">
+                <h2 className="text-2xl font-bold">
+                  {selectedProfile.full_name}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {selectedProfile.role}
+                </p>
+              </div>
+
+              <div className="w-full bg-muted/30 p-4 rounded-xl space-y-2">
+                <p className="text-sm">
+                  <strong>About:</strong>{' '}
+                  {selectedProfile.about_me || 'No bio provided.'}
+                </p>
+                <p className="text-sm">
+                  <strong>Total Points:</strong> {selectedProfile.points}
+                </p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
