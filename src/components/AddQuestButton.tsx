@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useBecomePending } from '@/hooks/useBecomePending'
+// import { useBecomePending } from '@/hooks/useBecomePending'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,
@@ -28,7 +28,7 @@ export default function AddQuestButton({ to }: AddQuestButtonProps) {
   const navigate = useNavigate()
   const { data: currentProfile, isLoading } = useCurrentUserProfile()
 
-  const { becomePending } = useBecomePending()
+  // const { becomePending } = useBecomePending()
   const [modalOpen, setModalOpen] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -48,7 +48,7 @@ export default function AddQuestButton({ to }: AddQuestButtonProps) {
   const handleBecomeCreator = async () => {
     setLoading(true)
     try {
-      await becomePending()
+      // await becomePending()
       setModalOpen(false)
       // Pass the state object here:
       navigate('/user/account', { state: { defaultTab: 'status' } })
