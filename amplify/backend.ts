@@ -146,3 +146,27 @@ expiredQuestsLambda.addEnvironment(
   'AMPLIFY_USER_POOL_ID',
   backend.auth.resources.userPool.userPoolId,
 )
+
+// Add this to your backend.ts after the existing code
+
+// -----------------------------
+// becomePending permissions
+// -----------------------------
+const becomePendingLambda = backend.becomePending.resources
+  .lambda as lambda.Function
+
+// Grant DynamoDB permissions
+profileTable.grantReadWriteData(becomePendingLambda)
+becomePendingLambda.addEnvironment('PROFILE_TABLE_NAME', profileTable.tableName)
+
+// Grant SES permissions
+becomePendingLambda.addToRolePolicy(sesPolicy)
+
+// Grant Cognito permissions
+becomePendingLambda.addToRolePolicy(cognitoPolicy)
+
+// Add User Pool ID
+becomePendingLambda.addEnvironment(
+  'AMPLIFY_USER_POOL_ID',
+  backend.auth.resources.userPool.userPoolId,
+)
