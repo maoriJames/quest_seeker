@@ -39,10 +39,6 @@ export default function CurrentUserStatus({
       return
     }
 
-    // const emailType = isProfileComplete
-    //   ? 'BANK_ACCOUNT_UPDATE'
-    //   : 'CREATOR_APPLICATION'
-
     const result = await submitApplication(
       profile,
       bankDetails,
@@ -89,7 +85,7 @@ export default function CurrentUserStatus({
           </form>
         </>
       )}
-      {!isProfileComplete && (
+      {profile.role === 'seeker' && (
         <div className="mb-3 rounded bg-red-100 p-4 text-sm text-red-700 space-y-4">
           <p className="font-bold text-lg">Creator Application Details</p>
           <div className="mb-3 rounded bg-red-100 p-2 text-sm text-red-700">

@@ -13,7 +13,7 @@ import { Home } from 'lucide-react'
 import SignOutButton from '@/components/SignOutButton'
 import MyQuests from '@/components/MyQuests'
 import CurrentUserStatus from '@/components/CurrentUserStatus'
-import { useBecomePending } from '@/hooks/useBecomePending'
+// import { useBecomePending } from '@/hooks/useBecomePending'
 import {
   Dialog,
   DialogContent,
@@ -29,7 +29,7 @@ export default function AccountPage() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  const { becomePending } = useBecomePending()
+  // const { becomePending } = useBecomePending()
   const [modalOpen, setModalOpen] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -91,7 +91,7 @@ export default function AccountPage() {
   const handleBecomeCreator = async () => {
     setLoading(true)
     try {
-      await becomePending()
+      // await becomePending()
       setModalOpen(false)
       // Pass the state object here:
       navigate('/user/account', { state: { defaultTab: 'status' } })
